@@ -1,0 +1,32 @@
+<!--
+  Generated template for the UserTabPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>user-tab</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+	<ion-list>
+    <ion-item>
+      <ion-avatar item-start>
+        <img [src]="authProvider.user?.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{authProvider.user?.name}}</h2>
+      <p>{{authProvider.user?.email}}</p>
+    </ion-item>
+	  <button ion-item (click)="navController.push('PartnerListPage')">
+	    Configurar Parceiro
+	  </button> 
+	  <button ion-item (click)="authProvider.logout()">
+	    Sair
+	  </button> 
+	</ion-list>
+</ion-content>
