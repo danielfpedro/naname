@@ -50,10 +50,26 @@
 	      </ion-avatar>
 	      <h2>{{request.name}}</h2>
 	      <p>{{request.email}}</p>
-		    <button ion-button item-end color="danger" (click)="denyRequest(request)">Recusar</button>
-		    <button ion-button item-end (click)="acceptRequest(request)">Aceitar</button>
+		    <button ion-button item-end color="danger" (click)="blockRequest(request)">B</button>
+		    <button ion-button item-end color="danger" (click)="denyRequest(request)">R</button>
+		    <button ion-button item-end (click)="acceptRequest(request)">A</button>
 		  </ion-item> 
 		</ion-list>
+
+		<ion-list *ngIf="usersBlocked.length > 0">
+		  <ion-list-header>
+		    Usuários Bloqueados
+		  </ion-list-header>
+		  <ion-item *ngFor="let userBlocked of usersBlocked">
+	      <ion-avatar item-start>
+	        <img [src]="userBlocked.profilePhotoURL">
+	      </ion-avatar>
+	      <h2>{{userBlocked.name}}</h2>
+	      <p>{{userBlocked.email}}</p>
+		    <button ion-button item-end (click)="unblockRequest(userBlocked)">Desbloquear</button>
+		  </ion-item> 
+		</ion-list>
+
 	</div>
 
 </ion-content>

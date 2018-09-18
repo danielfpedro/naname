@@ -21,6 +21,7 @@ import { AuthProvider } from '../../providers/auth/auth';
 })
 export class PartnerListPage {
 
+	usersBlockedCollection: any;
 	requestsSentCollection: any;
 	partnerCollection: any;
 	requestsCollection: any;
@@ -28,6 +29,8 @@ export class PartnerListPage {
 	requestsSent = [];
 
 	partner = null;
+
+	usersBlocked = [];
 
   constructor(public navCtrl: NavController, public navParams: NavParams,
   	private afs: AngularFirestore,
@@ -85,6 +88,25 @@ export class PartnerListPage {
     				});	
     		});
     	});
+
+    this.usersBlockedCollection = this.afs.collection('usersBlocked', ref => ref.where('user_id', '==', this.authProvider.userUid));
+    this.usersBlockedCollection.valueChanges()
+    	.subscribe(values => {
+    		console.log('Blocked users', values);
+    		this.usersBlocked = [];
+    		values.forEach(value => {
+    			console.log('VALUE', value);
+    			firebase.firestore().doc('users/' + value.blocked_user_id).get()
+    				.then(user => {
+    					console.log('USER', user.data());
+    					console.log('USER ID', user.id);
+    					let userWithUid = user.data();
+    					userWithUid.id = user.id;
+    					this.usersBlocked.push(userWithUid);
+    				});	
+    		});
+    	});
+
   }
 
   removePartner() {
@@ -111,14 +133,20 @@ export class PartnerListPage {
   }
   denyRequest(user) {
   	firebase.firestore().doc('partnershipRequests/' + user.id + '_' + this.authProvider.userUid).delete();
-  	// firebase.firestore().doc('partnershipRequests/' + this.authProvider.userUid + '_' + user.id).delete();
-  	// firebase.firestore().doc('users/' + this.authProvider.userUid).update({
-  	// 	partner: user.id
-  	// });
-  	// firebase.firestore().doc('users/' + user.id).update({
-  	// 	partner: this.authProvider.userUid
-  	// });
   }
+
+  blockRequest(user) {
+  	firebase.firestore().doc('usersBlocked/' + this.authProvider.userUid + '_' + user.id).set({
+  		user_id: this.authProvider.userUid,
+  		blocked_user_id: user.id
+  	});
+  	firebase.firestore().doc('partnershipRequests/' + user.id + '_' + this.authProvider.userUid).delete();
+  }
+
+  unblockRequest(user) {
+  	firebase.firestore().doc('usersBlocked/' + this.authProvider.userUid + '_' + user.id).delete();
+ 	}
+
   cancelRequest(user) {
   	firebase.firestore().doc('partnershipRequests/' + this.authProvider.userUid + '_' + user.id).delete();
   }
