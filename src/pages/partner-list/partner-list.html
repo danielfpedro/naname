@@ -13,24 +13,24 @@
 </ion-header>
 
 <ion-content>
-	<div *ngIf="partner">
+	<div *ngIf="partnerInvitesProviders.partner">
 		O seu parça é
 		<br>
-		<img [src]="partner.profilePhotoURL" width="80">
-		<button ion-button color="danger" (click)="removePartner()">Remover Parça</button>
+		<img [src]="partnerInvitesProviders.partner.profilePhotoURL" width="80">
+		<button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover Parça</button>
 	</div>
 
-	<div *ngIf="!partner">
+	<div *ngIf="!partnerInvitesProviders.partner">
 
 		<div padding>
 			<button ion-button (click)="showPrompt()">Requisitar</button>
 		</div>
 
-		<ion-list *ngIf="requestsSent.length > 0">
+		<ion-list *ngIf="partnerInvitesProviders.requestsSent.length > 0">
 		  <ion-list-header>
 		    Convite Enviado
 		  </ion-list-header>
-		  <ion-item *ngFor="let requestSent of requestsSent">
+		  <ion-item *ngFor="let requestSent of partnerInvitesProviders.requestsSent">
 	      <ion-avatar item-start>
 	        <img [src]="requestSent.profilePhotoURL">
 	      </ion-avatar>
@@ -40,11 +40,11 @@
 		  </ion-item> 
 		</ion-list>
 
-		<ion-list *ngIf="requests.length > 0">
+		<ion-list *ngIf="partnerInvitesProviders.requests.length > 0">
 		  <ion-list-header>
 		    Convites Recebidos
 		  </ion-list-header>
-		  <ion-item *ngFor="let request of requests">
+		  <ion-item *ngFor="let request of partnerInvitesProviders.requests">
 	      <ion-avatar item-start>
 	        <img [src]="request.profilePhotoURL">
 	      </ion-avatar>
@@ -56,11 +56,11 @@
 		  </ion-item> 
 		</ion-list>
 
-		<ion-list *ngIf="usersBlocked.length > 0">
+		<ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">
 		  <ion-list-header>
 		    Usuários Bloqueados
 		  </ion-list-header>
-		  <ion-item *ngFor="let userBlocked of usersBlocked">
+		  <ion-item *ngFor="let userBlocked of partnerInvitesProviders.usersBlocked">
 	      <ion-avatar item-start>
 	        <img [src]="userBlocked.profilePhotoURL">
 	      </ion-avatar>

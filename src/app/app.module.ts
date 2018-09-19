@@ -15,6 +15,7 @@ import { AngularFireAuthModule } from '@angular/fire/auth';
 
 import { Facebook } from '@ionic-native/facebook';
 import { AuthProvider } from '../providers/auth/auth';
+import { PartnerInvitesProvider } from '../providers/partner-invites/partner-invites';
 
 import { IonicStorageModule } from '@ionic/storage';
 
@@ -52,6 +53,7 @@ export const firebaseConfig = {
     AuthProvider,
     StatusBar,
     SplashScreen,
+    PartnerInvitesProvider,
     // {provide: ErrorHandler, useClass: IonicErrorHandler},
   ]
 })

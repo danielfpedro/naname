@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController, LoadingController } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import firebase from 'firebase/app';
 
 import { AuthProvider } from '../../providers/auth/auth';
+import { PartnerInvitesProvider } from '../../providers/partner-invites/partner-invites';
 
 /**
  * Generated class for the PartnerListPage page.
@@ -23,102 +24,28 @@ export class PartnerListPage {
 
 	usersBlockedCollection: any;
 	requestsSentCollection: any;
-	partnerCollection: any;
-	requestsCollection: any;
-	requests = [];
-	requestsSent = [];
 
-	partner = null;
 
 	usersBlocked = [];
 
   constructor(public navCtrl: NavController, public navParams: NavParams,
   	private afs: AngularFirestore,
   	public authProvider: AuthProvider,
-  	public alertController: AlertController
+  	public alertController: AlertController,
+  	public partnerInvitesProviders: PartnerInvitesProvider
   	) {
 
   }
 
   ionViewDidLoad() {
 
-  	this.partnerCollection = this.afs.doc('users/' + this.authProvider.userUid);
-    this.partnerCollection.valueChanges()
-    	.subscribe(value => {
-    		if (typeof value.partner == 'undefined') {
-    			this.partner = null;
-    		} else {
-    			firebase.firestore().doc('users/' + value.partner).get()
-    				.then(user => {
-    					if (user.data()) {
-	    					let userWithUid = user.data();
-	    					userWithUid.id = user.id;
-	    					this.partner = userWithUid;
-    					} else {
-    						this.partner = null;
-    					}
-    				});	
-    		}
-    	});
 
-    this.requestsCollection = this.afs.collection('partnershipRequests', ref => ref.where('to', '==', this.authProvider.userUid));
-    this.requestsCollection.valueChanges()
-    	.subscribe(values => {
-    		this.requests = [];
-    		values.forEach(value => {
-    			firebase.firestore().doc('users/' + value.from).get()
-    				.then(user => {
-    					let userWithUid = user.data();
-    					userWithUid.id = user.id;
-    					this.requests.push(userWithUid);
-    				});	
-    		});
-    	});
 
-    this.requestsSentCollection = this.afs.collection('partnershipRequests', ref => ref.where('from', '==', this.authProvider.userUid));
-    this.requestsSentCollection.valueChanges()
-    	.subscribe(values => {
-    		this.requestsSent = [];
-    		values.forEach(value => {
-    			firebase.firestore().doc('users/' + value.to).get()
-    				.then(user => {
-    					let userWithUid = user.data();
-    					userWithUid.id = user.id;
-    					this.requestsSent.push(userWithUid);
-    				});	
-    		});
-    	});
 
-    this.usersBlockedCollection = this.afs.collection('usersBlocked', ref => ref.where('user_id', '==', this.authProvider.userUid));
-    this.usersBlockedCollection.valueChanges()
-    	.subscribe(values => {
-    		console.log('Blocked users', values);
-    		this.usersBlocked = [];
-    		values.forEach(value => {
-    			console.log('VALUE', value);
-    			firebase.firestore().doc('users/' + value.blocked_user_id).get()
-    				.then(user => {
-    					console.log('USER', user.data());
-    					console.log('USER ID', user.id);
-    					let userWithUid = user.data();
-    					userWithUid.id = user.id;
-    					this.usersBlocked.push(userWithUid);
-    				});	
-    		});
-    	});
 
   }
 
-  removePartner() {
-  	console.log('Partner', this.partner);
-  	firebase.firestore().doc('users/' + this.partner.id).update({
-  		partner: null
-  	}).then(() => {
-	  	firebase.firestore().doc('users/' + this.authProvider.userUid).update({
-	  		partner: null
-	  	}); 	
-  	}); 
-  }
+
 
   acceptRequest(user) {
   	console.log('USER ACEITAR', user);
