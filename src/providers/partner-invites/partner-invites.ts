@@ -13,7 +13,7 @@ import { AuthProvider } from '../../providers/auth/auth';
   and Angular DI.
 */
 @Injectable()
-export class PartnerInvitesProvider implements OnInit {
+export class PartnerInvitesProvider {
 
 	public requestsCollection;
 	public requests = [];
@@ -38,15 +38,16 @@ export class PartnerInvitesProvider implements OnInit {
     this.requestsCollection.valueChanges()
     	.subscribe(values => {
     		console.log('Dentro do subscribe requests!', values);
+				console.log('Resquests fom to', this.authProvider.userUid);
     		this.requests = [];
     		values.forEach(value => {
     			firebase.firestore().doc('users/' + value.from).get()
     				.then(user => {
     					let userWithUid = user.data();
     					userWithUid.id = user.id;
-    					console.log('User with ID', userWithUid);
+
     					this.requests.push(userWithUid);
-    				});	
+    				});
     		});
     	});
 
@@ -62,7 +63,7 @@ export class PartnerInvitesProvider implements OnInit {
     					let userWithUid = user.data();
     					userWithUid.id = user.id;
     					this.requestsSent.push(userWithUid);
-    				});	
+    				});
     		});
     	});
 
@@ -80,7 +81,7 @@ export class PartnerInvitesProvider implements OnInit {
     					let userWithUid = user.data();
     					userWithUid.id = user.id;
     					this.usersBlocked.push(userWithUid);
-    				});	
+    				});
     		});
     	});
 
@@ -99,7 +100,7 @@ export class PartnerInvitesProvider implements OnInit {
     					} else {
     						this.partner = null;
     					}
-    				});	
+    				});
     		}
     	});
 
@@ -112,7 +113,7 @@ export class PartnerInvitesProvider implements OnInit {
   	}).then(() => {
 	  	firebase.firestore().doc('users/' + this.authProvider.userUid).update({
 	  		partner: null
-	  	}); 	
-  	}); 
+	  	});
+  	});
   }
 }

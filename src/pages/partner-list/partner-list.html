@@ -22,7 +22,7 @@
 
 	<div *ngIf="!partnerInvitesProviders.partner">
 
-		<div padding>
+		<div padding *ngIf="partnerInvitesProviders.requestsSent.length < 1">
 			<button ion-button (click)="showPrompt()">Requisitar</button>
 		</div>
 
@@ -37,7 +37,7 @@
 	      <h2>{{requestSent.name}}</h2>
 	      <p>{{requestSent.email}}</p>
 		    <button ion-button item-end (click)="cancelRequest(requestSent)">Cancelar</button>
-		  </ion-item> 
+		  </ion-item>
 		</ion-list>
 
 		<ion-list *ngIf="partnerInvitesProviders.requests.length > 0">
@@ -53,7 +53,7 @@
 		    <button ion-button item-end color="danger" (click)="blockRequest(request)">B</button>
 		    <button ion-button item-end color="danger" (click)="denyRequest(request)">R</button>
 		    <button ion-button item-end (click)="acceptRequest(request)">A</button>
-		  </ion-item> 
+		  </ion-item>
 		</ion-list>
 
 		<ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">
@@ -67,7 +67,7 @@
 	      <h2>{{userBlocked.name}}</h2>
 	      <p>{{userBlocked.email}}</p>
 		    <button ion-button item-end (click)="unblockRequest(userBlocked)">Desbloquear</button>
-		  </ion-item> 
+		  </ion-item>
 		</ion-list>
 
 	</div>

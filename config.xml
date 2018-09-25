@@ -86,6 +86,6 @@
         <variable name="APP_ID" value="716476418542630" />
         <variable name="APP_NAME" value="Naname" />
     </plugin>
-    <engine name="android" spec="7.0.0" />
     <plugin name="cordova-sqlite-storage" spec="^2.4.0" />
+    <engine name="android" spec="6.3.0" />
 </widget>
