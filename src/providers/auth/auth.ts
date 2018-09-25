@@ -36,8 +36,8 @@ export class AuthProvider {
     // afAuth.authState
     //   .subscribe(user => {
     //   if (!user) {
-    //     this.displayName = null;  
-    //     this.user = null;   
+    //     this.displayName = null;
+    //     this.user = null;
     //     console.log('Primeiro aqui');
     //     this.isLoggedIn().then(userUid => {
     //       console.log('Is Loggedbu', userUid);
@@ -59,11 +59,11 @@ export class AuthProvider {
     //         alert.present();
     //       }
     //     });
-        
+
     //     return;
     //   }
     //   this.user = user;
-    //   this.displayName = user.displayName;      
+    //   this.displayName = user.displayName;
     // });
 
   }
@@ -89,37 +89,57 @@ export class AuthProvider {
 
   signIn(providerName: string):Promise<any> {
     return new Promise((resolve, reject) => {
-      if (this.platform.is('cordova')) {
-        this.fb.login(['email', 'public_profile'])
-          .then(res => {
-            const facebookCredential = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
-            return firebase.auth().signInWithCredential(facebookCredential)
-              .then(res => resolve(res))
-              .catch(error => reject(error));
-          })
-          .catch(error => reject(error));
-      } else {
-        const provider = (providerName == 'facebook') ? new firebase.auth.FacebookAuthProvider() : new firebase.auth.GoogleAuthProvider();
-        return this.afAuth.auth
-          .signInWithPopup(provider)
-          .then(res => {
-
-            this.setOrUpdateUser(res.user.uid, res.user)
-              .then(() => {
-                this.storage.set('user_uid', res.user.uid)
-                  .then(() => {
-                    this.init()
-                      .then(() => resolve())
-                      .catch(error => reject());
-                  })
-                  .catch(error => {console.log(error), reject()});
-              })
-              .catch(error => {console.log(error), reject()});
-
-          })
-          .catch(error => {console.log(error), reject()});
-      }
+        resolve();
     });
+    //   if (this.platform.is('cordova')) {
+    //
+    //     if (providerName == 'facebook') {
+    //         // this.fb.login(['email', 'public_profile'])
+    //         //   .then(res => {
+    //         //     const facebookCredential = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
+    //         //     return firebase.auth().signInWithCredential(facebookCredential)
+    //         //       .then(res => {
+    //         //           this.setOrUpdateUser(user.uid, user)
+    //         //             .then(() => {
+    //         //               this.storage.set('user_uid', user.uid)
+    //         //                 .then(() => {
+    //         //                   this.init()
+    //         //                     .then(() => resolve())
+    //         //                     .catch(error => reject());
+    //         //                 })
+    //         //                 .catch(error => {console.log(error), reject()});
+    //         //             })
+    //         //             .catch(error => {console.log(error), reject()});
+    //         //       })
+    //         //       .catch(error => reject(error));
+    //         //   })
+    //         //   .catch(error => reject(error));
+    //     } else {
+    //
+    //     }
+    //
+    //   } else {
+    //     const provider = (providerName == 'facebook') ? new firebase.auth.FacebookAuthProvider() : new firebase.auth.GoogleAuthProvider();
+    //     return this.afAuth.auth
+    //       .signInWithPopup(provider)
+    //       .then(res => {
+    //
+    //         this.setOrUpdateUser(res.user.uid, res.user)
+    //           .then(() => {
+    //             this.storage.set('user_uid', res.user.uid)
+    //               .then(() => {
+    //                 this.init()
+    //                   .then(() => resolve())
+    //                   .catch(error => reject());
+    //               })
+    //               .catch(error => {console.log(error), reject()});
+    //           })
+    //           .catch(error => {console.log(error), reject()});
+    //
+    //       })
+    //       .catch(error => {console.log(error), reject()});
+    //   }
+    // });
   }
 
   setOrUpdateUser(uid: string, user: {displayName, email, photoURL}): Promise<void> {
@@ -161,12 +181,12 @@ export class AuthProvider {
 
   logout() {
     this.storage.set('user_uid', null).then(() => {
-      
+
       this.userUid = null;
       this.user = null;
 
-      this.app.getActiveNavs()[0].setRoot('LoginPage');  
-      this.afAuth.auth.signOut();  
+      this.app.getActiveNavs()[0].setRoot('LoginPage');
+      this.afAuth.auth.signOut();
 
     });
   }
