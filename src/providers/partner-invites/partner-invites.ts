@@ -88,7 +88,8 @@ export class PartnerInvitesProvider {
   	this.partnerCollection = this.afs.doc('users/' + this.authProvider.userUid);
     this.partnerCollection.valueChanges()
     	.subscribe(value => {
-    		if (typeof value.partner == 'undefined') {
+				console.log('The user', value);
+    		if (typeof value == 'undefined' || typeof value.partner == 'undefined') {
     			this.partner = null;
     		} else {
     			firebase.firestore().doc('users/' + value.partner).get()

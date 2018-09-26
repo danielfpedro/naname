@@ -1,4 +1,4 @@
 <ion-tabs>
 	<ion-tab [root]="tab2Root" tabTitle="Lista de Nomes" tabIcon="list"></ion-tab>
-  <ion-tab [root]="tab1Root" tabTitle="User" tabIcon="home"></ion-tab>
+  <ion-tab [root]="tab1Root" tabTitle="User" [tabBadge]="(partnerInvitesProvider.requests.length > 0) ? 'N' : ''" tabBadgeStyle="danger" tabIcon="home"></ion-tab>
 </ion-tabs>

@@ -22,11 +22,19 @@
       <h2>{{authProvider.user?.name}}</h2>
       <p>{{authProvider.user?.email}}</p>
     </ion-item>
-	  <button ion-item (click)="navController.push('PartnerListPage')">
+	  <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="!partnerInvitesProvider.partner">
 	    Configurar Parceiro
-	  </button> 
+      <ion-badge color="danger" item-end *ngIf="partnerInvitesProvider.requests.length == 1">Novo convite</ion-badge>
+      <ion-badge color="danger" item-end *ngIf="partnerInvitesProvider.requests.length > 1">Novos convites</ion-badge>
+	  </button>
+    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="partnerInvitesProvider.partner">
+      <ion-avatar item-start>
+        <img [src]="partnerInvitesProvider.partner?.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{partnerInvitesProvider.partner?.name}}</h2>
+    </button>
 	  <button ion-item (click)="authProvider.logout()">
 	    Sair
-	  </button> 
+	  </button>
 	</ion-list>
 </ion-content>
