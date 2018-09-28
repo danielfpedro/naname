@@ -16,6 +16,7 @@ import { AngularFireAuthModule } from '@angular/fire/auth';
 import { Facebook } from '@ionic-native/facebook';
 import { AuthProvider } from '../providers/auth/auth';
 import { PartnerInvitesProvider } from '../providers/partner-invites/partner-invites';
+import { SwingModule } from 'angular2-swing';
 
 import { IonicStorageModule } from '@ionic/storage';
 
@@ -39,6 +40,7 @@ export const firebaseConfig = {
     AngularFireDatabaseModule,
     AngularFireAuthModule,
     AngularFirestoreModule,
+    SwingModule,
     IonicStorageModule.forRoot(),
     AngularFireModule.initializeApp(firebaseConfig),
   ],

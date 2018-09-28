@@ -1,5 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, ViewChildren, ViewChild, QueryList } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+
+import {
+  StackConfig,
+  Stack,
+  Card,
+  Direction,
+  ThrowEvent,
+  DragEvent,
+  SwingStackComponent,
+  SwingCardComponent
+  } from 'angular2-swing';
 
 /**
  * Generated class for the NamesListPage page.
@@ -15,11 +28,86 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 })
 export class NamesListPage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  @ViewChild('myswing1') swingStack: SwingStackComponent;
+  @ViewChildren('mycards1') swingCards: QueryList<SwingCardComponent>;
+
+  public cards: Array<any> = [];
+  stackConfig: StackConfig;
+  recentCard: string = '';
+
+  constructor(
+    public afs: AngularFirestore,
+    public navCtrl: NavController, public navParams: NavParams) {
+
+    this.stackConfig = {
+      allowedDirections: [Direction.LEFT, Direction.RIGHT],
+      throwOutConfidence: (offsetX, offsetY, element) => {
+        return Math.min(Math.abs(offsetX) / (element.offsetWidth/3), 1);
+      },
+      transform: (element, x, y, r) => {
+        this.onItemMove(element, x, y, r);
+      },
+      throwOutDistance: (d) => {
+        return 1200;
+      }
+    };
+
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad NamesListPage');
+    this.afs.collection('names')
+      .ref
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(name => {
+          console.log('NAME', name.data());
+          this.addNewCard(name.data());
+        });
+      });
+    // Either subscribe in controller or set in HTML
+    this.swingStack.throwin.subscribe((event: DragEvent) => {
+      event.target.style.background = '#ffffff';
+    });
+  }
+  // Called whenever we drag an element
+  onItemMove(element, x, y, r) {
+    var color = '';
+    var abs = Math.abs(x);
+    let min = Math.trunc(Math.min(16*16 - abs, 16*16));
+    let hexCode = this.decimalToHex(min, 2);
+
+    if (x < 0) {
+      color = '#FF' + hexCode + hexCode;
+    } else {
+      color = '#' + hexCode + 'FF' + hexCode;
+    }
+
+    element.style.background = color;
+    element.style['transform'] = `translate3d(0, 0, 0) translate(${x}px, ${y}px) rotate(${r}deg)`;
+  }
+
+  // Connected through HTML
+  voteUp(like: boolean) {
+    let removedCard = this.cards.pop();
+    // this.addNewCards(1);
+    console.log('Vote up', like);
+  }
+
+  // Add new cards to our array
+  addNewCard(card) {
+    this.cards.push(card);
+  }
+
+  // http://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript
+  decimalToHex(d, padding) {
+    var hex = Number(d).toString(16);
+    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+
+    while (hex.length < padding) {
+      hex = "0" + hex;
+    }
+
+    return hex;
   }
 
 }
