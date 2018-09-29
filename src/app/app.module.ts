@@ -19,6 +19,7 @@ import { PartnerInvitesProvider } from '../providers/partner-invites/partner-inv
 import { SwingModule } from 'angular2-swing';
 
 import { IonicStorageModule } from '@ionic/storage';
+import { NamesProvider } from '../providers/names/names';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyCKF5qFhpqMUVNX1G4CZgLkdlq4V5P7ttk",
@@ -56,7 +57,8 @@ export const firebaseConfig = {
     StatusBar,
     SplashScreen,
     PartnerInvitesProvider,
-    // {provide: ErrorHandler, useClass: IonicErrorHandler},
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    NamesProvider,
   ]
 })
 export class AppModule {}

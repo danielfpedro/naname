@@ -14,7 +14,7 @@
 
 
 <ion-content padding>
-  <div swing-stack #myswing1 [stackConfig]="stackConfig" (throwoutleft)="voteUp(true)" (throwoutright)="voteUp(false)" id="card-stack">
+  <div swing-stack #myswing1 [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">
       <ion-card #mycards1 swing-card *ngFor="let card of cards">
           <h2>{{card.name}}</h2>
       </ion-card>

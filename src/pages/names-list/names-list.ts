@@ -1,5 +1,5 @@
 import { Component, ViewChildren, ViewChild, QueryList } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ToastController } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 
@@ -13,6 +13,7 @@ import {
   SwingStackComponent,
   SwingCardComponent
   } from 'angular2-swing';
+import { NamesProvider } from '../../providers/names/names';
 
 /**
  * Generated class for the NamesListPage page.
@@ -33,11 +34,15 @@ export class NamesListPage {
 
   public cards: Array<any> = [];
   stackConfig: StackConfig;
-  recentCard: string = '';
+  currentCard;
 
   constructor(
     public afs: AngularFirestore,
-    public navCtrl: NavController, public navParams: NavParams) {
+    public namesProvider: NamesProvider,
+    public navCtrl: NavController,
+    public navParams: NavParams,
+    public toastController: ToastController
+  ) {
 
     this.stackConfig = {
       allowedDirections: [Direction.LEFT, Direction.RIGHT],
@@ -61,7 +66,9 @@ export class NamesListPage {
       .then(querySnapshot => {
         querySnapshot.forEach(name => {
           console.log('NAME', name.data());
-          this.addNewCard(name.data());
+          let card = name.data();
+          card.uid = name.id;
+          this.addNewCard(card);
         });
       });
     // Either subscribe in controller or set in HTML
@@ -88,9 +95,13 @@ export class NamesListPage {
 
   // Connected through HTML
   voteUp(like: boolean) {
-    let removedCard = this.cards.pop();
-    // this.addNewCards(1);
-    console.log('Vote up', like);
+    console.log('Like', like);
+    const removedCard = this.cards.pop();
+    this.namesProvider.chose(removedCard, like)
+      .then()
+      .catch(() => {
+        const toast = this.toastController.create({message: 'Ocorreu um erro ao salvar a sua escolha.'});
+      });
   }
 
   // Add new cards to our array

@@ -15,6 +15,7 @@ export class TabsPage {
 
   tab1Root = 'UserTabPage';
   tab2Root = 'NamesListPage';
+  tab3Root = 'ChosenListPage';
 
   constructor(public partnerInvitesProvider: PartnerInvitesProvider) {
 
