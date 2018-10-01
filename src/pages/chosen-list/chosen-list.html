@@ -21,9 +21,8 @@
     </div> -->
     <ion-item *ngFor="let chosen of namesProvider.namesChosen">
       {{ chosen.name }}
-      <ion-avatar item-end>
-        <img [src]="chosen.owner.data().profilePhotoURL">
-      </ion-avatar>
+      <ion-avatar item-end *ngIf="chosen.origin == 'mine' || chosen.origin == 'both'"><img [src]="authProvider.user?.profilePhotoURL"></ion-avatar>
+      <ion-avatar item-end *ngIf="chosen.origin == 'partner' || chosen.origin == 'both'"><img [src]="(authProvider.partner | async)?.profilePhotoURL"></ion-avatar>
     </ion-item>
 
   </ion-list>

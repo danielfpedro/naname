@@ -19,35 +19,99 @@ export class NamesProvider {
     private authProvider: AuthProvider
   ) {
     console.log('Hello NamesProvider');
-    this.allChosen();
+    this.allChosen()
+      .then(() => {
+        if (this.authProvider.partner) {
+          this.authProvider.partner.subscribe
+          this.afs.collection('users')
+            .doc(this.authProvider.user.partner_uid)
+            .collection('namesChosen')
+            .valueChanges()
+            .subscribe(values => {
+              values.forEach(value => {
+                let checkIfExists = this.namesChosen.map(e => e.uid).indexOf(value.uid);
+                if (checkIfExists > -1) {
+                  this.namesChosen[checkIfExists].origin = 'both';
+                } else {
+                  console.log('Não Ja tem');
+                  this.afs.collection('names').doc(value.uid).ref.get().then(name => {
+                    let nameToGo = name.data();
+                    nameToGo.uid = name.id;
+                    nameToGo.fromPartner = true;
+                    nameToGo.origin = 'partner';
+                    this.namesChosen.push(nameToGo);
+                  });
+                }
+              });
+            });
+        }
+      });
   }
 
   allChosen() {
-    // Pego os dados do meu Usuario
-    this.afs.collection('users')
-      .doc(this.authProvider.userUid)
-      .ref
-      .get()
-      .then(user => {
-        this.afs.collection('users')
-          .doc(this.authProvider.userUid)
-          .collection('namesChosen')
-          .valueChanges()
-          .subscribe(values => {
-            console.log('Names chosen', values);
-            this.namesChosen = [];
-            values.forEach(value => {
+    return new Promise((resolve, reject) => {
+      this.afs.collection('users')
+        .doc(this.authProvider.userUid)
+        .collection('namesChosen')
+        .valueChanges()
+        .subscribe(values => {
 
-              this.afs.collection('names').doc(value.uid).ref.get().then(name => {
-                console.log('Result Pegando name', name);
-                let nameFullData = name.data();
-                nameFullData.uid = name.id;
-                nameFullData.owner = user;
-                this.namesChosen.push(nameFullData);
-              });
-            })
+          let all = [];
+          values.forEach(value => {
+            all.push(this.getName(value.uid));
           });
+
+          Promise.all(all).then(res => resolve());
+
+        });
+    });
+
+
+      // if (this.authProvider.partner) {
+      //   this.afs.collection('users')
+      //     .doc(this.authProvider.user.partner_uid)
+      //     .collection('namesChosen')
+      //     .valueChanges()
+      //     .subscribe(values => {
+      //       values.forEach(value => {
+      //         console.log('Bata duro misera', this.namesChosen);
+      //         let achou = false
+      //         this.namesChosen.forEach(name => {
+      //           console.log('Name', name.uid);
+      //           console.log('Value', value.uid);
+      //           if (name.uid == value.uid) {
+      //             achou = true
+      //           }
+      //         });
+      //         // Já tem
+      //         if (achou) {
+      //           console.log('Ja tem');
+      //         } else {
+      //           console.log('Não Ja tem');
+      //           this.afs.collection('names').doc(value.uid).ref.get().then(name => {
+      //             let nameToGo = name.data();
+      //             nameToGo.uid = name.id;
+      //             nameToGo.owners = [];
+      //             nameToGo.owners.push(this.authProvider.partner);
+      //             this.namesChosen.push(nameToGo);
+      //           });
+      //         }
+      //       });
+      //     });
+      // }
+
+  }
+
+  getName(uid) {
+    return new Promise((resolve, reject) => {
+      this.afs.collection('names').doc(uid).ref.get().then(name => {
+        let nameToGo = name.data();
+        nameToGo.uid = name.id;
+        nameToGo.origin = 'mine';
+        this.namesChosen.push(nameToGo);
+        resolve();
       });
+    });
   }
 
   chose(name:any, like: boolean):Promise<any> {

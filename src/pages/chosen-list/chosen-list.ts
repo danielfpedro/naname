@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { NamesProvider } from '../../providers/names/names';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import { AuthProvider } from '../../providers/auth/auth';
 
 /**
  * Generated class for the ChosenListPage page.
@@ -21,7 +22,8 @@ export class ChosenListPage {
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
-    public namesProvider: NamesProvider
+    public namesProvider: NamesProvider,
+    public authProvider: AuthProvider
   ) {
   }
 

@@ -18,8 +18,11 @@ import { Storage } from '@ionic/storage';
 @Injectable()
 export class AuthProvider {
 
-  public userUid;
+  public userUid: string;
   public user: any;
+
+  public partner: any;
+  public partnerLoaded = false;
 
   constructor(
     private platform: Platform,
@@ -33,56 +36,31 @@ export class AuthProvider {
     private toastController: ToastController
   ) {
 
-    // afAuth.authState
-    //   .subscribe(user => {
-    //   if (!user) {
-    //     this.displayName = null;  
-    //     this.user = null;   
-    //     console.log('Primeiro aqui');
-    //     this.isLoggedIn().then(userUid => {
-    //       console.log('Is Loggedbu', userUid);
-    //       if (userUid) {
-    //         console.log('Dentro do user uid');
-    //         // this.app.getActiveNavs()[0].setRoot('LoginPage');
-    //         const alert = this.alertController.create({
-    //           title: 'New Friend!',
-    //           subTitle: 'Your friend, Obi wan Kenobi, just accepted your friend request!',
-    //           buttons: [
-    //             {
-    //               text: 'Logar novamente',
-    //               handler: data => {
-    //                 this.app.getActiveNavs()[0].setRoot('LoginPage');
-    //               }
-    //             }
-    //           ]
-    //         });
-    //         alert.present();
-    //       }
-    //     });
-        
-    //     return;
-    //   }
-    //   this.user = user;
-    //   this.displayName = user.displayName;      
-    // });
-
   }
-
-  // isLoggedIn(): Promise<string> {
-  //   return this.storage.get('user_uid')
-  // }
 
   init(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.storage.get('user_uid').then(res => {
         this.userUid = res;
         if (this.userUid) {
-          this.getUser()
-            .then(() => resolve())
-            .catch(error => {console.log(error); reject()});
-        } else {
-          resolve();
+          this.getMyUser().valueChanges()
+          .subscribe(user => {
+            if (user) {
+              this.user = user;
+
+              if (!this.user.partner_uid) {
+                this.partner = null;
+              }
+              if (!this.partner && this.user.partner_uid) {
+                this.partner = this.afs.collection('users').doc(this.user.partner_uid).valueChanges();
+              }
+            }
+
+            resolve();
+          });
         }
+
+
       }).catch(error => {console.error('Ocorreu um erro ao tentar pegar o user uid no storage'); reject()});
     });
   }
@@ -149,24 +127,18 @@ export class AuthProvider {
     });
   }
 
-  getUser(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      firebase.firestore().collection('users').doc(this.userUid).get().then(res => {
-        this.user = res.data();
-        resolve();
-      })
-      .catch(error => {console.error(error); reject()});
-    });
+  getMyUser(): AngularFirestoreDocument<any> {
+    return this.afs.collection('users').doc(this.userUid);
   }
 
   logout() {
     this.storage.set('user_uid', null).then(() => {
-      
+
       this.userUid = null;
       this.user = null;
 
-      this.app.getActiveNavs()[0].setRoot('LoginPage');  
-      this.afAuth.auth.signOut();  
+      this.app.getActiveNavs()[0].setRoot('LoginPage');
+      this.afAuth.auth.signOut();
 
     });
   }
