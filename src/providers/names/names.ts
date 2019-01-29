@@ -1,7 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { AuthProvider } from '../auth/auth';
+import {
+  AngularFirestore,
+  AngularFirestoreCollection
+} from "@angular/fire/firestore";
+import { AuthProvider } from "../auth/auth";
+import { Observable } from "rxjs/Observable";
+import { forkJoin } from "rxjs";
+
+import { map } from "rxjs/operators";
 
 /*
   Generated class for the NamesProvider provider.
@@ -11,130 +18,146 @@ import { AuthProvider } from '../auth/auth';
 */
 @Injectable()
 export class NamesProvider {
-
   namesChosen = [];
+  myNamesChosen = [];
+  partnerNamesChosen = [];
 
   constructor(
     private afs: AngularFirestore,
     private authProvider: AuthProvider
   ) {
-    console.log('Hello NamesProvider');
-    this.allChosen()
-      .then(() => {
-        if (this.authProvider.partner) {
-          this.authProvider.partner.subscribe
-          this.afs.collection('users')
-            .doc(this.authProvider.user.partner_uid)
-            .collection('namesChosen')
-            .valueChanges()
-            .subscribe(values => {
-              values.forEach(value => {
-                let checkIfExists = this.namesChosen.map(e => e.uid).indexOf(value.uid);
-                if (checkIfExists > -1) {
-                  this.namesChosen[checkIfExists].origin = 'both';
-                } else {
-                  console.log('Não Ja tem');
-                  this.afs.collection('names').doc(value.uid).ref.get().then(name => {
-                    let nameToGo = name.data();
-                    nameToGo.uid = name.id;
-                    nameToGo.fromPartner = true;
-                    nameToGo.origin = 'partner';
-                    this.namesChosen.push(nameToGo);
-                  });
+    console.log("Hello NamesProvider");
+
+    console.log("AQUIIIIII");
+    this.listenNames(this.authProvider.userUid, this.myNamesChosen);
+    this.listenNames(
+      this.authProvider.user.partner_uid,
+      this.partnerNamesChosen
+    );
+  }
+  listenNames(userId, arrayToAdd) {
+    this.afs
+      .collection("users")
+      .doc(userId)
+      .collection("namesChosen")
+      .stateChanges()
+      .subscribe(values => {
+        let allNamesPromises = [];
+        values.forEach(value => {
+          if (value.type == "added") {
+            allNamesPromises.push(
+              this.afs
+                .collection("names")
+                .doc(value.payload.doc.id)
+                .ref.get()
+            );
+          } else if(value.type == "removed") {
+            
+            let indexToDelete = -1;
+            arrayToAdd.forEach((v, index) => {
+                if (v.id == value.payload.doc.id) {
+                    indexToDelete = index;
                 }
-              });
             });
-        }
-      });
-  }
-
-  allChosen() {
-    return new Promise((resolve, reject) => {
-      this.afs.collection('users')
-        .doc(this.authProvider.userUid)
-        .collection('namesChosen')
-        .valueChanges()
-        .subscribe(values => {
-
-          let all = [];
-          values.forEach(value => {
-            all.push(this.getName(value.uid));
-          });
-
-          Promise.all(all).then(res => resolve());
-
+            if (indexToDelete > -1) {
+                arrayToAdd.splice(indexToDelete, 1);
+            }
+            console.log('depois', arrayToAdd);
+          }
         });
-    });
 
+        if (allNamesPromises.length < 1) {
+            console.log('Cartiga', arrayToAdd);
+            this.mergeChoices();
+        }
+            
 
-      // if (this.authProvider.partner) {
-      //   this.afs.collection('users')
-      //     .doc(this.authProvider.user.partner_uid)
-      //     .collection('namesChosen')
-      //     .valueChanges()
-      //     .subscribe(values => {
-      //       values.forEach(value => {
-      //         console.log('Bata duro misera', this.namesChosen);
-      //         let achou = false
-      //         this.namesChosen.forEach(name => {
-      //           console.log('Name', name.uid);
-      //           console.log('Value', value.uid);
-      //           if (name.uid == value.uid) {
-      //             achou = true
-      //           }
-      //         });
-      //         // Já tem
-      //         if (achou) {
-      //           console.log('Ja tem');
-      //         } else {
-      //           console.log('Não Ja tem');
-      //           this.afs.collection('names').doc(value.uid).ref.get().then(name => {
-      //             let nameToGo = name.data();
-      //             nameToGo.uid = name.id;
-      //             nameToGo.owners = [];
-      //             nameToGo.owners.push(this.authProvider.partner);
-      //             this.namesChosen.push(nameToGo);
-      //           });
-      //         }
-      //       });
-      //     });
-      // }
-
-  }
-
-  getName(uid) {
-    return new Promise((resolve, reject) => {
-      this.afs.collection('names').doc(uid).ref.get().then(name => {
-        let nameToGo = name.data();
-        nameToGo.uid = name.id;
-        nameToGo.origin = 'mine';
-        this.namesChosen.push(nameToGo);
-        resolve();
+        forkJoin(allNamesPromises)
+          .pipe(
+            map(data => {
+              let tey = [];
+              data.map(d => {
+                console.log("OI GENTE", d.id);
+                const id = d.id;
+                tey.push({ id, ...d.data() });
+              });
+              return tey;
+            })
+          )
+          .subscribe(finalData => {
+            finalData.map(data => {
+              arrayToAdd.push(data);
+            });
+            this.mergeChoices();
+          });
       });
-    });
   }
 
-  chose(name:any, like: boolean):Promise<any> {
-    const choice = (like) ? 'namesChosen' : 'namesReject';
+  mergeChoices() {
+    console.log("MY NAMES", this.myNamesChosen);
+    console.log("PARTNER NAMES", this.partnerNamesChosen);
+
+    let cache = [];
+    let cachePartner = [];
+
+    let idsFound = [];
+
+    cache = this.myNamesChosen.map((name, index) => {
+      let found = false;
+      cachePartner = this.partnerNamesChosen.map((n, i) => {
+        if (name.id === n.id) {
+          found = true;
+          idsFound.push(n.id);
+        }
+
+        return n;
+      });
+      name.isEqual = found;
+      name.owner = name.isEqual ? "both" : "me";
+      return name;
+    });
+
+    cachePartner = cachePartner.map(partnerName => {
+      const isEqual = idsFound.indexOf(partnerName.id) > -1;
+      // pode colocar tudo owner partner pq se tiver alguma que seja
+      // both ele vai sair nas proximas linhas e o both ja foi colocado myNames
+      // que no fim das contas vai ser concatenado e vai entrar
+      return { isEqual: isEqual, owner: "partner", ...partnerName };
+    });
+    cachePartner = cachePartner.filter(partnerName => {
+      return !partnerName.isEqual;
+    });
+
+    console.log("CATAPIMBA", cache);
+    console.log("CATAPIMBA cachePartner", cachePartner);
+    this.namesChosen = cache.concat(cachePartner);
+    console.log("NAMES AFTER MERGE", this.namesChosen);
+  }
+
+  chose(name: any, like: boolean): Promise<any> {
+    const choice = like ? "namesChosen" : "namesReject";
     return new Promise<any>((resolve, reject) => {
-      console.log('Executando Chose');
-      this.afs.collection('users')
+      console.log("Executando Chose");
+      this.afs
+        .collection("users")
         .doc(this.authProvider.userUid)
         .collection(choice)
         .doc(name.uid)
-        .ref
-        .set({
+        .ref.set({
           uid: name.uid
         })
         .then(() => {
-          console.log('Adicionou name', name.uid);
+          console.log("Adicionou name", name.uid);
           resolve();
         })
         .catch(error => {
-          console.error('Ocorreu um erro ao salvar a escolha do nome:', error);
+          console.error("Ocorreu um erro ao salvar a escolha do nome:", error);
           reject();
         });
-    })
+    });
   }
 
+  removeName(uid: string): void {
+    this.afs.collection("users").doc(this.authProvider.userUid).collection("namesChosen").doc(uid).delete();
+  }
 }

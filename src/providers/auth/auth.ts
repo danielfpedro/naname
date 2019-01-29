@@ -9,6 +9,8 @@ import { Observable } from 'rxjs';
 
 import { Storage } from '@ionic/storage';
 
+import { GooglePlus } from '@ionic-native/google-plus';
+
 /*
   Generated class for the AuthProvider provider.
 
@@ -33,7 +35,9 @@ export class AuthProvider {
 
     private afs: AngularFirestore,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+
+    public gPlus: GooglePlus
   ) {
 
   }
@@ -47,20 +51,21 @@ export class AuthProvider {
           .subscribe(user => {
             if (user) {
               this.user = user;
-
               if (!this.user.partner_uid) {
                 this.partner = null;
               }
               if (!this.partner && this.user.partner_uid) {
-                this.partner = this.afs.collection('users').doc(this.user.partner_uid).valueChanges();
+                this.afs.collection('users').doc(this.user.partner_uid).valueChanges().subscribe(data => {
+                  this.partner = data;
+                  resolve();
+                });
               }
             }
 
-            resolve();
           });
+        } else {
+          resolve();
         }
-
-
       }).catch(error => {console.error('Ocorreu um erro ao tentar pegar o user uid no storage'); reject()});
     });
   }
@@ -68,14 +73,49 @@ export class AuthProvider {
   signIn(providerName: string):Promise<any> {
     return new Promise((resolve, reject) => {
       if (this.platform.is('cordova')) {
-        this.fb.login(['email', 'public_profile'])
-          .then(res => {
-            const facebookCredential = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
-            return firebase.auth().signInWithCredential(facebookCredential)
-              .then(res => resolve(res))
-              .catch(error => reject(error));
-          })
-          .catch(error => reject(error));
+
+          if (providerName == 'google') {
+            console.log('Google login');
+            this.gPlus.login({
+              'webClientId': '492626879402-uph3f5a6akmq4ldh70cb6ke7okfsljtl.apps.googleusercontent.com',
+              'offline': true,
+              'scopes': 'profile email'
+            })
+            .then(response => {
+              console.log('Result google login', response);
+              this.afAuth.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(response.idToken))
+                .then(res => {
+                  console.log('DEU BOA', response);
+                  this.setOrUpdateUser(res.uid, res)
+                  .then(() => {
+                    this.storage.set('user_uid', res.uid)
+                      .then(() => {
+                        this.init()
+                          .then(() => resolve())
+                          .catch(error => reject());
+                      })
+                      .catch(error => {console.log(error), reject()});
+                  })
+                  .catch(error => {console.log(error), reject()});
+                })
+                .catch(error => {
+                  console.log('DEU RUIM', error);
+                });
+            })
+            .catch(error => {
+              console.log('DEU ERRO NO GOOGLE LOGIN', error);
+              reject();
+            });
+          }
+        // this.fb.login(['email', 'public_profile'])
+        //   .then(res => {
+        //     const facebookCredential = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
+        //     return firebase.auth().signInWithCredential(facebookCredential)
+        //       .then(res => resolve(res))
+        //       .catch(error => reject(error));
+        //   })
+        //   .catch(error => reject(error));
+
       } else {
         const provider = (providerName == 'facebook') ? new firebase.auth.FacebookAuthProvider() : new firebase.auth.GoogleAuthProvider();
         return this.afAuth.auth

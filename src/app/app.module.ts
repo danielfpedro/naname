@@ -18,6 +18,8 @@ import { AuthProvider } from '../providers/auth/auth';
 import { PartnerInvitesProvider } from '../providers/partner-invites/partner-invites';
 import { SwingModule } from 'angular2-swing';
 
+import { GooglePlus } from '@ionic-native/google-plus';
+
 import { IonicStorageModule } from '@ionic/storage';
 import { NamesProvider } from '../providers/names/names';
 
@@ -54,6 +56,7 @@ export const firebaseConfig = {
     AngularFireDatabase,
     Facebook,
     AuthProvider,
+    GooglePlus,
     StatusBar,
     SplashScreen,
     PartnerInvitesProvider,

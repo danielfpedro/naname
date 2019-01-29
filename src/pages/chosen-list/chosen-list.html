@@ -16,13 +16,20 @@
 <ion-content>
   <ion-list>
 
-    <!-- <div *ngIf="chosenList.length < 1">
-      Você ainda não escolheu nenhum nome bla bla bla...
-    </div> -->
-    <ion-item *ngFor="let chosen of namesProvider.namesChosen">
+    <ion-item *ngFor="let chosen of namesProvider.namesChosen" (press)="presentActionSheet(chosen)">
       {{ chosen.name }}
-      <ion-avatar item-end *ngIf="chosen.origin == 'mine' || chosen.origin == 'both'"><img [src]="authProvider.user?.profilePhotoURL"></ion-avatar>
-      <ion-avatar item-end *ngIf="chosen.origin == 'partner' || chosen.origin == 'both'"><img [src]="(authProvider.partner | async)?.profilePhotoURL"></ion-avatar>
+      {{ authProvider.partner?.name | json }}
+      <ion-avatar item-end>
+
+      </ion-avatar>
+
+        <ion-avatar item-end *ngIf="chosen.isEqual || chosen.owner == 'me'">
+              <img [src]="authProvider.user?.profilePhotoURL">
+        </ion-avatar>
+        <ion-avatar item-end *ngIf="chosen.isEqual || chosen.owner != 'me'">
+          <img [src]="authProvider.partner?.profilePhotoURL">
+      </ion-avatar>
+
     </ion-item>
 
   </ion-list>

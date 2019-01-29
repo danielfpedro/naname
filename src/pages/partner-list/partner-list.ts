@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, AlertController, LoadingController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
@@ -32,7 +32,7 @@ export class PartnerListPage {
   	private afs: AngularFirestore,
   	public authProvider: AuthProvider,
   	public alertController: AlertController,
-  	public partnerInvitesProviders: PartnerInvitesProvider
+    public partnerInvitesProviders: PartnerInvitesProvider
   	) {
 
   }
@@ -101,5 +101,4 @@ export class PartnerListPage {
     });
     prompt.present();
   }
-
 }

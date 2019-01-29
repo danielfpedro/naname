@@ -1,5 +1,5 @@
 import { Component, ViewChildren, ViewChild, QueryList } from '@angular/core';
-import { IonicPage, NavController, NavParams, ToastController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ToastController, ActionSheetController } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 
@@ -41,7 +41,8 @@ export class NamesListPage {
     public namesProvider: NamesProvider,
     public navCtrl: NavController,
     public navParams: NavParams,
-    public toastController: ToastController
+    public toastController: ToastController,
+    public actionSheetCtrl: ActionSheetController
   ) {
 
     this.stackConfig = {
@@ -119,6 +120,33 @@ export class NamesListPage {
     }
 
     return hex;
+  }
+
+  presentActionSheet() {
+    const actionSheet = this.actionSheetCtrl.create({
+      title: 'Modify your album',
+      buttons: [
+        {
+          text: 'Destructive',
+          role: 'destructive',
+          handler: () => {
+            console.log('Destructive clicked');
+          }
+        },{
+          text: 'Archive',
+          handler: () => {
+            console.log('Archive clicked');
+          }
+        },{
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            console.log('Cancel clicked');
+          }
+        }
+      ]
+    });
+    actionSheet.present();
   }
 
 }
