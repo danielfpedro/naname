@@ -87,7 +87,7 @@ export class AuthProvider {
     });
   }
 
-  signIn(providerName: string):Promise<any> {
+  async signIn(providerName: string) {
     return new Promise((resolve, reject) => {
         resolve();
     });
