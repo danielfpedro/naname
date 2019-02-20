@@ -24,16 +24,18 @@ import database from 'firebase/database';
 })
 export class UserTabPage {
 
-	user: {};
+  user: {};
 
   constructor(
     public partnerInvitesProvider: PartnerInvitesProvider,
     public navController: NavController,
-    public navParams: NavParams, public authProvider: AuthProvider,
-  	private afs: AngularFirestore) {
+    public navParams: NavParams,
+    public authProvider: AuthProvider,
+    private afs: AngularFirestore) {
   }
 
-  ionViewDidLoad() {
+  ionViewDidEnter() {
+    console.log('USER', this.authProvider.partner);
   }
 
 }

@@ -22,25 +22,28 @@ import { PartnerInvitesProvider } from '../../providers/partner-invites/partner-
 })
 export class PartnerListPage {
 
-	usersBlockedCollection: any;
-	requestsSentCollection: any;
+  usersBlockedCollection: any;
+  requestsSentCollection: any;
 
-
-	usersBlocked = [];
+  usersBlocked = [];
 
   constructor(public navCtrl: NavController, public navParams: NavParams,
-  	private afs: AngularFirestore,
-  	public authProvider: AuthProvider,
-  	public alertController: AlertController,
+    private afs: AngularFirestore,
+    public authProvider: AuthProvider,
+    public alertController: AlertController,
     public partnerInvitesProviders: PartnerInvitesProvider
-  	) {
+  ) {
 
+  }
+
+  ionViewDidLoad() {
+    console.log('SUBSCRIBE PARTNER', this.authProvider.partner);
   }
   showPrompt() {
     const prompt = this.alertController.create({
       title: 'Adicionar Parceiro',
       message: "Entre com o email do parceiro",
-      inputs: [{name: 'email', placeholder: 'Email'}],
+      inputs: [{ name: 'email', placeholder: 'Email' }],
       buttons: [
         {
           text: 'Cancelar',
@@ -52,22 +55,22 @@ export class PartnerListPage {
           text: 'Enviar convite',
           handler: data => {
 
-						if (data.email == this.authProvider.user.email) {
-			  			const alert = this.alertController.create({
-			  				title: 'Email inválido',
-			  				message: 'Você informou o seu próprio email',
-			  				buttons: ['Ok']
-			  			});
-			  			alert.present();
-			  			return;
-						}
+            if (data.email == this.authProvider.user.email) {
+              const alert = this.alertController.create({
+                title: 'Email inválido',
+                message: 'Você informou o seu próprio email',
+                buttons: ['Ok']
+              });
+              alert.present();
+              return;
+            }
             const tey = this.afs;
 
-				  	this.afs.collection('users').ref.where('email', '==', data.email).get().then(querySnapshot => {
-				  		if (!querySnapshot.empty) {
+            this.afs.collection('users').ref.where('email', '==', data.email).get().then(querySnapshot => {
+              if (!querySnapshot.empty) {
                 const userTarget = querySnapshot.docs[0];
                 // Vejo se eu estou bloqueado pelo usuario que eu estou adicionando
-                tey.collection('users').doc(userTarget.id).collection('usersBlocked').doc(userTarget.id +'_'+ this.authProvider.userUid)
+                tey.collection('users').doc(userTarget.id).collection('usersBlocked').doc(userTarget.id + '_' + this.authProvider.userUid)
                   .ref
                   .get()
                   .then(imBlockedByTarget => {
@@ -80,20 +83,20 @@ export class PartnerListPage {
                         partner_uid: userTarget.id
                       });
                     } else {
-                      const alert = this.alertController.create({title: 'Bloqueado', message: 'Você está bloqueado.', buttons: ['ok']});
+                      const alert = this.alertController.create({ title: 'Bloqueado', message: 'Você está bloqueado.', buttons: ['ok'] });
                       alert.present();
                     }
                   });
 
-				  		} else {
-				  			const alert = this.alertController.create({
-				  				title: 'Email não encontrado',
-				  				message: 'Email informado não está usando o App',
-				  				buttons: ['Ok']
-				  			});
-				  			alert.present();
-				  		}
-				  	});
+              } else {
+                const alert = this.alertController.create({
+                  title: 'Email não encontrado',
+                  message: 'Email informado não está usando o App',
+                  buttons: ['Ok']
+                });
+                alert.present();
+              }
+            });
 
           }
         }

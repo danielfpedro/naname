@@ -27,21 +27,21 @@ export class PartnerInvitesProvider {
 	public partnerCollection: any;
 	public partner = null;
 
-  constructor(
-  	private afs: AngularFirestore,
-  	public authProvider: AuthProvider
-  ) {
-  }
+	constructor(
+		private afs: AngularFirestore,
+		public authProvider: AuthProvider
+	) {
+	}
 
-  removePartner(block: boolean = false) {
+	removePartner(block: boolean = false) {
 		// faço o cache pq ele vai sumir quando fazer o update abaixo
 		const partnerUid = this.authProvider.user.partner_uid;
-  	this.afs.collection('users').doc(partnerUid).update({
-  		partner_uid: null
-  	}).then(() => {
-	  	this.afs.collection('users').doc(this.authProvider.userUid).update({
-	  		partner_uid: null
-	  	}).then(() => {
+		this.afs.collection('users').doc(partnerUid).update({
+			partner_uid: null
+		}).then(() => {
+			this.afs.collection('users').doc(this.authProvider.userUid).update({
+				partner_uid: null
+			}).then(() => {
 				if (block) {
 					this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked').doc(this.authProvider.userUid + '_' + partnerUid)
 						.set({
@@ -49,12 +49,12 @@ export class PartnerInvitesProvider {
 						});
 				}
 			});
-  	});
-  }
+		});
+	}
 
 	unblockRequest(user) {
-  	this.myUsersBlocked().doc(this.authProvider.userUid + '_' + user.id).delete();
- 	}
+		this.myUsersBlocked().doc(this.authProvider.userUid + '_' + user.id).delete();
+	}
 
 	myUsersBlocked() {
 		return this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked');

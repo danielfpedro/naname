@@ -13,16 +13,18 @@
 </ion-header>
 
 <ion-content>
-	<div *ngIf="authProvider.partner">
-		O seu parça é <strong>{{ (authProvider.partner | async)?.name }}</strong>
-		<br>
-		<img [src]="(authProvider.partner | async)?.profilePhotoURL" width="80">
-		<button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover</button>
-    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner(true)">Remover e Bloquear</button>
-	</div>
 
-  <div *ngIf="!authProvider.partner">
-		<button ion-button (click)="showPrompt()">Requisitar</button>
+  <div *ngIf="authProvider.user && authProvider.user.partner_uid">
+
+    O seu parça é <strong>{{ authProvider.partner?.name }}</strong>
+    <br>
+    <img [src]="authProvider.partner?.profilePhotoURL" width="80">
+    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover</button>
+    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner(true)">Remover e Bloquear</button>
+  </div>
+
+  <div *ngIf="authProvider.user && !authProvider.user.partner_uid">
+    <button ion-button (click)="showPrompt()">Requisitar</button>
   </div>
 
   <ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">

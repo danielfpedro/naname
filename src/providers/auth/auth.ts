@@ -20,14 +20,14 @@ import { GooglePlus } from '@ionic-native/google-plus';
 @Injectable()
 export class AuthProvider {
 
-  public userDoc: AngularFirestoreDocument;
+  // public userDoc: AngularFirestoreDocument;
 
-  public userUid: string;
-
+  public userUid: string = null;
   public user: any;
-  public partner: any;
+  public partner: any = null;
+  // public partner: any;
 
-  public partnerLoaded = false;
+  // public partnerLoaded = false;
 
   constructor(
     private platform: Platform,
@@ -45,50 +45,32 @@ export class AuthProvider {
 
   }
 
-  async init(): Promise<void> {
+  async init() {
     try {
-     await this.storage.get('user_uid');
+      console.log('USER UID FROM STORATE');
+      const response = await this.storage.get('user_uid');
+      if (response) {
+        this.userUid = response;
+        this.watchUser();
+      }
     } catch (error) {
-      
+      const toast = this.toastController.create({ message: 'Ocorreu um erro ao iniciar o login' });
+      toast.present();
+      console.error(error);
+      throw Error(error);
     }
-    
-    return new Promise<void>((resolve, reject) => {
-      this.storage.get('user_uid').then(res => {
-        this.userUid = res;
-        if (this.userUid) {
-          this.getMyUser().valueChanges()
-          .subscribe(user => {
-            if (user) {
-              this.user = user;
-              if (!this.user.partner_uid) {
-                this.partner = null;
-              }
-              if (!this.partner && this.user.partner_uid) {
-                this.afs.collection('users').doc(this.user.partner_uid).valueChanges().subscribe(data => {
-                  this.partner = data;
-                  resolve();
-                });
-              }
-            }
-
-          });
-        } else {
-          resolve();
-        }
-      }).catch(error => {console.error('Ocorreu um erro ao tentar pegar o user uid no storage'); reject()});
-    });
   }
 
-  async signIn(providerName: string):Promise<any> {
+  async signIn(providerName: string): Promise<any> {
 
     let firebaseAuthResponse = null;
 
-    if(this.platform.is('cordova')) {
+    if (this.platform.is('cordova')) {
       switch (providerName) {
         case 'google':
           firebaseAuthResponse = await this.sigInGoogleNative();
           break;
-      
+
         default:
           break;
       }
@@ -107,15 +89,17 @@ export class AuthProvider {
     try {
       await this.setOrUpdateUser(firebaseAuthResponse);
       await this.storage.set('user_uid', firebaseAuthResponse.uid);
-      // GET USER ONCE
-      await this.afs.doc(`users/${firebaseAuthResponse.uid}`).valueChanges().subscribe((userResponse: DocumentData) => {
-        this.user = userResponse;
-        this.partner = (typeof userResponse.partner_uid != 'undefined' && userResponse.partner_uid) ? this.afs.doc(`users/${userResponse.partner_uid}`).valueChanges() : null;
-      }); 
+      this.userUid = firebaseAuthResponse.uid;
+      this.watchUser();
     } catch (error) {
       console.error(error);
+      const toast = this.toastController.create({ message: 'Ocorreu um erro ao tentar fazer o login.' });
+      toast.present();
+      throw Error(error);
     }
   }
+
+
 
   async sigInGoogleBrowser() {
     try {
@@ -132,14 +116,14 @@ export class AuthProvider {
         'webClientId': '492626879402-uph3f5a6akmq4ldh70cb6ke7okfsljtl.apps.googleusercontent.com',
         'offline': true,
         'scopes': 'profile email'
-      });      
+      });
       return await this.afAuth.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(loginResponse.idToken));
     } catch (error) {
       console.error('Error login google native', error);
     }
   }
 
-  async setOrUpdateUser(userData: {uid, displayName, email, photoURL}): Promise<AngularFirestoreDocument> {
+  async setOrUpdateUser(userData: { uid, displayName, email, photoURL }) {
     console.log('user data to add', userData);
     const userToAdd = {
       uid: userData.uid,
@@ -150,10 +134,26 @@ export class AuthProvider {
 
     try {
       await this.afs.doc(`users/${userToAdd.uid}`).set(userToAdd, { merge: true });
-      return await this.afs.doc(`users/${userToAdd.uid}`);
     } catch (error) {
       throw Error(error);
     }
+  }
+
+  watchUser() {
+    this.afs.collection('users').doc(this.userUid).valueChanges()
+      .subscribe((res: any) => {
+        this.user = res;
+        if (res.partner_uid) {
+          this.afs.collection('users').doc(res.partner_uid).valueChanges().subscribe(partner => {
+            this.partner = partner;
+          });
+        } else {
+          this.partner = null;
+        }
+      });
+  }
+
+  getPartner() {
 
   }
 

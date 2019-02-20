@@ -29,7 +29,7 @@ export class ChosenListPage {
   }
 
   ionViewDidLoad() {
-    console.log('RSRSRS', this.authProvider.partner);
+    // console.log('RSRSRS', this.authProvider.partner);
   }
 
   presentActionSheet(name: any) {
