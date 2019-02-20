@@ -2,7 +2,10 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
+
 import { AuthProvider } from '../../providers/auth/auth';
+import { PartnerInvitesProvider } from '../../providers/partner-invites/partner-invites';
+
 import firebase from 'firebase/app';
 import firestore from 'firebase/firestore';
 import database from 'firebase/database';
@@ -23,7 +26,10 @@ export class UserTabPage {
 
 	user: {};
 
-  constructor(public navController: NavController, public navParams: NavParams, public authProvider: AuthProvider,
+  constructor(
+    public partnerInvitesProvider: PartnerInvitesProvider,
+    public navController: NavController,
+    public navParams: NavParams, public authProvider: AuthProvider,
   	private afs: AngularFirestore) {
   }
 

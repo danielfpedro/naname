@@ -13,63 +13,30 @@
 </ion-header>
 
 <ion-content>
-	<div *ngIf="partnerInvitesProviders.partner">
-		O seu parça é
+	<div *ngIf="authProvider.partner">
+		O seu parça é <strong>{{ (authProvider.partner | async)?.name }}</strong>
 		<br>
-		<img [src]="partnerInvitesProviders.partner.profilePhotoURL" width="80">
-		<button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover Parça</button>
+		<img [src]="(authProvider.partner | async)?.profilePhotoURL" width="80">
+		<button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover</button>
+    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner(true)">Remover e Bloquear</button>
 	</div>
 
-	<div *ngIf="!partnerInvitesProviders.partner">
+  <div *ngIf="!authProvider.partner">
+		<button ion-button (click)="showPrompt()">Requisitar</button>
+  </div>
 
-		<div padding *ngIf="partnerInvitesProviders.requestsSent.length < 1">
-			<button ion-button (click)="showPrompt()">Requisitar</button>
-		</div>
-
-		<ion-list *ngIf="partnerInvitesProviders.requestsSent.length > 0">
-		  <ion-list-header>
-		    Convite Enviado
-		  </ion-list-header>
-		  <ion-item *ngFor="let requestSent of partnerInvitesProviders.requestsSent">
-	      <ion-avatar item-start>
-	        <img [src]="requestSent.profilePhotoURL">
-	      </ion-avatar>
-	      <h2>{{requestSent.name}}</h2>
-	      <p>{{requestSent.email}}</p>
-		    <button ion-button item-end (click)="cancelRequest(requestSent)">Cancelar</button>
-		  </ion-item>
-		</ion-list>
-
-		<ion-list *ngIf="partnerInvitesProviders.requests.length > 0">
-		  <ion-list-header>
-		    Convites Recebidos
-		  </ion-list-header>
-		  <ion-item *ngFor="let request of partnerInvitesProviders.requests">
-	      <ion-avatar item-start>
-	        <img [src]="request.profilePhotoURL">
-	      </ion-avatar>
-	      <h2>{{request.name}}</h2>
-	      <p>{{request.email}}</p>
-		    <button ion-button item-end color="danger" (click)="blockRequest(request)">B</button>
-		    <button ion-button item-end color="danger" (click)="denyRequest(request)">R</button>
-		    <button ion-button item-end (click)="acceptRequest(request)">A</button>
-		  </ion-item>
-		</ion-list>
-
-		<ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">
-		  <ion-list-header>
-		    Usuários Bloqueados
-		  </ion-list-header>
-		  <ion-item *ngFor="let userBlocked of partnerInvitesProviders.usersBlocked">
-	      <ion-avatar item-start>
-	        <img [src]="userBlocked.profilePhotoURL">
-	      </ion-avatar>
-	      <h2>{{userBlocked.name}}</h2>
-	      <p>{{userBlocked.email}}</p>
-		    <button ion-button item-end (click)="unblockRequest(userBlocked)">Desbloquear</button>
-		  </ion-item>
-		</ion-list>
-
-	</div>
+  <ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">
+    <ion-list-header>
+      Usuários Bloqueados
+    </ion-list-header>
+    <ion-item *ngFor="let userBlocked of partnerInvitesProviders.usersBlocked">
+      <ion-avatar item-start>
+        <img [src]="userBlocked.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{userBlocked.name}}</h2>
+      <p>{{userBlocked.email}}</p>
+      <button ion-button item-end (click)="partnerInvitesProviders.unblockRequest(userBlocked)">Desbloquear</button>
+    </ion-item>
+  </ion-list>
 
 </ion-content>

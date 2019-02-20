@@ -26,31 +26,45 @@ export class LoginPage {
 
   ionViewDidLoad() {
 
-    const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
-    loading.present();
+    this.loadingAuthState = false;
 
-    const toast = this.toastController.create({ message: 'Ocorreu um erro ao tentar recuperar o seu login' });
+    // const loading = this.loadingController.create({content: 'Carregando, aguarde...'});
+    // loading.present();
 
-    this.authProvider.init().then(() => {
-      loading.dismiss();
-      if (this.authProvider.userUid) {
-        this.navCtrl.setRoot('TabsPage')
-      } else {
-        this.loadingAuthState = false;
-      }
-    })
-      .catch(() => {
-        toast.present();
-        loading.dismiss();
-        this.loadingAuthState = false;
-      });
+    // const toast = this.toastController.create({message: 'Ocorreu um erro ao tentar recuperar o seu login'});
+
+    // this.authProvider.init().then(() => {
+    //   loading.dismiss();
+    //   if (this.authProvider.userUid) {
+    //     this.navCtrl.setRoot('TabsPage')  
+    //   } else {
+    //     this.loadingAuthState = false;
+    //   }
+    // })
+    // .catch(() => {
+    //   toast.present();
+    //   loading.dismiss();
+    //   this.loadingAuthState = false;
+    // });
 
   }
 
   async signIn(provider) {
 
-    let loading = this.loadingController.create({ content: 'Entrando, aguarde...' });
-    loading.present();
+    this.authProvider.signIn(provider)
+      .then(success => {
+        loading.dismiss();
+        this.navCtrl.setRoot('TabsPage');
+      })
+      .catch(error => {
+        console.error(error);
+        loading.dismiss();
+        const toast = this.toastController.create({
+          message: 'Ocorreu um erro ao tentar entrar',
+          duration: 3000
+        });
+        toast.present()
+      })
 
     await this.authProvider.signIn(provider);
     loading.dismiss();

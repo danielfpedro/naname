@@ -22,11 +22,20 @@
       <h2>{{authProvider.user?.name}}</h2>
       <p>{{authProvider.user?.email}}</p>
     </ion-item>
-	  <button ion-item (click)="navController.push('PartnerListPage')">
+
+	  <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="!(authProvider.partner | async)">
 	    Configurar Parceiro
-	  </button> 
+	  </button>
+
+    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="(authProvider.partner | async)">
+      <ion-avatar item-start>
+        <img [src]="(authProvider.partner | async)?.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{ (authProvider.partner | async)?.name }}</h2>
+    </button>
+
 	  <button ion-item (click)="authProvider.logout()">
 	    Sair
-	  </button> 
+	  </button>
 	</ion-list>
 </ion-content>

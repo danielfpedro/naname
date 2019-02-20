@@ -16,8 +16,12 @@ import { AngularFireAuthModule } from '@angular/fire/auth';
 import { Facebook } from '@ionic-native/facebook';
 import { AuthProvider } from '../providers/auth/auth';
 import { PartnerInvitesProvider } from '../providers/partner-invites/partner-invites';
+import { SwingModule } from 'angular2-swing';
+
+import { GooglePlus } from '@ionic-native/google-plus';
 
 import { IonicStorageModule } from '@ionic/storage';
+import { NamesProvider } from '../providers/names/names';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyCKF5qFhpqMUVNX1G4CZgLkdlq4V5P7ttk",
@@ -39,6 +43,7 @@ export const firebaseConfig = {
     AngularFireDatabaseModule,
     AngularFireAuthModule,
     AngularFirestoreModule,
+    SwingModule,
     IonicStorageModule.forRoot(),
     AngularFireModule.initializeApp(firebaseConfig),
   ],
@@ -51,10 +56,12 @@ export const firebaseConfig = {
     AngularFireDatabase,
     Facebook,
     AuthProvider,
+    GooglePlus,
     StatusBar,
     SplashScreen,
     PartnerInvitesProvider,
-    // {provide: ErrorHandler, useClass: IonicErrorHandler},
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    NamesProvider,
   ]
 })
 export class AppModule {}
