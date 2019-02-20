@@ -28,12 +28,11 @@ export class NamesProvider {
   ) {
     console.log("Hello NamesProvider");
 
-    console.log("AQUIIIIII");
-    this.listenNames(this.authProvider.userUid, this.myNamesChosen);
-    this.listenNames(
-      this.authProvider.user.partner_uid,
-      this.partnerNamesChosen
-    );
+    // this.listenNames(this.authProvider.userUid, this.myNamesChosen);
+    // this.listenNames(
+    //   this.authProvider.user.partner_uid,
+    //   this.partnerNamesChosen
+    // );
   }
   listenNames(userId, arrayToAdd) {
     this.afs

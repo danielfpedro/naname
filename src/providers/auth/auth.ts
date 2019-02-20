@@ -4,7 +4,7 @@ import { Facebook } from '@ionic-native/facebook';
 import { AngularFireAuth } from '@angular/fire/auth';
 import firebase from 'firebase/app';
 
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
+import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, DocumentSnapshot, DocumentData, DocumentSnapshotExists, Action } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 import { Storage } from '@ionic/storage';
@@ -20,10 +20,13 @@ import { GooglePlus } from '@ionic-native/google-plus';
 @Injectable()
 export class AuthProvider {
 
-  public userUid: string;
-  public user: any;
+  public userDoc: AngularFirestoreDocument;
 
+  public userUid: string;
+
+  public user: any;
   public partner: any;
+
   public partnerLoaded = false;
 
   constructor(
@@ -42,7 +45,13 @@ export class AuthProvider {
 
   }
 
-  init(): Promise<void> {
+  async init(): Promise<void> {
+    try {
+     await this.storage.get('user_uid');
+    } catch (error) {
+      
+    }
+    
     return new Promise<void>((resolve, reject) => {
       this.storage.get('user_uid').then(res => {
         this.userUid = res;
@@ -70,101 +79,82 @@ export class AuthProvider {
     });
   }
 
-  signIn(providerName: string):Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (this.platform.is('cordova')) {
+  async signIn(providerName: string):Promise<any> {
 
-          if (providerName == 'google') {
-            console.log('Google login');
-            this.gPlus.login({
-              'webClientId': '492626879402-uph3f5a6akmq4ldh70cb6ke7okfsljtl.apps.googleusercontent.com',
-              'offline': true,
-              'scopes': 'profile email'
-            })
-            .then(response => {
-              console.log('Result google login', response);
-              this.afAuth.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(response.idToken))
-                .then(res => {
-                  console.log('DEU BOA', response);
-                  this.setOrUpdateUser(res.uid, res)
-                  .then(() => {
-                    this.storage.set('user_uid', res.uid)
-                      .then(() => {
-                        this.init()
-                          .then(() => resolve())
-                          .catch(error => reject());
-                      })
-                      .catch(error => {console.log(error), reject()});
-                  })
-                  .catch(error => {console.log(error), reject()});
-                })
-                .catch(error => {
-                  console.log('DEU RUIM', error);
-                });
-            })
-            .catch(error => {
-              console.log('DEU ERRO NO GOOGLE LOGIN', error);
-              reject();
-            });
-          }
-        // this.fb.login(['email', 'public_profile'])
-        //   .then(res => {
-        //     const facebookCredential = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
-        //     return firebase.auth().signInWithCredential(facebookCredential)
-        //       .then(res => resolve(res))
-        //       .catch(error => reject(error));
-        //   })
-        //   .catch(error => reject(error));
+    let firebaseAuthResponse = null;
 
-      } else {
-        const provider = (providerName == 'facebook') ? new firebase.auth.FacebookAuthProvider() : new firebase.auth.GoogleAuthProvider();
-        return this.afAuth.auth
-          .signInWithPopup(provider)
-          .then(res => {
-
-            this.setOrUpdateUser(res.user.uid, res.user)
-              .then(() => {
-                this.storage.set('user_uid', res.user.uid)
-                  .then(() => {
-                    this.init()
-                      .then(() => resolve())
-                      .catch(error => reject());
-                  })
-                  .catch(error => {console.log(error), reject()});
-              })
-              .catch(error => {console.log(error), reject()});
-
-          })
-          .catch(error => {console.log(error), reject()});
+    if(this.platform.is('cordova')) {
+      switch (providerName) {
+        case 'google':
+          firebaseAuthResponse = await this.sigInGoogleNative();
+          break;
+      
+        default:
+          break;
       }
-    });
+    } else {
+      console.log('login browser');
+      switch (providerName) {
+        case 'google':
+          console.log('login with google provider');
+          firebaseAuthResponse = await this.sigInGoogleBrowser();
+          break;
+        default:
+          break;
+      }
+    }
+
+    try {
+      await this.setOrUpdateUser(firebaseAuthResponse);
+      await this.storage.set('user_uid', firebaseAuthResponse.uid);
+      // GET USER ONCE
+      await this.afs.doc(`users/${firebaseAuthResponse.uid}`).valueChanges().subscribe((userResponse: DocumentData) => {
+        this.user = userResponse;
+        this.partner = (typeof userResponse.partner_uid != 'undefined' && userResponse.partner_uid) ? this.afs.doc(`users/${userResponse.partner_uid}`).valueChanges() : null;
+      }); 
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  setOrUpdateUser(uid: string, user: {displayName, email, photoURL}): Promise<void> {
+  async sigInGoogleBrowser() {
+    try {
+      const authResponse = await this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      return authResponse.user;
+    } catch (error) {
+      console.error('Error login google browser', error);
+    }
+  }
 
+  async sigInGoogleNative() {
+    try {
+      const loginResponse = await this.gPlus.login({
+        'webClientId': '492626879402-uph3f5a6akmq4ldh70cb6ke7okfsljtl.apps.googleusercontent.com',
+        'offline': true,
+        'scopes': 'profile email'
+      });      
+      return await this.afAuth.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(loginResponse.idToken));
+    } catch (error) {
+      console.error('Error login google native', error);
+    }
+  }
+
+  async setOrUpdateUser(userData: {uid, displayName, email, photoURL}): Promise<AngularFirestoreDocument> {
+    console.log('user data to add', userData);
     const userToAdd = {
-      name: user.displayName,
-      email: user.email,
-      profilePhotoURL: user.photoURL
+      uid: userData.uid,
+      name: userData.displayName,
+      email: userData.email,
+      profilePhotoURL: userData.photoURL
     };
 
-    return new Promise<void>((resolve, reject) => {
-      firebase.firestore().collection('users').doc(uid).get().then(res => {
-        if (res.exists) {
-          this.afs.collection('users').doc(uid).update(userToAdd)
-            .then(res => {
-              resolve();
-            })
-            .catch(error => {console.log(error), reject()});
-        } else {
-          this.afs.collection('users').doc(uid).set(userToAdd)
-            .then(res => {
-              resolve();
-            })
-            .catch(error => {console.log(error), reject()});
-        }
-      });
-    });
+    try {
+      await this.afs.doc(`users/${userToAdd.uid}`).set(userToAdd, { merge: true });
+      return await this.afs.doc(`users/${userToAdd.uid}`);
+    } catch (error) {
+      throw Error(error);
+    }
+
   }
 
   getMyUser(): AngularFirestoreDocument<any> {

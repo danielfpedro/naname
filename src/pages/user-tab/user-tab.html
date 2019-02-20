@@ -23,15 +23,15 @@
       <p>{{authProvider.user?.email}}</p>
     </ion-item>
 
-	  <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="!authProvider.user?.partner">
+	  <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="!(authProvider.partner | async)">
 	    Configurar Parceiro
 	  </button>
 
-    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="authProvider.partner">
+    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="(authProvider.partner | async)">
       <ion-avatar item-start>
-        <img [src]="authProvider.partner?.profilePhotoURL">
+        <img [src]="(authProvider.partner | async)?.profilePhotoURL">
       </ion-avatar>
-      <h2>{{authProvider.partner?.name}}</h2>
+      <h2>{{ (authProvider.partner | async)?.name }}</h2>
     </button>
 
 	  <button ion-item (click)="authProvider.logout()">
