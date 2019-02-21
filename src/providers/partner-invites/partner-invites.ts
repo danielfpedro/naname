@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 import firebase from 'firebase/app';
 
 import { AuthProvider } from '../../providers/auth/auth';
-
 /*
   Generated class for the PartnerInvitesProvider provider.
 
@@ -29,7 +28,7 @@ export class PartnerInvitesProvider {
 
 	constructor(
 		private afs: AngularFirestore,
-		public authProvider: AuthProvider
+		public authProvider: AuthProvider,
 	) {
 	}
 
@@ -43,7 +42,7 @@ export class PartnerInvitesProvider {
 				partner_uid: null
 			}).then(() => {
 				if (block) {
-					this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked').doc(this.authProvider.userUid + '_' + partnerUid)
+					this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked').doc(partnerUid)
 						.set({
 							'blocked_user_uid': partnerUid
 						});
@@ -52,12 +51,21 @@ export class PartnerInvitesProvider {
 		});
 	}
 
-	unblockRequest(user) {
-		this.myUsersBlocked().doc(this.authProvider.userUid + '_' + user.id).delete();
+	unblockUser(user) {
+		console.log('UNBLOCK USER antes subsccribe', user);
+		user.delete();
+		// user.subscribe(res => {
+		// 	console.log('UNBLOCK USER', res);
+		// 	// this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked').doc(user.uid).delete();
+		// });
+		
+		// this.myUsersBlocked().doc(this.authProvider.userUid + '_' + user.id).delete();
 	}
 
 	myUsersBlocked() {
-		return this.afs.collection('users').doc(this.authProvider.userUid).collection('usersBlocked');
+		this.usersBlocked = this.authProvider.user.usersBlocked.map(userBlocked => {
+			this.afs.doc(`users/${userBlocked.uid}`).get();
+		});
 	}
 
 }

@@ -5,11 +5,13 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import firebase from 'firebase/app';
 
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, DocumentSnapshot, DocumentData, DocumentSnapshotExists, Action } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { forkJoin } from "rxjs";
 
 import { Storage } from '@ionic/storage';
 
 import { GooglePlus } from '@ionic-native/google-plus';
+import { map, switchMap, flatMap } from 'rxjs/operators';
 
 /*
   Generated class for the AuthProvider provider.
@@ -25,6 +27,7 @@ export class AuthProvider {
   public userUid: string = null;
   public user: any;
   public partner: any = null;
+  public blockedUsers: any;
   // public partner: any;
 
   // public partnerLoaded = false;
@@ -38,7 +41,7 @@ export class AuthProvider {
 
     private afs: AngularFirestore,
     private alertController: AlertController,
-    private toastController: ToastController,
+    private toastCtrl: ToastController,
 
     public gPlus: GooglePlus
   ) {
@@ -52,9 +55,10 @@ export class AuthProvider {
       if (response) {
         this.userUid = response;
         this.watchUser();
+        this.watchBlockedUsers();
       }
     } catch (error) {
-      const toast = this.toastController.create({ message: 'Ocorreu um erro ao iniciar o login' });
+      const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao iniciar o login' });
       toast.present();
       console.error(error);
       throw Error(error);
@@ -93,7 +97,7 @@ export class AuthProvider {
       this.watchUser();
     } catch (error) {
       console.error(error);
-      const toast = this.toastController.create({ message: 'Ocorreu um erro ao tentar fazer o login.' });
+      const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao tentar fazer o login.' });
       toast.present();
       throw Error(error);
     }
@@ -144,9 +148,15 @@ export class AuthProvider {
       .subscribe((res: any) => {
         this.user = res;
         if (res.partner_uid) {
-          this.afs.collection('users').doc(res.partner_uid).valueChanges().subscribe(partner => {
-            this.partner = partner;
-          });
+          this.afs.collection('users').doc(res.partner_uid).snapshotChanges()
+            .pipe(
+              map(partner => {
+                return { ...partner.payload.data(), uid: partner.payload.id }
+              })
+            )
+            .subscribe(partner => {
+              this.partner = partner;
+            });
         } else {
           this.partner = null;
         }
@@ -173,4 +183,76 @@ export class AuthProvider {
     });
   }
 
+  // Refs
+  myUserRef() {
+    return this.afs.collection('users').doc(this.userUid);
+  }
+  blockedUsersRef() {
+    return this.myUserRef().collection('blockedUsers');
+  }
+
+  // Partnership
+  /**
+   * Remove partner and/or block him
+   * @param block Flag that tells if the user will be blocked after being removed
+   */
+  async removePartner(): Promise<void> {
+    try {
+      await this.myUserRef().update({ partner_uid: null });
+    } catch (error) {
+      this.toast('Ocorreu um erro ao tentar remover o parceiro.');
+    }
+  }
+
+  // Blocks
+  watchBlockedUsers() {
+    this.afs.collection(`users/${this.userUid}/blockedUsers`).snapshotChanges()
+      // Collection de ids do bloqueados do meu user
+      .pipe(
+        // Para cada eu pego o user em questao
+        map(blockedUsersIdsCollection => {
+          return blockedUsersIdsCollection.map((blockedUserIdDoc: any) => {
+            return this.afs.collection('users').doc(blockedUserIdDoc.payload.doc.id).snapshotChanges()
+              .pipe(
+                map((blockedUser: any) => {
+                  return { ...blockedUser.payload.data(), uid: blockedUser.payload.id };
+                })
+              );
+          });
+        })
+      )
+      .subscribe(blockedUsers => {
+        this.blockedUsers = blockedUsers.map(blockedUser => {
+          return blockedUser;
+        })
+      });
+  }
+  async blockUser(uid) {
+    try {
+      await this.blockedUsersRef().doc(uid).set({ uid });
+    } catch (error) {
+      this.toast('Ocorreu um erro ao tentar bloquear o parceiro');
+    }
+  }
+  /**
+   * 
+   * @param uid Uid of the user that will be deleted
+   */
+  async unblockUser(uid: string) {
+    try {
+      await this.blockedUsersRef().doc(uid).delete();
+    } catch (error) {
+      this.toast('Ocorreu um erro ao tentar desbloquear o parceiro');
+    }
+  }
+
+  // Helpers
+
+  /** Toast Helper
+   * @param message Message to be displayed at toast
+   */
+  toast(message: string, duration: number = 3000): void {
+    const toast = this.toastCtrl.create({ message, duration });
+    toast.present();
+  }
 }

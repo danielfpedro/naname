@@ -19,25 +19,25 @@
     O seu parça é <strong>{{ authProvider.partner?.name }}</strong>
     <br>
     <img [src]="authProvider.partner?.profilePhotoURL" width="80">
-    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner()">Remover</button>
-    <button ion-button color="danger" (click)="partnerInvitesProviders.removePartner(true)">Remover e Bloquear</button>
+    <button ion-button color="danger" (click)="presentRemovePartnerAlert()">Remover</button>
+    <button ion-button color="danger" (click)="presentRemovePartnerAlert(true)">Remover e Bloquear</button>
   </div>
 
   <div *ngIf="authProvider.user && !authProvider.user.partner_uid">
     <button ion-button (click)="showPrompt()">Requisitar</button>
   </div>
 
-  <ion-list *ngIf="partnerInvitesProviders.usersBlocked.length > 0">
+  <ion-list *ngIf="authProvider.blockedUsers.length > 0">
     <ion-list-header>
       Usuários Bloqueados
     </ion-list-header>
-    <ion-item *ngFor="let userBlocked of partnerInvitesProviders.usersBlocked">
+    <ion-item *ngFor="let blockedUser of authProvider.blockedUsers">
       <ion-avatar item-start>
-        <img [src]="userBlocked.profilePhotoURL">
+        <img [src]="(blockedUser | async)?.profilePhotoURL">
       </ion-avatar>
-      <h2>{{userBlocked.name}}</h2>
-      <p>{{userBlocked.email}}</p>
-      <button ion-button item-end (click)="partnerInvitesProviders.unblockRequest(userBlocked)">Desbloquear</button>
+      <h2>{{(blockedUser | async)?.name}}</h2>
+      <p>{{(blockedUser | async)?.email}}</p>
+      <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="unblockUser(blockedUser)">Desbloquear</button>
     </ion-item>
   </ion-list>
 

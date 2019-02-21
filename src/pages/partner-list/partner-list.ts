@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController, LoadingController, AlertOptions } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
@@ -25,22 +25,21 @@ export class PartnerListPage {
   usersBlockedCollection: any;
   requestsSentCollection: any;
 
-  usersBlocked = [];
+  blockedUsers = [];
 
   constructor(public navCtrl: NavController, public navParams: NavParams,
     private afs: AngularFirestore,
     public authProvider: AuthProvider,
-    public alertController: AlertController,
-    public partnerInvitesProviders: PartnerInvitesProvider
+    public partnerInvitesProviders: PartnerInvitesProvider,
+    // Ionic components
+    public alertCtrl: AlertController,
+    public loaderCtrl: LoadingController
   ) {
 
   }
 
-  ionViewDidLoad() {
-    console.log('SUBSCRIBE PARTNER', this.authProvider.partner);
-  }
   showPrompt() {
-    const prompt = this.alertController.create({
+    const prompt = this.alertCtrl.create({
       title: 'Adicionar Parceiro',
       message: "Entre com o email do parceiro",
       inputs: [{ name: 'email', placeholder: 'Email' }],
@@ -52,11 +51,11 @@ export class PartnerListPage {
           }
         },
         {
-          text: 'Enviar convite',
+          text: 'Adicionar Parceiro',
           handler: data => {
 
             if (data.email == this.authProvider.user.email) {
-              const alert = this.alertController.create({
+              const alert = this.alertCtrl.create({
                 title: 'Email inválido',
                 message: 'Você informou o seu próprio email',
                 buttons: ['Ok']
@@ -83,13 +82,13 @@ export class PartnerListPage {
                         partner_uid: userTarget.id
                       });
                     } else {
-                      const alert = this.alertController.create({ title: 'Bloqueado', message: 'Você está bloqueado.', buttons: ['ok'] });
+                      const alert = this.alertCtrl.create({ title: 'Bloqueado', message: 'Você está bloqueado.', buttons: ['ok'] });
                       alert.present();
                     }
                   });
 
               } else {
-                const alert = this.alertController.create({
+                const alert = this.alertCtrl.create({
                   title: 'Email não encontrado',
                   message: 'Email informado não está usando o App',
                   buttons: ['Ok']
@@ -103,5 +102,72 @@ export class PartnerListPage {
       ]
     });
     prompt.present();
+  }
+
+  presentRemovePartnerAlert(block: boolean = false) {
+    const title = `<strong>Remover</strong> o seu parceiro ${this.authProvider.partner.name}?`;
+    const message = 'Ao remover, a lista de nomes escolhidos irá exibir apenas os nomes que você escolheu.';
+
+    const partnerToBeRemoved = this.authProvider.partner;
+
+    const alertOptions: AlertOptions = {
+      title,
+      message,
+      buttons: [
+        {
+          text: 'Ok, quero remover',
+          handler: () => {
+            this.removePartner().then(() => {
+              if (block) {
+                this.presentBlockUserAlert(partnerToBeRemoved);
+              }
+            });
+          }
+        },
+        'Cancelar'
+      ]
+    };
+    const alert = this.alertCtrl.create(alertOptions);
+    alert.present();
+  }
+  presentBlockUserAlert(partnerToBeBlocked): void {
+    console.log('PARTNER TO BE BLOQUED', partnerToBeBlocked);
+    const title = `<strong>Bloquear</strong> ${partnerToBeBlocked.name}?`;
+    const message = `Ao bloquear, o usuário ficará impedido de te adicionar como parceiro novamente. Se bater o arrependimento você opderá desbloquear depois =D`;
+
+    const alertOptions: AlertOptions = {
+      title,
+      message,
+      buttons: [
+        {
+          text: 'Ok, quero bloquear também',
+          handler: () => {
+            this.blockPartner(partnerToBeBlocked);
+          }
+        },
+        'Cancelar'
+      ]
+    };
+    const alert = this.alertCtrl.create(alertOptions);
+    alert.present();
+  }
+  async removePartner() {
+    const loader = this.loaderCtrl.create({ content: `Removendo ${this.authProvider.partner.name} (${this.authProvider.partner.email})` });
+    loader.present();
+    await this.authProvider.removePartner();
+    loader.dismiss();
+  }
+  async blockPartner(partnerToBeBlocked) {
+    console.log('BLOCK PARTNER TO BE BLOQKEC', partnerToBeBlocked);
+    const loader = this.loaderCtrl.create({ content: `Bloqueando ${partnerToBeBlocked.name} (${partnerToBeBlocked.email})` });
+    loader.present();
+    await this.authProvider.blockUser(partnerToBeBlocked.uid);
+    loader.dismiss();
+  }
+  async unblockUser(userToBeUnblocked) {
+    const loader = this.loaderCtrl.create({ content: `Desbloqueando ${userToBeUnblocked.name} (${userToBeUnblocked.email})` });
+    loader.present();
+    await this.authProvider.unblockUser(userToBeUnblocked.uid);
+    loader.dismiss();
   }
 }
