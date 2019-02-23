@@ -12,8 +12,9 @@ import {
   DragEvent,
   SwingStackComponent,
   SwingCardComponent
-  } from 'angular2-swing';
+} from 'angular2-swing';
 import { NamesProvider } from '../../providers/names/names';
+import { AuthProvider } from '../../providers/auth/auth';
 
 /**
  * Generated class for the NamesListPage page.
@@ -42,13 +43,14 @@ export class NamesListPage {
     public navCtrl: NavController,
     public navParams: NavParams,
     public toastController: ToastController,
-    public actionSheetCtrl: ActionSheetController
+    public actionSheetCtrl: ActionSheetController,
+    public authProvider: AuthProvider
   ) {
 
     this.stackConfig = {
       allowedDirections: [Direction.LEFT, Direction.RIGHT],
       throwOutConfidence: (offsetX, offsetY, element) => {
-        return Math.min(Math.abs(offsetX) / (element.offsetWidth/3), 1);
+        return Math.min(Math.abs(offsetX) / (element.offsetWidth / 3), 1);
       },
       transform: (element, x, y, r) => {
         this.onItemMove(element, x, y, r);
@@ -81,7 +83,7 @@ export class NamesListPage {
   onItemMove(element, x, y, r) {
     var color = '';
     var abs = Math.abs(x);
-    let min = Math.trunc(Math.min(16*16 - abs, 16*16));
+    let min = Math.trunc(Math.min(16 * 16 - abs, 16 * 16));
     let hexCode = this.decimalToHex(min, 2);
 
     if (x < 0) {
@@ -98,11 +100,8 @@ export class NamesListPage {
   voteUp(like: boolean) {
     console.log('Like', like);
     const removedCard = this.cards.pop();
-    this.namesProvider.chose(removedCard, like)
-      .then()
-      .catch(() => {
-        const toast = this.toastController.create({message: 'Ocorreu um erro ao salvar a sua escolha.'});
-      });
+    console.log('REMOVED CARD', removedCard);
+    this.authProvider.choseName(removedCard);
   }
 
   // Add new cards to our array
@@ -132,12 +131,12 @@ export class NamesListPage {
           handler: () => {
             console.log('Destructive clicked');
           }
-        },{
+        }, {
           text: 'Archive',
           handler: () => {
             console.log('Archive clicked');
           }
-        },{
+        }, {
           text: 'Cancel',
           role: 'cancel',
           handler: () => {

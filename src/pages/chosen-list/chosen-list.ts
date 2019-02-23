@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ActionSheetController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ActionSheetController, LoadingController } from 'ionic-angular';
 import { NamesProvider } from '../../providers/names/names';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AuthProvider } from '../../providers/auth/auth';
+import { SocialSharing } from '@ionic-native/social-sharing';
 
 /**
  * Generated class for the ChosenListPage page.
@@ -24,7 +25,9 @@ export class ChosenListPage {
     public navParams: NavParams,
     public namesProvider: NamesProvider,
     public authProvider: AuthProvider,
-    public actionSheetCtrl: ActionSheetController
+    public actionSheetCtrl: ActionSheetController,
+    public loadingCtrl: LoadingController,
+    public socialSharing: SocialSharing
   ) {
   }
 
@@ -32,20 +35,21 @@ export class ChosenListPage {
     // console.log('RSRSRS', this.authProvider.partner);
   }
 
-  presentActionSheet(name: any) {
-    if (name.owner == 'partner')
+  presentNameActionSheetOption(chosen: any) {
+    if (chosen.owner == 'partner') {
+      this.authProvider.toast('Você não pode remover da lista o nome que somente o seu parceiro adicionou.', 4000);
       return;
-
+    }
     const actionSheet = this.actionSheetCtrl.create({
       title: 'Opções',
       buttons: [
         {
-          text: 'Remover',
+          text: 'Remover nome',
           role: 'destructive',
           handler: () => {
-            this.namesProvider.removeName(name.id);
+            this.removeName(chosen.id);
           }
-        },{
+        }, {
           text: 'Cancelar',
           role: 'cancel',
           handler: () => {
@@ -55,5 +59,16 @@ export class ChosenListPage {
       ]
     });
     actionSheet.present();
+  }
+
+  async removeName(id: string) {
+    const loader = this.loadingCtrl.create({ content: 'Removendo nome da sua lista, por favor aguarde...' });
+    loader.present();
+    await this.authProvider.removeChosenName(id);
+    loader.dismiss();
+  }
+
+  share() {
+    this.socialSharing.share('Escolhe o nome do filhão ai meu amigo, é divertix', 'Aqui o assunto não sei a diferença', null, 'http://naname.com.br./enquete/123456789');
   }
 }

@@ -14,23 +14,29 @@
 
 
 <ion-content>
+
+  <p *ngIf="authProvider.mergedNames.length < 2">
+    Você ainda não escolheu nenhum nome.
+  </p>
   <ion-list>
-
-    <ion-item *ngFor="let chosen of namesProvider.namesChosen" (press)="presentActionSheet(chosen)">
-      {{ chosen.name }}
-      {{ authProvider.partner?.name | json }}
-      <ion-avatar item-end>
-
-      </ion-avatar>
-
-        <ion-avatar item-end *ngIf="chosen.isEqual || chosen.owner == 'me'">
-              <img [src]="authProvider.user?.profilePhotoURL">
+    <ng-container *ngFor="let chosen of authProvider.mergedNames">
+      <ion-item (press)="presentNameActionSheetOption(chosen)">
+        <h2>
+          {{ (chosen.name | async)?.name }}
+        </h2>
+        <ion-avatar item-end *ngIf="chosen.owner == 'me' || chosen.owner == 'both'">
+          <img [src]="authProvider.user?.profilePhotoURL">
         </ion-avatar>
-        <ion-avatar item-end *ngIf="chosen.isEqual || chosen.owner != 'me'">
+        <ion-avatar item-end *ngIf="chosen.owner == 'partner' || chosen.owner == 'both'">
           <img [src]="authProvider.partner?.profilePhotoURL">
-      </ion-avatar>
-
-    </ion-item>
-
+        </ion-avatar>
+      </ion-item>
+    </ng-container>
   </ion-list>
 </ion-content>
+
+<ion-footer *ngIf="authProvider.mergedNames.length > 1">
+  <ion-toolbar>
+    <button ion-button block (click)="share()">Compartilhar enquete</button>
+  </ion-toolbar>
+</ion-footer>

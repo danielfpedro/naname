@@ -19,7 +19,7 @@ import { PartnerInvitesProvider } from '../providers/partner-invites/partner-inv
 import { SwingModule } from 'angular2-swing';
 
 import { GooglePlus } from '@ionic-native/google-plus';
-
+import { SocialSharing } from '@ionic-native/social-sharing';
 import { IonicStorageModule } from '@ionic/storage';
 import { NamesProvider } from '../providers/names/names';
 
@@ -60,6 +60,7 @@ export const firebaseConfig = {
     StatusBar,
     SplashScreen,
     PartnerInvitesProvider,
+    SocialSharing,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     NamesProvider,
   ]

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="br.com.naname" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="br.com.naname" version="0.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Naname</name>
     <description>An awesome Ionic/Cordova app.</description>
     <author email="hi@ionicframework" href="http://ionicframework.com/">Ionic Framework Team</author>
@@ -87,14 +87,11 @@
         <variable name="APP_NAME" value="Naname" />
     </plugin>
     <plugin name="cordova-sqlite-storage" spec="^2.4.0" />
-<<<<<<< HEAD
-    <engine name="android" spec="7.0.0" />
-=======
+    <plugin name="cordova-plugin-x-socialsharing" spec="5.4.4" />
     <plugin name="cordova-plugin-googleplus" spec="^7.0.0">
-        <variable name="WEB_APPLICATION_CLIENT_ID" value="177052540909-8j65k2gndmb5vn8j2ikq1m6s3ub90psp.apps.googleusercontent.com" />
-        <variable name="REVERSED_CLIENT_ID" value="myreversedclientid" />
+        <variable name="WEB_APPLICATION_CLIENT_ID" value="499196676267-h5so17ubc65v38p4dgjb1v70gg4kd6u8.apps.googleusercontent.com" />
+        <variable name="REVERSED_CLIENT_ID" value="yourReversedClientID" />
         <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
     </plugin>
     <engine name="android" spec="6.3.0" />
->>>>>>> 3fc8b16e1a55858a941204ffe40b131e3f81ad1a
 </widget>

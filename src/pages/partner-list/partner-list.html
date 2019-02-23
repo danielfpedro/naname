@@ -37,7 +37,7 @@
       </ion-avatar>
       <h2>{{(blockedUser | async)?.name}}</h2>
       <p>{{(blockedUser | async)?.email}}</p>
-      <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="unblockUser(blockedUser)">Desbloquear</button>
+      <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
     </ion-item>
   </ion-list>
 

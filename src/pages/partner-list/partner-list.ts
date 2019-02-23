@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, AlertController, LoadingController, AlertOptions } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import firebase from 'firebase/app';
 
 import { AuthProvider } from '../../providers/auth/auth';
@@ -36,6 +36,14 @@ export class PartnerListPage {
     public loaderCtrl: LoadingController
   ) {
 
+    // this.authProvider.blockedUsersconsole.log('BLOQUEADOS', this.authProvider.blockedUsers);
+  }
+
+  ionViewDidLoad() {
+    console.log('VIEW ID LOAD');
+    this.authProvider.blockedUsers.forEach(blockedUser => {
+      blockedUser.subscribe(res => console.log('INSIDE SUBSCRIPTION', res));
+    });
   }
 
   showPrompt() {
@@ -46,64 +54,32 @@ export class PartnerListPage {
       buttons: [
         {
           text: 'Cancelar',
-          handler: data => {
-            console.log('Cancel clicked');
-          }
         },
         {
           text: 'Adicionar Parceiro',
           handler: data => {
-
-            if (data.email == this.authProvider.user.email) {
-              const alert = this.alertCtrl.create({
-                title: 'Email inválido',
-                message: 'Você informou o seu próprio email',
-                buttons: ['Ok']
-              });
-              alert.present();
-              return;
-            }
-            const tey = this.afs;
-
-            this.afs.collection('users').ref.where('email', '==', data.email).get().then(querySnapshot => {
-              if (!querySnapshot.empty) {
-                const userTarget = querySnapshot.docs[0];
-                // Vejo se eu estou bloqueado pelo usuario que eu estou adicionando
-                tey.collection('users').doc(userTarget.id).collection('usersBlocked').doc(userTarget.id + '_' + this.authProvider.userUid)
-                  .ref
-                  .get()
-                  .then(imBlockedByTarget => {
-                    if (!imBlockedByTarget.exists) {
-                      // Me salvo como target
-                      tey.collection('users').doc(userTarget.id).update({
-                        partner_uid: this.authProvider.userUid
-                      });
-                      tey.collection('users').doc(this.authProvider.userUid).update({
-                        partner_uid: userTarget.id
-                      });
-                    } else {
-                      const alert = this.alertCtrl.create({ title: 'Bloqueado', message: 'Você está bloqueado.', buttons: ['ok'] });
-                      alert.present();
-                    }
-                  });
-
-              } else {
-                const alert = this.alertCtrl.create({
-                  title: 'Email não encontrado',
-                  message: 'Email informado não está usando o App',
-                  buttons: ['Ok']
-                });
-                alert.present();
-              }
-            });
-
+            this.addPartner(data.email).then(() => prompt.dismiss()).catch(() => null);
+            return false;
           }
         }
       ]
     });
     prompt.present();
   }
-
+  async addPartner(email: string) {
+    const loader = this.loaderCtrl.create({ content: 'Adicionando parceiro, aguarde...' });
+    loader.present();
+    try {
+      await this.authProvider.addPartner(email);
+      loader.dismiss();
+    } catch (error) {
+      loader.dismiss().then(() => {
+        const alert = this.alertCtrl.create({ title: 'Ops, algo deu errado!', message: error, buttons: ['ok'] });
+        alert.present();
+      });
+      throw Error(error);
+    }
+  }
   presentRemovePartnerAlert(block: boolean = false) {
     const title = `<strong>Remover</strong> o seu parceiro ${this.authProvider.partner.name}?`;
     const message = 'Ao remover, a lista de nomes escolhidos irá exibir apenas os nomes que você escolheu.';
@@ -117,7 +93,7 @@ export class PartnerListPage {
         {
           text: 'Ok, quero remover',
           handler: () => {
-            this.removePartner().then(() => {
+            this.removePartner(partnerToBeRemoved).then(() => {
               if (block) {
                 this.presentBlockUserAlert(partnerToBeRemoved);
               }
@@ -151,14 +127,33 @@ export class PartnerListPage {
     const alert = this.alertCtrl.create(alertOptions);
     alert.present();
   }
-  async removePartner() {
+  presentUnblockUserAlert(userToBeUnblocked): void {
+    const title = `<strong>Desbloquear</strong> ${userToBeUnblocked.name}?`;
+    const message = `Ao desbloquear, o usuário poderá te adicionar como parceiro novamente.`;
+
+    const alertOptions: AlertOptions = {
+      title,
+      message,
+      buttons: [
+        {
+          text: 'Ok, quero desbloquear',
+          handler: () => {
+            this.unblockUser(userToBeUnblocked);
+          }
+        },
+        'Cancelar'
+      ]
+    };
+    const alert = this.alertCtrl.create(alertOptions);
+    alert.present();
+  }
+  async removePartner(partner) {
     const loader = this.loaderCtrl.create({ content: `Removendo ${this.authProvider.partner.name} (${this.authProvider.partner.email})` });
     loader.present();
-    await this.authProvider.removePartner();
+    await this.authProvider.removePartner(partner);
     loader.dismiss();
   }
   async blockPartner(partnerToBeBlocked) {
-    console.log('BLOCK PARTNER TO BE BLOQKEC', partnerToBeBlocked);
     const loader = this.loaderCtrl.create({ content: `Bloqueando ${partnerToBeBlocked.name} (${partnerToBeBlocked.email})` });
     loader.present();
     await this.authProvider.blockUser(partnerToBeBlocked.uid);

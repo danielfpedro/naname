@@ -34,6 +34,9 @@ export class NamesProvider {
     //   this.partnerNamesChosen
     // );
   }
+
+  wathcN
+
   listenNames(userId, arrayToAdd) {
     this.afs
       .collection("users")
