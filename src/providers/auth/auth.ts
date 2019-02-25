@@ -14,7 +14,6 @@ import { GooglePlus } from '@ionic-native/google-plus';
 import { map, switchMap, flatMap, mergeMap, merge } from 'rxjs/operators';
 
 import * as _ from 'lodash';
-import { applySourceSpanToExpressionIfNeeded } from '@angular/compiler/src/output/output_ast';
 
 /*
   Generated class for the AuthProvider provider.
@@ -60,9 +59,18 @@ export class AuthProvider {
       console.log('USER UID FROM STORATE');
       const response = await this.storage.get('user_uid');
       if (response) {
-        this.userUid = response;
-        this.watchUser();
-        // this.watchBlockedUsers();
+        const userUid = response;
+        this.userUid = userUid;
+        this.afs.collection('users').doc(userUid).snapshotChanges().subscribe(user => {
+          if (user.payload.exists) {
+            console.log('SETANDO USER UID');
+            
+            this.userUid = userUid;
+            this.user = user.payload.data();
+            
+            this.watchUser();
+          }
+        });
       }
     } catch (error) {
       const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao iniciar o login' });
@@ -80,10 +88,6 @@ export class AuthProvider {
       switch (providerName) {
         case 'google':
           firebaseAuthResponse = await this.sigInGoogleNative();
-          break;
-
-        default:
-          break;
       }
     } else {
       console.log('login browser');
@@ -91,17 +95,24 @@ export class AuthProvider {
         case 'google':
           console.log('login with google provider');
           firebaseAuthResponse = await this.sigInGoogleBrowser();
-          break;
-        default:
+          console.log('RESOINBSE', firebaseAuthResponse);
           break;
       }
     }
+    console.log('FIREBASE AUTH RESPONSE', firebaseAuthResponse);
 
     try {
       await this.setOrUpdateUser(firebaseAuthResponse);
       await this.storage.set('user_uid', firebaseAuthResponse.uid);
-      this.userUid = firebaseAuthResponse.uid;
-      this.watchUser();
+
+      this.afs.collection('users').doc(firebaseAuthResponse.uid).snapshotChanges().subscribe(user => {
+        if (user.payload.exists) {
+          this.userUid = firebaseAuthResponse.uid;
+          this.user = user.payload.data();
+          this.watchUser();
+        }
+      });
+
     } catch (error) {
       console.error(error);
       const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao tentar fazer o login.' });
@@ -118,17 +129,18 @@ export class AuthProvider {
       return authResponse.user;
     } catch (error) {
       console.error('Error login google browser', error);
+      throw error;
     }
   }
 
   async sigInGoogleNative() {
     try {
       const loginResponse = await this.gPlus.login({
-        'webClientId': '499196676267-h5so17ubc65v38p4dgjb1v70gg4kd6u8.apps.googleusercontent.com',
+        'webClientId': '459444398002-fj9tp1hku8k7rj4l283ho962due544ic.apps.googleusercontent.com',
         'offline': true,
         'scopes': 'profile email'
       });
-      console.log('ID TOKEN', loginResponse);
+      console.log('GOOGLE LOGUN NATIVE RESPONSE', loginResponse);
       return await this.afAuth.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(loginResponse.idToken));
     } catch (error) {
       console.error('Error login google native', error);
@@ -142,7 +154,8 @@ export class AuthProvider {
       uid: userData.uid,
       name: userData.displayName,
       email: userData.email,
-      profilePhotoURL: userData.photoURL
+      profilePhotoURL: userData.photoURL,
+      names_cache_last_check: new Date('2000-01-01')
     };
 
     try {
@@ -155,15 +168,16 @@ export class AuthProvider {
     this.getMyUserRef().snapshotChanges()
       .pipe(
         flatMap(user => {
-          this.userUid = user.payload.id;
-          this.user = user.payload.data();
-          console.log('USER NO THIS', this.user);
-          return this.watchBlockedUsers();
+          if (user.payload.exists) {
+            return this.watchBlockedUsers();
+          } else {
+            return of(null);
+          }
         })
         , flatMap(blockedUsers => {
-          console.log('BLOCKED USERS', blockedUsers);
+
           this.blockedUsers = blockedUsers;
-          if (this.user.partner_uid) {
+          if (this.user && this.user.partner_uid) {
             return this.afs.collection('users').doc(this.user.partner_uid).snapshotChanges();
           } else {
             return of(null);
@@ -173,6 +187,10 @@ export class AuthProvider {
           return partner && partner.payload.exists ? partner.payload.data() : null;
         })
         , switchMap(partner => {
+          if (!this.user) {
+            return of(null);
+          }
+
           this.partner = partner;
           return this.afs.collection('users').doc(this.user.uid).collection('chosenNames').valueChanges()
             .pipe(
@@ -202,7 +220,9 @@ export class AuthProvider {
         })
       )
       .subscribe(result => {
-
+        if (!result || result.length < 2) {
+          return;
+        }
         let mergedNames = _.keyBy(result[0], 'id');
         const partnerNames = result[1];
 
@@ -281,7 +301,8 @@ export class AuthProvider {
   }
 
   getMyUserRef(): AngularFirestoreDocument<any> {
-    return this.afs.collection('users').doc(this.userUid);
+    console.log('DENTRO DO GET MY YSER REF', this.user.uid);
+    return this.afs.collection('users').doc(this.user.uid);
   }
   getPartnerRef(): AngularFirestoreDocument<any> {
     return this.afs.collection('users').doc(this.partner.uid);
@@ -409,6 +430,8 @@ export class AuthProvider {
   // Names
   async choseName(name) {
     await this.getChosenNamesRef().doc(name.id).set({ id: name.id });
+    console.log('NAMES CACHE TO DELETE', name.id);
+    await this.myUserRef().collection('namesCache').doc(name.id).delete();
   }
   async removeChosenName(id: string) {
     try {

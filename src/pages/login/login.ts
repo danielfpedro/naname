@@ -32,6 +32,7 @@ export class LoginPage {
     const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
     loading.present();
     await this.authProvider.init();
+    console.log('USER UID NO LOGIN', this.authProvider.userUid);
     loading.dismiss();
     if (this.authProvider.userUid) {
       this.navCtrl.setRoot('TabsPage');

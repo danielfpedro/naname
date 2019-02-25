@@ -15,6 +15,7 @@ import {
 } from 'angular2-swing';
 import { NamesProvider } from '../../providers/names/names';
 import { AuthProvider } from '../../providers/auth/auth';
+import { take } from 'rxjs/operators';
 
 /**
  * Generated class for the NamesListPage page.
@@ -63,17 +64,50 @@ export class NamesListPage {
   }
 
   ionViewDidLoad() {
-    this.afs.collection('names')
-      .ref
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(name => {
-          console.log('NAME', name.data());
-          let card = name.data();
-          card.uid = name.id;
-          this.addNewCard(card);
-        });
+    setTimeout(() => {
+      const lastNameCheck = this.authProvider.user.names_cache_last_check;
+      this.afs.collection('names', ref => ref.where('created_at', '>', lastNameCheck)).snapshotChanges().pipe(take(1)).subscribe(names => {
+        const namesCacheRef = this.authProvider.myUserRef().collection('namesCache');
+        if (names.length > 0) {
+          let promises = [];
+          console.log('NAMES TO CACHE', names);
+
+          names.forEach(name => {
+            this.addNewCard({ ...name.payload.doc.data(), id: name.payload.doc.id });
+            promises.push(namesCacheRef.doc(name.payload.doc.id).set(name.payload.doc.data(), { merge: true }));
+          });
+          Promise.all(promises).then(() => {
+            this.authProvider.getMyUserRef().update({ names_cache_last_check: new Date() });
+            namesCacheRef.ref.get().then(names => {
+              names.forEach(name => {
+                console.log('NAMEEE', name);
+                this.addNewCard(name);
+              });
+            });
+          });
+        } else {
+          namesCacheRef.ref.get().then(names => {
+            names.forEach(name => {
+              console.log('NAMEEE', name.data());
+              this.addNewCard({ ...name.data(), id: name.id });
+            });
+          });
+        }
       });
+    }, 1500);
+
+
+    // this.afs.collection('names')
+    //   .ref
+    //   .get()
+    //   .then(querySnapshot => {
+    //     querySnapshot.forEach(name => {
+    //       console.log('NAME', name.data());
+    //       let card = name.data();
+    //       card.uid = name.id;
+    //       this.addNewCard(card);
+    //     });
+    //   });
     // Either subscribe in controller or set in HTML
     this.swingStack.throwin.subscribe((event: DragEvent) => {
       event.target.style.background = '#ffffff';
