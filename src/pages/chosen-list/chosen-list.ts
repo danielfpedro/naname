@@ -6,6 +6,8 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import { AuthProvider } from '../../providers/auth/auth';
 import { SocialSharing } from '@ionic-native/social-sharing';
 
+
+
 /**
  * Generated class for the ChosenListPage page.
  *
@@ -71,4 +73,14 @@ export class ChosenListPage {
   share() {
     this.socialSharing.share('Escolhe o nome do filhão ai meu amigo, é divertix', 'Aqui o assunto não sei a diferença', null, 'http://naname.com.br./enquete/123456789');
   }
+
+  getNamePorcentage(votes: number) {
+    let votesSum = 0;
+    this.authProvider.mergedNames.forEach(name => {
+      votesSum += name.votes;
+    });
+
+    return (100 * votes) / votesSum + '%';
+  }
+
 }

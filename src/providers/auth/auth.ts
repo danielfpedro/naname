@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Platform, NavController, App, AlertController, ToastController } from 'ionic-angular';
 import { Facebook } from '@ionic-native/facebook';
 import { AngularFireAuth } from '@angular/fire/auth';
-import firebase from 'firebase/app';
+import firebase, { database, firestore } from 'firebase/app';
 
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, DocumentSnapshot, DocumentData, DocumentSnapshotExists, Action } from '@angular/fire/firestore';
 
@@ -11,9 +11,10 @@ import { forkJoin, of } from "rxjs";
 import { Storage } from '@ionic/storage';
 
 import { GooglePlus } from '@ionic-native/google-plus';
-import { map, switchMap, flatMap, mergeMap, merge } from 'rxjs/operators';
+import { map, switchMap, flatMap, mergeMap, merge, take } from 'rxjs/operators';
 
 import * as _ from 'lodash';
+import { NamesProvider } from '../names/names';
 
 /*
   Generated class for the AuthProvider provider.
@@ -64,10 +65,10 @@ export class AuthProvider {
         this.afs.collection('users').doc(userUid).snapshotChanges().subscribe(user => {
           if (user.payload.exists) {
             console.log('SETANDO USER UID');
-            
+
             this.userUid = userUid;
             this.user = user.payload.data();
-            
+
             this.watchUser();
           }
         });
@@ -196,7 +197,7 @@ export class AuthProvider {
             .pipe(
               map(w => {
                 return w.map(e => {
-                  return this.getNameSubscription(e.id, 'me');
+                  return this.getNameSubscription(e, 'me');
                 });
               }),
               mergeMap(r => {
@@ -205,7 +206,7 @@ export class AuthProvider {
                     .pipe(
                       map(w => {
                         return w.map(e => {
-                          return this.getNameSubscription(e.id, 'partner');
+                          return this.getNameSubscription(e, 'partner');
                         });
                       })
                       , map(x => {
@@ -229,7 +230,7 @@ export class AuthProvider {
         partnerNames.forEach((q: any) => {
           let output = q;
           if (typeof mergedNames[q.id] != 'undefined') {
-            output = { ...output, owner: 'both' };
+            output = { ...output, votes: (parseInt(mergedNames[q.id].votes) + parseInt(output.votes)), owner: 'both' };
           }
           mergedNames[q.id] = output;
         });
@@ -257,47 +258,47 @@ export class AuthProvider {
       });
   }
 
-  watchMyNames() {
-    this.getMyUserRef().collection('chosenNames').valueChanges()
-      .pipe(
-        map(w => {
-          return w.map(e => {
-            return this.getNameSubscription(e.id, 'me');
-          });
-        }),
-        mergeMap(r => {
-          return this.getPartnerRef().collection('chosenNames').valueChanges()
-            .pipe(
-              map(w => {
-                return w.map(e => {
-                  return this.getNameSubscription(e.id, 'partner');
-                });
-              }),
-              map(x => {
-                return [r, x];
-              })
-            );
-        })
-      )
-      .subscribe(result => {
-        let mergedNames = _.keyBy(result[0], 'id');
-        const partnerNames = result[1];
+  // watchMyNames() {
+  //   this.getMyUserRef().collection('chosenNames').valueChanges()
+  //     .pipe(
+  //       map(w => {
+  //         return w.map(e => {
+  //           return this.getNameSubscription(e.id, 'me');
+  //         });
+  //       }),
+  //       mergeMap(r => {
+  //         return this.getPartnerRef().collection('chosenNames').valueChanges()
+  //           .pipe(
+  //             map(w => {
+  //               return w.map(e => {
+  //                 return this.getNameSubscription(e.id, 'partner');
+  //               });
+  //             }),
+  //             map(x => {
+  //               return [r, x];
+  //             })
+  //           );
+  //       })
+  //     )
+  //     .subscribe(result => {
+  //       let mergedNames = _.keyBy(result[0], 'id');
+  //       const partnerNames = result[1];
 
-        partnerNames.forEach((q: any) => {
-          let output = q;
-          if (typeof mergedNames[q.id] != 'undefined') {
-            output = { ...output, owner: 'both' };
-          }
-          mergedNames[q.id] = output;
-        });
+  //       partnerNames.forEach((q: any) => {
+  //         let output = q;
+  //         if (typeof mergedNames[q.id] != 'undefined') {
+  //           output = { ...output, owner: 'both' };
+  //         }
+  //         mergedNames[q.id] = output;
+  //       });
 
-        this.mergedNames = _.values(mergedNames);
-        console.log('MERGED', this.mergedNames);
-      });
-  }
+  //       this.mergedNames = _.values(mergedNames);
+  //       console.log('MERGED', this.mergedNames);
+  //     });
+  // }
 
-  getNameSubscription(nameId, owner) {
-    return { id: nameId, owner: owner, name: this.afs.collection('names').doc(nameId).valueChanges() }
+  getNameSubscription(nameChosen, owner) {
+    return { id: nameChosen.id, votes: nameChosen.votes || 0, owner: owner, name: this.afs.collection('names').doc(nameChosen.id).valueChanges() }
   }
 
   getMyUserRef(): AngularFirestoreDocument<any> {
@@ -428,9 +429,13 @@ export class AuthProvider {
   }
 
   // Names
-  async choseName(name) {
-    await this.getChosenNamesRef().doc(name.id).set({ id: name.id });
-    console.log('NAMES CACHE TO DELETE', name.id);
+  getNamesCacheRef() {
+    return this.getMyUserRef().collection('namesCache');
+  }
+  async choseName(name, like: boolean) {
+    if (like) {
+      await this.getChosenNamesRef().doc(name.id).set({ id: name.id });
+    }
     await this.myUserRef().collection('namesCache').doc(name.id).delete();
   }
   async removeChosenName(id: string) {
@@ -440,5 +445,42 @@ export class AuthProvider {
       console.error(error);
       this.toast('Ocorreu um erro ao tentar remover o nome da sua lista de escolhas');
     }
+  }
+  async cacheNamesIfNeeded() {
+    const namesCacheLastCheck = this.user.names_cache_last_check;
+    const namesToCache = await this.afs.collection('names', ref => {
+      let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
+      if (namesCacheLastCheck) {
+        query = query.where('created_at', '>', namesCacheLastCheck);
+      }
+      return query;
+    }).get().toPromise();
+
+    let namesToSavePromises = [];
+    namesToCache.forEach(name => {
+      console.log('CAGUEI', name.data());
+      namesToSavePromises.push(this.getNamesCacheRef().doc(name.id).set({ ...name.data() }, { merge: true }));
+    });
+
+    await Promise.all(namesToSavePromises);
+    this.getMyUserRef().set({ names_cache_last_check: new Date() }, { merge: true });
+  }
+  async getNamesToChose(limit: number, conditions = null) {
+    const namesRef = this.getMyUserRef().collection('namesCache', ref => {
+      let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
+      if (conditions.genre) {
+        query = query.where('genre', '==', conditions.genre);
+      }
+      if (conditions.firstLetter) {
+        query = query.where('first_letter', '==', conditions.firstLetter);
+      }
+      if (conditions.category) {
+        query = query.where('categories', 'array-contains', conditions.category);
+      }
+      query = query.limit(limit);
+      return query;
+    });
+
+    return await namesRef.get().toPromise();
   }
 }

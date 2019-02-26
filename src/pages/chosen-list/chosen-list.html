@@ -19,11 +19,16 @@
     Você ainda não escolheu nenhum nome.
   </p>
   <ion-list>
-    <ng-container *ngFor="let chosen of authProvider.mergedNames">
+    <ng-container *ngFor="let chosen of authProvider.mergedNames | orderBy: 'votes': true : false">
       <ion-item (press)="presentNameActionSheetOption(chosen)">
         <h2>
           {{ (chosen.name | async)?.name }}
         </h2>
+        <p>{{chosen.votes}} ({{getNamePorcentage(chosen.votes)}})</p>
+        <div style="height: 15px; width: 100%; background-color:red;">
+          <div style="height: 15px; background-color:green;" [style.width]="getNamePorcentage(chosen.votes)">
+          </div>
+        </div>
         <ion-avatar item-end *ngIf="chosen.owner == 'me' || chosen.owner == 'both'">
           <img [src]="authProvider.user?.profilePhotoURL">
         </ion-avatar>

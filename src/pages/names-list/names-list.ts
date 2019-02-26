@@ -1,6 +1,7 @@
 import { Component, ViewChildren, ViewChild, QueryList } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController, ActionSheetController } from 'ionic-angular';
 
+import firebase, { database, firestore } from 'firebase/app';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 
 import {
@@ -16,6 +17,7 @@ import {
 import { NamesProvider } from '../../providers/names/names';
 import { AuthProvider } from '../../providers/auth/auth';
 import { take } from 'rxjs/operators';
+import { FormGroup, FormBuilder } from '@angular/forms';
 
 /**
  * Generated class for the NamesListPage page.
@@ -38,6 +40,16 @@ export class NamesListPage {
   stackConfig: StackConfig;
   currentCard;
 
+  noMoreNames: boolean = false;
+  loadingNames: boolean = false;
+
+  chunkSize: number = 30;
+
+  filterForm: FormGroup;
+
+  letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'z'];
+  categories: any = [];
+
   constructor(
     public afs: AngularFirestore,
     public namesProvider: NamesProvider,
@@ -45,7 +57,8 @@ export class NamesListPage {
     public navParams: NavParams,
     public toastController: ToastController,
     public actionSheetCtrl: ActionSheetController,
-    public authProvider: AuthProvider
+    public authProvider: AuthProvider,
+    public formBuilder: FormBuilder
   ) {
 
     this.stackConfig = {
@@ -61,58 +74,45 @@ export class NamesListPage {
       }
     };
 
+    this.filterForm = formBuilder.group({
+      genre: ['m'],
+      firstLetter: [''],
+      category: [''],
+    });
   }
 
   ionViewDidLoad() {
     setTimeout(() => {
-      const lastNameCheck = this.authProvider.user.names_cache_last_check;
-      this.afs.collection('names', ref => ref.where('created_at', '>', lastNameCheck)).snapshotChanges().pipe(take(1)).subscribe(names => {
-        const namesCacheRef = this.authProvider.myUserRef().collection('namesCache');
-        if (names.length > 0) {
-          let promises = [];
-          console.log('NAMES TO CACHE', names);
-
-          names.forEach(name => {
-            this.addNewCard({ ...name.payload.doc.data(), id: name.payload.doc.id });
-            promises.push(namesCacheRef.doc(name.payload.doc.id).set(name.payload.doc.data(), { merge: true }));
-          });
-          Promise.all(promises).then(() => {
-            this.authProvider.getMyUserRef().update({ names_cache_last_check: new Date() });
-            namesCacheRef.ref.get().then(names => {
-              names.forEach(name => {
-                console.log('NAMEEE', name);
-                this.addNewCard(name);
-              });
-            });
-          });
-        } else {
-          namesCacheRef.ref.get().then(names => {
-            names.forEach(name => {
-              console.log('NAMEEE', name.data());
-              this.addNewCard({ ...name.data(), id: name.id });
-            });
-          });
-        }
-      });
+      this.authProvider.cacheNamesIfNeeded().then(() => this.getNamesChunk());
     }, 1500);
 
-
-    // this.afs.collection('names')
-    //   .ref
-    //   .get()
-    //   .then(querySnapshot => {
-    //     querySnapshot.forEach(name => {
-    //       console.log('NAME', name.data());
-    //       let card = name.data();
-    //       card.uid = name.id;
-    //       this.addNewCard(card);
-    //     });
-    //   });
-    // Either subscribe in controller or set in HTML
     this.swingStack.throwin.subscribe((event: DragEvent) => {
       event.target.style.background = '#ffffff';
     });
+
+    this.afs.collection('categories').ref.get().then(categories => {
+      console.log('CATEGORIES', categories);
+      categories.forEach(category => {
+        this.categories.push(category.data());
+      });
+    });
   }
+
+  async getNamesChunk() {
+    console.log('GETANDO NAMES ');
+    this.loadingNames = true;
+    const names = await this.authProvider.getNamesToChose(this.chunkSize, this.filterForm.value);
+    console.log('NAMES GETADOS', names);
+    console.log('NAMES GETADOS SIZE ', names.size);
+    this.noMoreNames = names.size < 1;
+    if (!this.noMoreNames) {
+      names.forEach(name => {
+        this.addNewCard(name.data());
+      });
+    }
+    this.loadingNames = false;
+  }
+
   // Called whenever we drag an element
   onItemMove(element, x, y, r) {
     var color = '';
@@ -132,17 +132,21 @@ export class NamesListPage {
 
   // Connected through HTML
   voteUp(like: boolean) {
-    console.log('Like', like);
     const removedCard = this.cards.pop();
-    console.log('REMOVED CARD', removedCard);
-    this.authProvider.choseName(removedCard);
-  }
 
+    if (this.cards.length < 1) {
+      this.loadingNames = true;
+    }
+    this.authProvider.choseName(removedCard, like).then(() => {
+      if (this.cards.length < 1) {
+        this.getNamesChunk();
+      }
+    });
+  }
   // Add new cards to our array
   addNewCard(card) {
     this.cards.push(card);
   }
-
   // http://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript
   decimalToHex(d, padding) {
     var hex = Number(d).toString(16);
@@ -181,5 +185,8 @@ export class NamesListPage {
     });
     actionSheet.present();
   }
-
+  filterSubmit() {
+    this.cards = [];
+    this.getNamesChunk();
+  }
 }

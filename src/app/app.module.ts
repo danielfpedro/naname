@@ -34,7 +34,7 @@ var firebaseConfig: FirebaseAppConfig = {
 
 @NgModule({
   declarations: [
-    MyApp,
+    MyApp
   ],
   imports: [
     BrowserModule,
