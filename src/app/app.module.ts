@@ -10,7 +10,6 @@ import { AngularFireModule, FirebaseAppConfig } from '@angular/fire';
 
 import { AngularFireDatabaseModule, AngularFireDatabase } from '@angular/fire/database';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
-
 import { AngularFireAuthModule } from '@angular/fire/auth';
 
 import { Facebook } from '@ionic-native/facebook';
@@ -23,7 +22,7 @@ import { SocialSharing } from '@ionic-native/social-sharing';
 import { IonicStorageModule } from '@ionic/storage';
 import { NamesProvider } from '../providers/names/names';
 
-var firebaseConfig: FirebaseAppConfig = {
+const firebaseConfig: FirebaseAppConfig = {
   apiKey: "AIzaSyAXpIzdLG-2o0CP4EBhfOEt3p2sdJbohBo",
   authDomain: "nenem-381db.firebaseapp.com",
   databaseURL: "https://nenem-381db.firebaseio.com",

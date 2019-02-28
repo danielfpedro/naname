@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import { Platform, NavController, App, AlertController, ToastController } from 'ionic-angular';
-import { Facebook } from '@ionic-native/facebook';
 import { AngularFireAuth } from '@angular/fire/auth';
-import firebase, { database, firestore } from 'firebase/app';
-
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument, DocumentSnapshot, DocumentData, DocumentSnapshotExists, Action } from '@angular/fire/firestore';
-
-import { forkJoin, of } from "rxjs";
-
-import { Storage } from '@ionic/storage';
-
+import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/firestore';
+import { Facebook } from '@ionic-native/facebook';
 import { GooglePlus } from '@ionic-native/google-plus';
-import { map, switchMap, flatMap, mergeMap, merge, take } from 'rxjs/operators';
-
+import { Storage } from '@ionic/storage';
+import firebase from 'firebase/app';
+import { AlertController, App, Platform, ToastController } from 'ionic-angular';
 import * as _ from 'lodash';
-import { NamesProvider } from '../names/names';
+import { of, Subject } from "rxjs";
+import { flatMap, map, mergeMap, switchMap, filter } from 'rxjs/operators';
+import { UserTabPage } from '../../pages/user-tab/user-tab';
+
+
+
+
+
 
 /*
   Generated class for the AuthProvider provider.
@@ -25,18 +25,20 @@ import { NamesProvider } from '../names/names';
 @Injectable()
 export class AuthProvider {
 
-  // public userDoc: AngularFirestoreDocument;
+  public userDoc: AngularFirestoreDocument;
 
   public userUid: string = null;
   public user: any;
   public partner: any = null;
   public blockedUsers: any;
-  // public partner: any;
 
-  // public partnerLoaded = false;
+  public partnerLoaded = false;
 
   // Names
   mergedNames = [];
+
+  firstTry:Subject<boolean> = new Subject();
+  authStateFirstCheck: boolean;
 
   constructor(
     private platform: Platform,
@@ -48,10 +50,50 @@ export class AuthProvider {
     private afs: AngularFirestore,
     private alertController: AlertController,
     private toastCtrl: ToastController,
-
-    public gPlus: GooglePlus
+    public gPlus: GooglePlus,
 
   ) {
+
+    this.afAuth.authState
+      .pipe(
+        // filter(user => user !== null)
+        mergeMap(userSignedIn => {
+          console.log('USER SIGNED IN', userSignedIn);
+          if (userSignedIn) {
+            return this.createUserIfNeeded(userSignedIn);
+          } else {
+            return of(null);
+          }
+        })
+        , mergeMap(userId => {
+          if (userId) {
+            return this.afs.collection('users').doc(userId).valueChanges();
+          } else {
+            return of(null);
+          }
+        })
+        , mergeMap(userProfile => {
+          this.user = userProfile;
+          if (this.user && this.user.partner_id) {
+            return this.afs.collection('users').doc(userProfile.partner_id).valueChanges();
+          }
+          return of(null);
+        })
+        // , mergeMap(userProfile => {
+        //   if (!userProfile) {
+        //     return of(null);
+        //   }
+        //   this.user = userProfile;
+        //   if (this.user.partner_id) {
+        //     return this.afs.collection('users').doc(this.user.partner_id).ref.get();
+        //   }
+        //   return of(null);
+        // })
+      )
+      .subscribe(partner => {
+        this.partner = partner;
+        this.firstTry.next(this.user !== null);
+      });
 
   }
 
@@ -103,16 +145,15 @@ export class AuthProvider {
     console.log('FIREBASE AUTH RESPONSE', firebaseAuthResponse);
 
     try {
-      await this.setOrUpdateUser(firebaseAuthResponse);
-      await this.storage.set('user_uid', firebaseAuthResponse.uid);
+      // await this.storage.set('user_uid', firebaseAuthResponse.uid);
 
-      this.afs.collection('users').doc(firebaseAuthResponse.uid).snapshotChanges().subscribe(user => {
-        if (user.payload.exists) {
-          this.userUid = firebaseAuthResponse.uid;
-          this.user = user.payload.data();
-          this.watchUser();
-        }
-      });
+      // this.afs.collection('users').doc(firebaseAuthResponse.uid).snapshotChanges().subscribe(user => {
+      //   if (user.payload.exists) {
+      //     this.userUid = firebaseAuthResponse.uid;
+      //     this.user = user.payload.data();
+      //     this.watchUser();
+      //   }
+      // });
 
     } catch (error) {
       console.error(error);
@@ -133,7 +174,6 @@ export class AuthProvider {
       throw error;
     }
   }
-
   async sigInGoogleNative() {
     try {
       const loginResponse = await this.gPlus.login({
@@ -149,18 +189,20 @@ export class AuthProvider {
     }
   }
 
-  async setOrUpdateUser(userData: { uid, displayName, email, photoURL }) {
-    console.log('user data to add', userData);
+  async createUserIfNeeded(userData) {
     const userToAdd = {
-      uid: userData.uid,
+      id: userData.uid,
       name: userData.displayName,
       email: userData.email,
-      profilePhotoURL: userData.photoURL,
-      names_cache_last_check: new Date('2000-01-01')
+      profilePhotoURL: userData.photoURL
     };
-
+    console.log('SALVA LA', userToAdd);
     try {
-      await this.afs.doc(`users/${userToAdd.uid}`).set(userToAdd, { merge: true });
+      const userCheck = await this.afs.collection('users').doc(userToAdd.id).ref.get();
+      if (!userCheck.exists) {
+        await this.afs.collection('users').doc(userToAdd.id).set(userToAdd);
+      }
+      return userToAdd.id;
     } catch (error) {
       throw Error(error);
     }

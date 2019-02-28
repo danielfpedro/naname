@@ -7,4 +7,5 @@
 <ion-content *ngIf="!loadingAuthState">
   <button ion-button full (click)="signIn('facebook')">Entrar com Facebook</button>
   <button ion-button color="danger" full (click)="signIn('google')">Entrar com Google</button>
+  <button ion-button color="danger" full (click)="logout()">Logout</button>
 </ion-content>

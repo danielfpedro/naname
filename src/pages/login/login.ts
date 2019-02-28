@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams, LoadingController, ToastController
 import { AuthProvider } from '../../providers/auth/auth';
 import { AngularFireAuth } from '@angular/fire/auth';
 import firebase from 'firebase/app';
+import { UserTabPage } from '../user-tab/user-tab';
 
 @IonicPage()
 @Component({
@@ -22,22 +23,30 @@ export class LoginPage {
     public toastController: ToastController
   ) {
   }
-  
-  ionViewDidLoad() {
-    this.loadingAuthState = false;
-    this.checkAuthState();
-  }
 
-  async checkAuthState() {
+  ionViewDidLoad() {
+    console.log('LOGIN DID LOAD');
+    this.loadingAuthState = false;
     const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
     loading.present();
-    await this.authProvider.init();
-    console.log('USER UID NO LOGIN', this.authProvider.userUid);
-    loading.dismiss();
-    if (this.authProvider.userUid) {
-      this.navCtrl.setRoot('TabsPage');
-    }
+    this.authProvider.firstTry.subscribe(isLogedIn => {
+      loading.dismiss();
+      if (isLogedIn) {
+        this.navCtrl.push(UserTabPage);
+      }
+    });
   }
+
+  // async checkAuthState() {
+  //   const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
+  //   loading.present();
+  //   await this.authProvider.init();
+  //   console.log('USER UID NO LOGIN', this.authProvider.userUid);
+  //   loading.dismiss();
+  //   if (this.authProvider.userUid) {
+  //     this.navCtrl.setRoot('TabsPage');
+  //   }
+  // }
 
   async signIn(provider: string) {
     const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
@@ -45,9 +54,13 @@ export class LoginPage {
     try {
       await this.authProvider.signIn(provider)
       loading.dismiss();
-      this.navCtrl.setRoot('TabsPage');
+      // this.navCtrl.setRoot('TabsPage');
     } catch (error) {
       loading.dismiss();
     }
+  }
+
+  logout() {
+    this.afAuth.auth.signOut();
   }
 }
