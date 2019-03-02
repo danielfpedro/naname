@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        Aplicar filtro
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <form [formGroup]="filterForm">
+    <ion-list>
+      <ion-item>
+        <ion-label>Inicial?</ion-label>
+        <ion-select formControlName="firstLetter">
+          <ion-option value="">Todas</ion-option>
+          <ion-option [value]="letter" *ngFor="let letter of letters">{{letter}}</ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Categoria</ion-label>
+        <ion-select formControlName="category">
+          <ion-option value="">Todas</ion-option>
+          <ion-option [value]="category.id" *ngFor="let category of categories">{{category.name}}</ion-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+  </form>
+</ion-content>

@@ -7,45 +7,22 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>NamesList</ion-title>
+    <ion-buttons start>
+      <button ion-button icon-only (click)="openGenderSelectionModal()">
+        Gender ({{authProvider.getGenderLabel()}})
+      </button>
+      <button ion-button (click)="openFiltersModal()">
+        Filtros <span *ngIf="filterFormTotalTouchedControls > 0">({{ filterFormTotalTouchedControls }})</span>
+      </button>
+    </ion-buttons>
   </ion-navbar>
 
 </ion-header>
 
 
 <ion-content padding>
-
   <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
   <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p>
-
-  <form [formGroup]="filterForm" (submit)="filterSubmit()">
-    <ion-list>
-      <ion-item>
-        <ion-label>Xana ou pipico?</ion-label>
-        <ion-select formControlName="genre">
-          <ion-option value="">Ambos</ion-option>
-          <ion-option value="m">Pipi</ion-option>
-          <ion-option value="f">Xana</ion-option>
-        </ion-select>
-      </ion-item>
-      <ion-item>
-        <ion-label>Inicial?</ion-label>
-        <ion-select formControlName="firstLetter">
-          <ion-option value="">Todas</ion-option>
-          <ion-option [value]="letter" *ngFor="let letter of letters">{{letter}}</ion-option>
-        </ion-select>
-      </ion-item>
-      <ion-item>
-          <ion-label>Categoria</ion-label>
-          <ion-select formControlName="category">
-            <ion-option value="">Todas</ion-option>
-            <ion-option [value]="category.id" *ngFor="let category of categories">{{category.name}}</ion-option>
-          </ion-select>
-        </ion-item>
-    </ion-list>
-
-    <button type="submit" ion-button block>Aplicar Filtro</button>
-  </form>
 
   <div *ngIf="!noMoreNames && !loadingNames" swing-stack #myswing1 [stackConfig]="stackConfig"
     (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">

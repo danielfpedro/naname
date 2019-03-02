@@ -1,5 +1,5 @@
 import { Component, ViewChildren, ViewChild, QueryList } from '@angular/core';
-import { IonicPage, NavController, NavParams, ToastController, ActionSheetController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ToastController, ActionSheetController, ModalController, LoadingController } from 'ionic-angular';
 
 import firebase, { database, firestore } from 'firebase/app';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
@@ -18,6 +18,7 @@ import { NamesProvider } from '../../providers/names/names';
 import { AuthProvider } from '../../providers/auth/auth';
 import { take } from 'rxjs/operators';
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 /**
  * Generated class for the NamesListPage page.
@@ -47,8 +48,9 @@ export class NamesListPage {
 
   filterForm: FormGroup;
 
-  letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'z'];
-  categories: any = [];
+  filterValuesBeforeOpenModal: {};
+  filterFormSubscription: Subscription;
+  filterFormTotalTouchedControls: number = 0;
 
   constructor(
     public afs: AngularFirestore,
@@ -58,8 +60,15 @@ export class NamesListPage {
     public toastController: ToastController,
     public actionSheetCtrl: ActionSheetController,
     public authProvider: AuthProvider,
-    public formBuilder: FormBuilder
+    public formBuilder: FormBuilder,
+    public modalController: ModalController,
+    public loadingController: LoadingController
   ) {
+
+    this.filterForm = formBuilder.group({
+      firstLetter: [''],
+      category: [''],
+    });
 
     this.stackConfig = {
       allowedDirections: [Direction.LEFT, Direction.RIGHT],
@@ -73,29 +82,50 @@ export class NamesListPage {
         return 1200;
       }
     };
+  }
 
-    this.filterForm = formBuilder.group({
-      genre: ['m'],
-      firstLetter: [''],
-      category: [''],
+  ionViewDidEnter() {
+    console.log('Hello Did Enter');
+    this.filterFormSubscription = this.filterForm.valueChanges.subscribe(() => {
+      console.log('FILTER FORM CHANGED');
+      this.filterFormTotalTouchedControls = 0;
+      Object.keys(this.filterForm.value).forEach(key => {
+        if (this.filterForm.value[key]) {
+          this.filterFormTotalTouchedControls++;
+        }
+      })
     });
+  }
+  ionViewWillLeave() {
+    console.log('Bye bye view');
+    this.filterFormSubscription.unsubscribe();
   }
 
   ionViewDidLoad() {
-    setTimeout(() => {
-      this.authProvider.cacheNamesIfNeeded().then(() => this.getNamesChunk());
-    }, 1500);
+
+    const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
+    loader.present();
+    this.authProvider.cacheNamesIfNeeded()
+      .then(() => {
+        loader.dismiss();
+        // Atenção... só abre selecionar gender se for null... não ''... pois '' significa ambos e null
+        // significa que ele ainda não selecionou
+        if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
+          this.openGenderSelectionModal();
+        } else {
+          this.getNamesChunk();
+        }
+      })
+      .catch(() => {
+        loader.dismiss();
+      });
 
     this.swingStack.throwin.subscribe((event: DragEvent) => {
       event.target.style.background = '#ffffff';
     });
-
-    this.afs.collection('categories').ref.get().then(categories => {
-      console.log('CATEGORIES', categories);
-      categories.forEach(category => {
-        this.categories.push(category.data());
-      });
-    });
+  }
+  async cacheNamesIfNeeded() {
+    await this.authProvider.cacheNamesIfNeeded();
   }
 
   async getNamesChunk() {
@@ -189,4 +219,37 @@ export class NamesListPage {
     this.cards = [];
     this.getNamesChunk();
   }
+
+  openFiltersModal() {
+    const modal = this.modalController.create('NamesFiltersPage', { filterForm: this.filterForm });
+    modal.onDidDismiss(data => {
+      const hasFilterTouched = JSON.stringify(this.filterForm.value) !== JSON.stringify(this.filterValuesBeforeOpenModal);
+      if (hasFilterTouched) {
+        this.cards = [];
+        this.getNamesChunk();
+      }
+    });
+
+
+    this.filterValuesBeforeOpenModal = { ...this.filterForm.value };
+    modal.present();
+  }
+
+  openGenderSelectionModal() {
+    const modal = this.modalController.create('GenderSelectionPage');
+    const currentGender = this.authProvider.user.gender;
+    modal.onDidDismiss(() => {
+      const changed = currentGender !== this.authProvider.user.gender;
+      console.log('GENDER CHANGED?', changed);
+      if (changed) {
+        this.resetCards();
+      }
+    });
+    modal.present();
+  }
+  resetCards(): any {
+    this.cards = [];
+    this.getNamesChunk();
+  }
+
 }

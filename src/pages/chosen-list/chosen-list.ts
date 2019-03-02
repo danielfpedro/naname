@@ -5,6 +5,8 @@ import { NamesProvider } from '../../providers/names/names';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { AuthProvider } from '../../providers/auth/auth';
 import { SocialSharing } from '@ionic-native/social-sharing';
+import { Subject } from 'rxjs';
+import { m } from '@angular/core/src/render3';
 
 
 
@@ -22,6 +24,10 @@ import { SocialSharing } from '@ionic-native/social-sharing';
 })
 export class ChosenListPage {
 
+  term = '';
+  gender = 'm';
+  names = [];
+
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,
@@ -34,7 +40,10 @@ export class ChosenListPage {
   }
 
   ionViewDidLoad() {
-    // console.log('RSRSRS', this.authProvider.partner);
+    this.names = [{ name: 'Daniel', gender: 'm' }, { name: 'Zeca', gender: 'm' }, { name: 'Mariana', gender: 'f' }, { name: 'Larissa', gender: 'f' }]
+      .map(name => {
+        return name;
+      })
   }
 
   presentNameActionSheetOption(chosen: any) {
@@ -82,5 +91,4 @@ export class ChosenListPage {
 
     return (100 * votes) / votesSum + '%';
   }
-
 }

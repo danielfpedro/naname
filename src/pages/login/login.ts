@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, LoadingController, ToastController } from 'ionic-angular';
 import { AuthProvider } from '../../providers/auth/auth';
 import { AngularFireAuth } from '@angular/fire/auth';
-import firebase from 'firebase/app';
-import { UserTabPage } from '../user-tab/user-tab';
+
 
 @IonicPage()
 @Component({
@@ -25,28 +24,7 @@ export class LoginPage {
   }
 
   ionViewDidLoad() {
-    console.log('LOGIN DID LOAD');
-    this.loadingAuthState = false;
-    const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
-    loading.present();
-    this.authProvider.firstTry.subscribe(isLogedIn => {
-      loading.dismiss();
-      if (isLogedIn) {
-        this.navCtrl.push(UserTabPage);
-      }
-    });
   }
-
-  // async checkAuthState() {
-  //   const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
-  //   loading.present();
-  //   await this.authProvider.init();
-  //   console.log('USER UID NO LOGIN', this.authProvider.userUid);
-  //   loading.dismiss();
-  //   if (this.authProvider.userUid) {
-  //     this.navCtrl.setRoot('TabsPage');
-  //   }
-  // }
 
   async signIn(provider: string) {
     const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });

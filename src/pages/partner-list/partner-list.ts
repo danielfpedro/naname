@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, AlertController, LoadingController, AlertOptions } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController, LoadingController, AlertOptions, ModalController } from 'ionic-angular';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, Subscription } from 'rxjs';
 import firebase from 'firebase/app';
 
 import { AuthProvider } from '../../providers/auth/auth';
@@ -25,6 +25,7 @@ export class PartnerListPage {
   usersBlockedCollection: any;
   requestsSentCollection: any;
 
+  blockedUsersSubscription: Subscription;
   blockedUsers = [];
 
   constructor(public navCtrl: NavController, public navParams: NavParams,
@@ -35,15 +36,23 @@ export class PartnerListPage {
     public alertCtrl: AlertController,
     public loaderCtrl: LoadingController
   ) {
-
-    // this.authProvider.blockedUsersconsole.log('BLOQUEADOS', this.authProvider.blockedUsers);
   }
 
   ionViewDidLoad() {
-    console.log('VIEW ID LOAD');
-    this.authProvider.blockedUsers.forEach(blockedUser => {
-      blockedUser.subscribe(res => console.log('INSIDE SUBSCRIPTION', res));
-    });
+    console.log('SUBSCRIBING BLOCKED USERS');
+
+    this.blockedUsersSubscription = this.authProvider.blockedUsersRef()
+      .valueChanges()
+      .subscribe(blockedUsers => {
+        this.blockedUsers = blockedUsers.map(blockedUser => {
+          return blockedUser;
+        });
+      });
+
+  }
+  ionViewWillLeave() {
+    console.log('UNSUBSCRIBE BLOCKED USERS');
+    this.blockedUsersSubscription.unsubscribe();
   }
 
   showPrompt() {
@@ -156,7 +165,7 @@ export class PartnerListPage {
   async blockPartner(partnerToBeBlocked) {
     const loader = this.loaderCtrl.create({ content: `Bloqueando ${partnerToBeBlocked.name} (${partnerToBeBlocked.email})` });
     loader.present();
-    await this.authProvider.blockUser(partnerToBeBlocked.uid);
+    await this.authProvider.blockUser(partnerToBeBlocked);
     loader.dismiss();
   }
   async unblockUser(userToBeUnblocked) {

@@ -18,7 +18,27 @@
   <p *ngIf="authProvider.mergedNames.length < 2">
     Você ainda não escolheu nenhum nome.
   </p>
+
+  <div>
+    <ion-segment [(ngModel)]="gender">
+      <ion-segment-button value="m">
+        Masculino
+      </ion-segment-button>
+      <ion-segment-button value="f">
+        Feminimo
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <ion-searchbar [(ngModel)]="term"></ion-searchbar>
+
   <ion-list>
+    <ion-item *ngFor="let name of names | search : 'name' : term : gender">
+      {{name.name}}
+    </ion-item>
+  </ion-list>
+
+  <!-- <ion-list>
     <ng-container *ngFor="let chosen of authProvider.mergedNames | orderBy: 'votes': true : false">
       <ion-item (press)="presentNameActionSheetOption(chosen)">
         <h2>
@@ -37,7 +57,9 @@
         </ion-avatar>
       </ion-item>
     </ng-container>
-  </ion-list>
+  </ion-list> -->
+
+
 </ion-content>
 
 <ion-footer *ngIf="authProvider.mergedNames.length > 1">

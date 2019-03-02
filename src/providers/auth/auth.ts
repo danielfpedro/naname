@@ -7,7 +7,7 @@ import { Storage } from '@ionic/storage';
 import firebase from 'firebase/app';
 import { AlertController, App, Platform, ToastController } from 'ionic-angular';
 import * as _ from 'lodash';
-import { of, Subject } from "rxjs";
+import { of, Subject, Observable } from "rxjs";
 import { flatMap, map, mergeMap, switchMap, filter } from 'rxjs/operators';
 import { UserTabPage } from '../../pages/user-tab/user-tab';
 
@@ -30,14 +30,14 @@ export class AuthProvider {
   public userUid: string = null;
   public user: any;
   public partner: any = null;
-  public blockedUsers: any;
+  public blockedUsers = [];
 
   public partnerLoaded = false;
 
   // Names
   mergedNames = [];
 
-  firstTry:Subject<boolean> = new Subject();
+  watchFirebaseAuthState: Subject<boolean> = new Subject();
   authStateFirstCheck: boolean;
 
   constructor(
@@ -50,13 +50,11 @@ export class AuthProvider {
     private afs: AngularFirestore,
     private alertController: AlertController,
     private toastCtrl: ToastController,
-    public gPlus: GooglePlus,
+    public gPlus: GooglePlus
 
   ) {
-
     this.afAuth.authState
       .pipe(
-        // filter(user => user !== null)
         mergeMap(userSignedIn => {
           console.log('USER SIGNED IN', userSignedIn);
           if (userSignedIn) {
@@ -73,54 +71,55 @@ export class AuthProvider {
           }
         })
         , mergeMap(userProfile => {
-          this.user = userProfile;
+          console.log('USER DO /users', userProfile);
+          this.user = userProfile ? userProfile : null;
+
           if (this.user && this.user.partner_id) {
-            return this.afs.collection('users').doc(userProfile.partner_id).valueChanges();
+            return this.afs.collection('users').doc(userProfile.partner_id).ref.get();
           }
           return of(null);
         })
-        // , mergeMap(userProfile => {
-        //   if (!userProfile) {
-        //     return of(null);
-        //   }
-        //   this.user = userProfile;
-        //   if (this.user.partner_id) {
-        //     return this.afs.collection('users').doc(this.user.partner_id).ref.get();
-        //   }
-        //   return of(null);
-        // })
       )
       .subscribe(partner => {
-        this.partner = partner;
-        this.firstTry.next(this.user !== null);
+        console.log('PARTNER OU NÃO', partner);
+        console.log('BLOCKED USERS', this.blockedUsers);
+        // IMPORTANTE!!!!!!!!!!!!!!!!
+        // Se o partner_id for de um user que não existe(fluxo normal nunca vai acontecer mas estamos antecipando um bug)
+        // transformamos partner_id para nul... pois o bug ocorreria do usuario ficar com partner_id de um user que não existe
+        // e o parceiro querendo adicionar mas não consegue que iria dizer que o cara já tem parceiro.. porem o parceiro não existe
+        // ele nem conseguiria remover... então resultaria em um bug impossivel de resolver para o usuario
+        if (partner && !partner.exists) {
+          this.myUserRef().set({ partner_id: null }, { merge: true });
+        }
+        this.partner = partner && partner.exists ? partner.data() : null;
+        this.watchFirebaseAuthState.next(this.user !== null);
       });
-
   }
 
-  async init() {
-    try {
-      console.log('USER UID FROM STORATE');
-      const response = await this.storage.get('user_uid');
-      if (response) {
-        const userUid = response;
-        this.userUid = userUid;
-        this.afs.collection('users').doc(userUid).snapshotChanges().subscribe(user => {
-          if (user.payload.exists) {
-            console.log('SETANDO USER UID');
+  init() {
+    // try {
+    //   console.log('USER UID FROM STORATE');
+    //   const response = await this.storage.get('user_uid');
+    //   if (response) {
+    //     const userUid = response;
+    //     this.userUid = userUid;
+    //     this.afs.collection('users').doc(userUid).snapshotChanges().subscribe(user => {
+    //       if (user.payload.exists) {
+    //         console.log('SETANDO USER UID');
 
-            this.userUid = userUid;
-            this.user = user.payload.data();
+    //         this.userUid = userUid;
+    //         this.user = user.payload.data();
 
-            this.watchUser();
-          }
-        });
-      }
-    } catch (error) {
-      const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao iniciar o login' });
-      toast.present();
-      console.error(error);
-      throw Error(error);
-    }
+    //         this.watchUser();
+    //       }
+    //     });
+    //   }
+    // } catch (error) {
+    //   const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao iniciar o login' });
+    //   toast.present();
+    //   console.error(error);
+    //   throw Error(error);
+    // }
   }
 
   async signIn(providerName: string): Promise<any> {
@@ -207,98 +206,98 @@ export class AuthProvider {
       throw Error(error);
     }
   }
-  watchUser() {
-    this.getMyUserRef().snapshotChanges()
-      .pipe(
-        flatMap(user => {
-          if (user.payload.exists) {
-            return this.watchBlockedUsers();
-          } else {
-            return of(null);
-          }
-        })
-        , flatMap(blockedUsers => {
+  // watchUser() {
+  //   this.getMyUserRef().snapshotChanges()
+  //     .pipe(
+  //       flatMap(user => {
+  //         if (user.payload.exists) {
+  //           return this.watchBlockedUsers();
+  //         } else {
+  //           return of(null);
+  //         }
+  //       })
+  //       , flatMap(blockedUsers => {
 
-          this.blockedUsers = blockedUsers;
-          if (this.user && this.user.partner_uid) {
-            return this.afs.collection('users').doc(this.user.partner_uid).snapshotChanges();
-          } else {
-            return of(null);
-          }
-        })
-        , map(partner => {
-          return partner && partner.payload.exists ? partner.payload.data() : null;
-        })
-        , switchMap(partner => {
-          if (!this.user) {
-            return of(null);
-          }
+  //         this.blockedUsers = blockedUsers;
+  //         if (this.user && this.user.partner_uid) {
+  //           return this.afs.collection('users').doc(this.user.partner_uid).snapshotChanges();
+  //         } else {
+  //           return of(null);
+  //         }
+  //       })
+  //       , map(partner => {
+  //         return partner && partner.payload.exists ? partner.payload.data() : null;
+  //       })
+  //       , switchMap(partner => {
+  //         if (!this.user) {
+  //           return of(null);
+  //         }
 
-          this.partner = partner;
-          return this.afs.collection('users').doc(this.user.uid).collection('chosenNames').valueChanges()
-            .pipe(
-              map(w => {
-                return w.map(e => {
-                  return this.getNameSubscription(e, 'me');
-                });
-              }),
-              mergeMap(r => {
-                if (this.partner) {
-                  return this.afs.collection('users').doc(this.partner.uid).collection('chosenNames').valueChanges()
-                    .pipe(
-                      map(w => {
-                        return w.map(e => {
-                          return this.getNameSubscription(e, 'partner');
-                        });
-                      })
-                      , map(x => {
-                        return [r, x];
-                      })
-                    );
-                } else {
-                  return of([r, []]);
-                }
-              })
-            );
-        })
-      )
-      .subscribe(result => {
-        if (!result || result.length < 2) {
-          return;
-        }
-        let mergedNames = _.keyBy(result[0], 'id');
-        const partnerNames = result[1];
+  //         this.partner = partner;
+  //         return this.afs.collection('users').doc(this.user.uid).collection('chosenNames').valueChanges()
+  //           .pipe(
+  //             map(w => {
+  //               return w.map(e => {
+  //                 return this.getNameSubscription(e, 'me');
+  //               });
+  //             }),
+  //             mergeMap(r => {
+  //               if (this.partner) {
+  //                 return this.afs.collection('users').doc(this.partner.uid).collection('chosenNames').valueChanges()
+  //                   .pipe(
+  //                     map(w => {
+  //                       return w.map(e => {
+  //                         return this.getNameSubscription(e, 'partner');
+  //                       });
+  //                     })
+  //                     , map(x => {
+  //                       return [r, x];
+  //                     })
+  //                   );
+  //               } else {
+  //                 return of([r, []]);
+  //               }
+  //             })
+  //           );
+  //       })
+  //     )
+  //     .subscribe(result => {
+  //       if (!result || result.length < 2) {
+  //         return;
+  //       }
+  //       let mergedNames = _.keyBy(result[0], 'id');
+  //       const partnerNames = result[1];
 
-        partnerNames.forEach((q: any) => {
-          let output = q;
-          if (typeof mergedNames[q.id] != 'undefined') {
-            output = { ...output, votes: (parseInt(mergedNames[q.id].votes) + parseInt(output.votes)), owner: 'both' };
-          }
-          mergedNames[q.id] = output;
-        });
+  //       partnerNames.forEach((q: any) => {
+  //         let output = q;
+  //         if (typeof mergedNames[q.id] != 'undefined') {
+  //           output = { ...output, votes: (parseInt(mergedNames[q.id].votes) + parseInt(output.votes)), owner: 'both' };
+  //         }
+  //         mergedNames[q.id] = output;
+  //       });
 
-        this.mergedNames = _.values(mergedNames);
-        console.log('MERGED', this.mergedNames);
+  //       this.mergedNames = _.values(mergedNames);
+  //       console.log('MERGED', this.mergedNames);
 
-        // const user = res.payload.data();
-        // if (!res.payload.exists) {
-        //   this.logout();
-        //   return;
-        // }
+  //       // const user = res.payload.data();
+  //       // if (!res.payload.exists) {
+  //       //   this.logout();
+  //       //   return;
+  //       // }
 
-        // this.user = user;
-        // if (user.partner_uid) {
-        //   this.afs.collection('users').doc(user.partner_uid).valueChanges()
-        //     .subscribe(partner => {
-        //       this.partner = partner;
-        //       // Watch names
-        //       this.watchMyNames();
-        //     });
-        // } else {
-        //   this.partner = null;
-        // }
-      });
-  }
+  //       // this.user = user;
+  //       // if (user.partner_uid) {
+  //       //   this.afs.collection('users').doc(user.partner_uid).valueChanges()
+  //       //     .subscribe(partner => {
+  //       //       this.partner = partner;
+  //       //       // Watch names
+  //       //       this.watchMyNames();
+  //       //     });
+  //       // } else {
+  //       //   this.partner = null;
+  //       // }
+  //     });
+  // }
 
   // watchMyNames() {
   //   this.getMyUserRef().collection('chosenNames').valueChanges()
@@ -344,29 +343,29 @@ export class AuthProvider {
   }
 
   getMyUserRef(): AngularFirestoreDocument<any> {
-    console.log('DENTRO DO GET MY YSER REF', this.user.uid);
-    return this.afs.collection('users').doc(this.user.uid);
+    return this.afs.collection('users').doc(this.user.id);
   }
-  getPartnerRef(): AngularFirestoreDocument<any> {
-    return this.afs.collection('users').doc(this.partner.uid);
-  }
-  async logout() {
-    try {
-      await this.storage.set('user_uid', null)
-      this.userUid = null;
-      this.user = null;
-      this.partner = null;
-      await this.afAuth.auth.signOut();
-      this.app.getActiveNavs()[0].setRoot('LoginPage');
-    } catch (error) {
-      console.error(error);
-      this.toast('Ocorreu um erro ao tentar deslogar do app.');
-    }
+  logout() {
+    this.afAuth.auth.signOut();
+    // try {
+    //   await this.storage.set('user_uid', null)
+    //   this.userUid = null;
+    //   this.user = null;
+    //   this.partner = null;
+    //   await this.afAuth.auth.signOut();
+    //   this.app.getActiveNavs()[0].setRoot('LoginPage');
+    // } catch (error) {
+    //   console.error(error);
+    //   this.toast('Ocorreu um erro ao tentar deslogar do app.');
+    // }
   }
 
   // Refs
   myUserRef() {
-    return this.afs.collection('users').doc(this.userUid);
+    return this.afs.collection('users').doc(this.user.id);
+  }
+  partnerRef(): AngularFirestoreDocument<any> {
+    return this.afs.collection('users').doc(this.partner.id);
   }
   blockedUsersRef() {
     return this.myUserRef().collection('blockedUsers');
@@ -392,18 +391,18 @@ export class AuthProvider {
         throw 'Você informou um email que não existe no sistema.';
       }
       const targetUser = targetUserQuery.docs[0];
-      if (targetUser.get('partner_uid')) {
+      if (targetUser.get('partner_id')) {
         throw 'O usuário que você tentou adicionar já possui um parceiro.';
       }
       const targetUserRef = this.afs.collection('users').doc(targetUser.id);
       //Verifico se o id dele está na minha lista de bloqueados
-      const imBlocked = await targetUserRef.collection('blockedUsers').doc(this.userUid).ref.get();
+      const imBlocked = await targetUserRef.collection('blockedUsers').doc(this.user.id).ref.get();
       if (imBlocked.exists) {
         throw 'Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.';
       }
       // Add target uid as partner and add logged user uid on partner record too
-      await this.myUserRef().update({ partner_uid: targetUser.id });
-      await targetUserRef.update({ partner_uid: this.userUid });
+      await this.myUserRef().update({ partner_id: targetUser.id });
+      await targetUserRef.update({ partner_id: this.user.id });
       // DONE!
     } catch (error) {
       console.error(error);
@@ -415,42 +414,32 @@ export class AuthProvider {
    */
   async removePartner(partner: any): Promise<void> {
     try {
-      await this.myUserRef().update({ partner_uid: null });
-      await this.afs.collection('users').doc(partner.uid).update({ partner_uid: null });
+      // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
+      // PQ ELE FOI DELETADO KKK
+      await this.partnerRef().update({ partner_id: null });
+      await this.myUserRef().update({ partner_id: null });
     } catch (error) {
       this.toast('Ocorreu um erro ao tentar remover o parceiro.');
     }
   }
 
   // Blocks
-  watchBlockedUsers() {
-    return this.afs.collection('users').doc(this.user.uid).collection('blockedUsers').snapshotChanges()
-      // Collection de ids do bloqueados do meu user
-      .pipe(
-        // Para cada eu pego o user em questao
-        map(blockedUsersIdsCollection => {
-          console.log('IDS COLLECTION', blockedUsersIdsCollection);
-          return blockedUsersIdsCollection.map((blockedUserIdDoc: any) => {
-            console.log('BLOCKED COLLECTION', blockedUserIdDoc.payload.doc.id);
-            return this.afs.collection('users').doc(blockedUserIdDoc.payload.doc.id).valueChanges();
-          });
-        })
-      );
-  }
-  async blockUser(uid) {
+  async blockUser(userToBeBlocked) {
+    console.log('USER TO BE BLOCKED', userToBeBlocked);
     try {
-      await this.blockedUsersRef().doc(uid).set({ uid });
+      await this.blockedUsersRef().doc(userToBeBlocked.id).set({ ...userToBeBlocked });
     } catch (error) {
+      console.error(error);
       this.toast('Ocorreu um erro ao tentar bloquear o parceiro');
     }
   }
   /**
    * 
-   * @param uid Uid of the user that will be deleted
+   * @param id Id of the user that will be deleted
    */
-  async unblockUser(uid: string) {
+  async unblockUser(id: string) {
     try {
-      await this.blockedUsersRef().doc(uid).delete();
+      await this.blockedUsersRef().doc(id).delete();
     } catch (error) {
       this.toast('Ocorreu um erro ao tentar desbloquear o parceiro');
     }
@@ -489,29 +478,30 @@ export class AuthProvider {
     }
   }
   async cacheNamesIfNeeded() {
-    const namesCacheLastCheck = this.user.names_cache_last_check;
     const namesToCache = await this.afs.collection('names', ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
-      if (namesCacheLastCheck) {
-        query = query.where('created_at', '>', namesCacheLastCheck);
+      if (this.user.names_cache_last_check) {
+        query = query.where('created_at', '>', this.user.names_cache_last_check);
       }
       return query;
     }).get().toPromise();
 
     let namesToSavePromises = [];
     namesToCache.forEach(name => {
-      console.log('CAGUEI', name.data());
       namesToSavePromises.push(this.getNamesCacheRef().doc(name.id).set({ ...name.data() }, { merge: true }));
     });
 
-    await Promise.all(namesToSavePromises);
-    this.getMyUserRef().set({ names_cache_last_check: new Date() }, { merge: true });
+    if (namesToSavePromises.length > 0) {
+      await Promise.all(namesToSavePromises);
+      await this.getMyUserRef().set({ names_cache_last_check: new Date() }, { merge: true });
+    }
+
   }
   async getNamesToChose(limit: number, conditions = null) {
     const namesRef = this.getMyUserRef().collection('namesCache', ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
-      if (conditions.genre) {
-        query = query.where('genre', '==', conditions.genre);
+      if (this.user.gender) {
+        query = query.where('gender', '==', this.user.gender);
       }
       if (conditions.firstLetter) {
         query = query.where('first_letter', '==', conditions.firstLetter);
@@ -524,5 +514,22 @@ export class AuthProvider {
     });
 
     return await namesRef.get().toPromise();
+  }
+
+
+  // GENDER
+  async setGender(gender: string) {
+    try {
+      await this.myUserRef().update({ gender });
+    } catch (error) {
+      console.error(error);
+      this.toast('Ocorreu um erro ao tentar alterar o gênero.');
+    }
+  }
+  getGenderLabel() {
+    if (!this.user.gender) {
+      return 'Ambos';
+    }
+    return this.user.gender === 'm' ? 'Macho Alfa' : 'Fêmea';
   }
 }
