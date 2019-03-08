@@ -39,6 +39,10 @@ export class AuthProvider {
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
   authStateFirstCheck: boolean;
+  partnerChange = new Subject();
+  // Object with two users (currentUser and partner) to easely fetch their profiles
+  // across the app
+  actors = {};
 
   constructor(
     private platform: Platform,
@@ -73,6 +77,9 @@ export class AuthProvider {
         , mergeMap(userProfile => {
           console.log('USER DO /users', userProfile);
           this.user = userProfile ? userProfile : null;
+          if (this.user) {
+            this.actors[this.user.id] = this.user;
+          }
 
           if (this.user && this.user.partner_id) {
             return this.afs.collection('users').doc(userProfile.partner_id).ref.get();
@@ -81,8 +88,6 @@ export class AuthProvider {
         })
       )
       .subscribe(partner => {
-        console.log('PARTNER OU NÃO', partner);
-        console.log('BLOCKED USERS', this.blockedUsers);
         // IMPORTANTE!!!!!!!!!!!!!!!!
         // Se o partner_id for de um user que não existe(fluxo normal nunca vai acontecer mas estamos antecipando um bug)
         // transformamos partner_id para nul... pois o bug ocorreria do usuario ficar com partner_id de um user que não existe
@@ -92,7 +97,11 @@ export class AuthProvider {
           this.myUserRef().set({ partner_id: null }, { merge: true });
         }
         this.partner = partner && partner.exists ? partner.data() : null;
+        if (this.partner) {
+          this.actors[this.partner.id] = this.partner;
+        }
         this.watchFirebaseAuthState.next(this.user !== null);
+
       });
   }
 
@@ -364,6 +373,9 @@ export class AuthProvider {
   myUserRef() {
     return this.afs.collection('users').doc(this.user.id);
   }
+  namesRef() {
+    return this.afs.collection('names');
+  }
   partnerRef(): AngularFirestoreDocument<any> {
     return this.afs.collection('users').doc(this.partner.id);
   }
@@ -401,8 +413,9 @@ export class AuthProvider {
         throw 'Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.';
       }
       // Add target uid as partner and add logged user uid on partner record too
-      await this.myUserRef().update({ partner_id: targetUser.id });
-      await targetUserRef.update({ partner_id: this.user.id });
+      const partnershipResponse = await this.afs.collection('partnerships').add({ done: true });
+      await this.myUserRef().update({ partner_id: targetUser.id, partnership_id: partnershipResponse.id });
+      await targetUserRef.update({ partner_id: this.user.id, partnership_id: partnershipResponse.id });
       // DONE!
     } catch (error) {
       console.error(error);
@@ -416,8 +429,8 @@ export class AuthProvider {
     try {
       // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
       // PQ ELE FOI DELETADO KKK
-      await this.partnerRef().update({ partner_id: null });
-      await this.myUserRef().update({ partner_id: null });
+      await this.partnerRef().update({ partner_id: null, partnership_id: null });
+      await this.myUserRef().update({ partner_id: null, partnership_id: null });
     } catch (error) {
       this.toast('Ocorreu um erro ao tentar remover o parceiro.');
     }
@@ -464,14 +477,51 @@ export class AuthProvider {
     return this.getMyUserRef().collection('namesCache');
   }
   async choseName(name, like: boolean) {
+    console.log('ESCOLHI NOME');
+    console.log('LIKE?', like);
     if (like) {
+      console.log('LIKED');
+      if (this.partner) {
+        console.log('TENHO PARTNER');
+        const response = await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(name.id).ref.get();
+        if (response.exists) {
+
+          const tey = await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(name.id).update({ owners: { ...response.data().owners, [this.user.id]: true } });
+        } else {
+          console.log('NÂO TEM NAME, ADD');
+          const response = await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(name.id).set({ owners: { [this.user.id]: true } });
+        }
+      }
       await this.getChosenNamesRef().doc(name.id).set({ id: name.id });
     }
     await this.myUserRef().collection('namesCache').doc(name.id).delete();
   }
   async removeChosenName(id: string) {
+    console.log('Removendo nome');
     try {
-      await this.getChosenNamesRef().doc(id).delete();
+      if (this.user.partnership_id) {
+        console.log('tem partnership, remover nessa estrategia');
+        const response = await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(id).ref.get();
+        
+        if (response.exists) {
+          console.log('o chosen name existe');
+          let data = response.data();
+          const owners = data.owners;
+          delete owners[this.user.id];
+          data = { ...data, owners: owners };
+          console.log('CARAI MANE', data.owners == {});
+          if (_.isEmpty(data.owners)) {
+            await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(id).delete();
+          } else {
+            await this.afs.collection('partnerships').doc(this.user.partnership_id).collection('chosenNames').doc(id).update(data);
+          }
+        } else {
+          console.log('o chosen name não existe');
+        }
+      } else {
+        await this.getChosenNamesRef().doc(id).delete();
+      }
+
     } catch (error) {
       console.error(error);
       this.toast('Ocorreu um erro ao tentar remover o nome da sua lista de escolhas');

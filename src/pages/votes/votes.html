@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button (click)="dismiss()">
+        Fechar
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <h1>{{name?.name}} ({{name?.votes}} - {{name?.porcentage}})</h1>
+
+  <h3>Quem votou</h3>
+  <ion-list>
+    <ion-item *ngFor="let name of voters">
+      <ion-avatar item-start>
+        <img [src]="name.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{name.name}}</h2>
+    </ion-item>
+  </ion-list>
+
+  <h3 *ngIf="voters.length < 1">Ninguem votou ainda</h3>
+</ion-content>

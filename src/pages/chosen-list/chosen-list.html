@@ -15,7 +15,7 @@
 
 <ion-content>
 
-  <p *ngIf="authProvider.mergedNames.length < 2">
+  <p *ngIf="names.length < 1">
     Você ainda não escolheu nenhum nome.
   </p>
 
@@ -33,36 +33,24 @@
   <ion-searchbar [(ngModel)]="term"></ion-searchbar>
 
   <ion-list>
-    <ion-item *ngFor="let name of names | search : 'name' : term : gender">
+    <ion-item *ngFor="let name of names | orderBy : 'votes' : true |  search : 'name' : term : gender"
+      (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
       {{name.name}}
+      <h2>
+        Votes: {{name.votes}}
+      </h2>
+      <h2>
+        {{name.porcentage}}%
+      </h2>
+      <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
+        <img [src]="owner.profilePhotoURL">
+      </ion-avatar>
     </ion-item>
   </ion-list>
 
-  <!-- <ion-list>
-    <ng-container *ngFor="let chosen of authProvider.mergedNames | orderBy: 'votes': true : false">
-      <ion-item (press)="presentNameActionSheetOption(chosen)">
-        <h2>
-          {{ (chosen.name | async)?.name }}
-        </h2>
-        <p>{{chosen.votes}} ({{getNamePorcentage(chosen.votes)}})</p>
-        <div style="height: 15px; width: 100%; background-color:red;">
-          <div style="height: 15px; background-color:green;" [style.width]="getNamePorcentage(chosen.votes)">
-          </div>
-        </div>
-        <ion-avatar item-end *ngIf="chosen.owner == 'me' || chosen.owner == 'both'">
-          <img [src]="authProvider.user?.profilePhotoURL">
-        </ion-avatar>
-        <ion-avatar item-end *ngIf="chosen.owner == 'partner' || chosen.owner == 'both'">
-          <img [src]="authProvider.partner?.profilePhotoURL">
-        </ion-avatar>
-      </ion-item>
-    </ng-container>
-  </ion-list> -->
-
-
 </ion-content>
 
-<ion-footer *ngIf="authProvider.mergedNames.length > 1">
+<ion-footer [hidden]="names.length < 2">
   <ion-toolbar>
     <button ion-button block (click)="share()">Compartilhar enquete</button>
   </ion-toolbar>
