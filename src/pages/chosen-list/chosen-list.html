@@ -5,16 +5,16 @@
   Ionic pages and navigation.
 -->
 <ion-header>
-
   <ion-navbar>
-    <ion-title>chosen-list</ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="openAddName()">
+        Add name
+      </button>
+    </ion-buttons>
   </ion-navbar>
-
 </ion-header>
 
-
 <ion-content>
-
   <p *ngIf="names.length < 1">
     Você ainda não escolheu nenhum nome.
   </p>
@@ -33,21 +33,21 @@
   <ion-searchbar [(ngModel)]="term"></ion-searchbar>
 
   <ion-list>
-    <ion-item *ngFor="let name of names | orderBy : 'votes' : true |  search : 'name' : term : gender"
-      (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
-      {{name.name}}
-      <h2>
-        Votes: {{name.votes}}
-      </h2>
-      <h2>
-        {{name.porcentage}}%
-      </h2>
+    <ion-item
+      *ngFor="
+        let name of (names | orderBy: 'votes':true | search: 'name':term:gender)
+      "
+      (click)="onNameClick(name)"
+      (press)="presentNameActionSheetOption(name)"
+    >
+      {{ name.name }}
+      <h2>Votes: {{ name.votes }}</h2>
+      <h2>{{ name.porcentage }}%</h2>
       <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
-        <img [src]="owner.profilePhotoURL">
+        <img [src]="owner.profilePhotoURL" />
       </ion-avatar>
     </ion-item>
   </ion-list>
-
 </ion-content>
 
 <ion-footer [hidden]="names.length < 2">

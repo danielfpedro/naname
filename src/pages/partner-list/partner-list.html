@@ -5,26 +5,22 @@
   Ionic pages and navigation.
 -->
 <ion-header>
-
   <ion-navbar>
     <ion-title>PartnerList</ion-title>
   </ion-navbar>
-
 </ion-header>
 
 <ion-content>
-
   <div *ngIf="authProvider.user && authProvider.partner">
-
     O seu parça é <strong>{{ authProvider.partner?.name }}</strong>
-    <br>
-    <img [src]="authProvider.partner?.profilePhotoURL" width="80">
-    <button ion-button color="danger" (click)="presentRemovePartnerAlert()">Remover</button>
-    <button ion-button color="danger" (click)="presentRemovePartnerAlert(true)">Remover e Bloquear</button>
-  </div>
-
-  <div *ngIf="authProvider.user && !authProvider.user.partner_uid">
-    <button ion-button (click)="showPrompt()">Requisitar</button>
+    <br />
+    <img [src]="authProvider.partner?.profilePhotoURL" width="80" />
+    <button ion-button color="danger" (click)="presentRemovePartnerAlert()">
+      Remover
+    </button>
+    <button ion-button color="danger" (click)="presentRemovePartnerAlert(true)">
+      Remover e Bloquear
+    </button>
   </div>
 
   <ion-list *ngIf="blockedUsers.length > 0">
@@ -33,12 +29,33 @@
     </ion-list-header>
     <ion-item *ngFor="let blockedUser of blockedUsers">
       <ion-avatar item-start>
-        <img [src]="blockedUser.profilePhotoURL">
+        <img [src]="blockedUser.profilePhotoURL" />
       </ion-avatar>
-      <h2>{{blockedUser.name}}</h2>
-      <p>{{blockedUser.email}}</p>
+      <h2>{{ blockedUser.name }}</h2>
+      <p>{{ blockedUser.email }}</p>
       <!-- <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button> -->
     </ion-item>
   </ion-list>
 
+  <div *ngIf="!authProvider.partnership_id">
+    <h2>Eu vou adicionar o parceiro</h2>
+    <div>
+      <button ion-button (click)="scanQrCode()">Ler QRCODE do parceiro</button>
+    </div>
+    <div>
+      <button ion-button (click)="showPrompt()">Adicionar manualmente</button>
+    </div>
+    <h2>O meu parceiro vai me adicionar</h2>
+    <div>
+      <button ion-button>Compartilhar URL para ele me adicionar</button>
+    </div>
+    <div>
+      <p>Ele vai ler o meu QR CODE</p>
+      <qrcode
+        [qrdata]="authProvider.user.email"
+        [size]="200"
+        [level]="'M'"
+      ></qrcode>
+    </div>
+  </div>
 </ion-content>

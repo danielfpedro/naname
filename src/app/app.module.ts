@@ -6,11 +6,14 @@ import { MyApp } from "./app.component";
 import { StatusBar } from "@ionic-native/status-bar";
 import { SplashScreen } from "@ionic-native/splash-screen";
 
-import { AngularFireModule, FirebaseAppConfig } from '@angular/fire';
+import { AngularFireModule, FirebaseAppConfig } from "@angular/fire";
 
-import { AngularFireDatabaseModule, AngularFireDatabase } from '@angular/fire/database';
-import { AngularFirestoreModule } from '@angular/fire/firestore';
-import { AngularFireAuthModule } from '@angular/fire/auth';
+import {
+  AngularFireDatabaseModule,
+  AngularFireDatabase
+} from "@angular/fire/database";
+import { AngularFirestoreModule } from "@angular/fire/firestore";
+import { AngularFireAuthModule } from "@angular/fire/auth";
 
 import { Facebook } from "@ionic-native/facebook";
 import { AuthProvider } from "../providers/auth/auth";
@@ -22,6 +25,8 @@ import { SocialSharing } from "@ionic-native/social-sharing";
 import { IonicStorageModule } from "@ionic/storage";
 import { NamesProvider } from "../providers/names/names";
 
+import { QRScanner } from "@ionic-native/qr-scanner";
+
 const firebaseConfig: FirebaseAppConfig = {
   apiKey: "AIzaSyAXpIzdLG-2o0CP4EBhfOEt3p2sdJbohBo",
   authDomain: "nenem-381db.firebaseapp.com",
@@ -32,9 +37,7 @@ const firebaseConfig: FirebaseAppConfig = {
 };
 
 @NgModule({
-  declarations: [
-    MyApp
-  ],
+  declarations: [MyApp],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
@@ -57,8 +60,9 @@ const firebaseConfig: FirebaseAppConfig = {
     SplashScreen,
     PartnerInvitesProvider,
     SocialSharing,
+    QRScanner,
     { provide: ErrorHandler, useClass: IonicErrorHandler },
-    NamesProvider,
+    NamesProvider
   ]
 })
-export class AppModule { }
+export class AppModule {}

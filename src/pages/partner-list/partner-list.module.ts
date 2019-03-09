@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
 import { PartnerListPage } from './partner-list';
+import { QRCodeModule } from 'angularx-qrcode';
 
 @NgModule({
   declarations: [
@@ -8,6 +9,7 @@ import { PartnerListPage } from './partner-list';
   ],
   imports: [
     IonicPageModule.forChild(PartnerListPage),
+    QRCodeModule
   ],
 })
 export class PartnerListPageModule {}
