@@ -89,9 +89,6 @@
     <plugin name="cordova-sqlite-storage" spec="^2.4.0" />
     <plugin name="cordova-plugin-x-socialsharing" spec="5.4.4" />
     <plugin name="cordova-plugin-googleplus" spec="^7.0.0">
-        <variable name="WEB_APPLICATION_CLIENT_ID" value="499196676267-h5so17ubc65v38p4dgjb1v70gg4kd6u8.apps.googleusercontent.com" />
-        <variable name="REVERSED_CLIENT_ID" value="yourReversedClientID" />
-        <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
     </plugin>
-    <engine name="android" spec="6.3.0" />
+    <engine name="android" spec="7.1.4" />
 </widget>

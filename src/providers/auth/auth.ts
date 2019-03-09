@@ -124,7 +124,7 @@ export class AuthProvider {
   async sigInGoogleNative() {
     try {
       const loginResponse = await this.gPlus.login({
-        'webClientId': '499196676267-h5so17ubc65v38p4dgjb1v70gg4kd6u8.apps.googleusercontent.com',
+        'webClientId': '228545191361-6g7mjl8iio9aqfhgm4j40khs0qpu9cg8.apps.googleusercontent.com',
         'offline': true,
         'scopes': 'profile email'
       });
