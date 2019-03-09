@@ -27,7 +27,7 @@
       Configurar Parceiro
     </button>
 
-    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="authProvider.user?.partner_uid">
+    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="authProvider.partner">
       <ion-avatar item-start>
         <img [src]="authProvider.partner?.profilePhotoURL">
       </ion-avatar>

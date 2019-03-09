@@ -35,7 +35,7 @@ export class UserTabPage {
   }
 
   ionViewDidEnter() {
-    console.log('USER', this.authProvider.partner);
+    
   }
 
 }

@@ -14,7 +14,7 @@
 
 <ion-content>
 
-  <div *ngIf="authProvider.user && authProvider.user.partner_uid">
+  <div *ngIf="authProvider.user && authProvider.partner">
 
     O seu parça é <strong>{{ authProvider.partner?.name }}</strong>
     <br>
@@ -27,17 +27,17 @@
     <button ion-button (click)="showPrompt()">Requisitar</button>
   </div>
 
-  <ion-list *ngIf="authProvider.blockedUsers.length > 0">
+  <ion-list *ngIf="blockedUsers.length > 0">
     <ion-list-header>
       Usuários Bloqueados
     </ion-list-header>
-    <ion-item *ngFor="let blockedUser of authProvider.blockedUsers">
+    <ion-item *ngFor="let blockedUser of blockedUsers">
       <ion-avatar item-start>
-        <img [src]="(blockedUser | async)?.profilePhotoURL">
+        <img [src]="blockedUser.profilePhotoURL">
       </ion-avatar>
-      <h2>{{(blockedUser | async)?.name}}</h2>
-      <p>{{(blockedUser | async)?.email}}</p>
-      <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
+      <h2>{{blockedUser.name}}</h2>
+      <p>{{blockedUser.email}}</p>
+      <!-- <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button> -->
     </ion-item>
   </ion-list>
 

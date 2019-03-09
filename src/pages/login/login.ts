@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, LoadingController, ToastController } from 'ionic-angular';
 import { AuthProvider } from '../../providers/auth/auth';
 import { AngularFireAuth } from '@angular/fire/auth';
-import firebase from 'firebase/app';
+
 
 @IonicPage()
 @Component({
@@ -22,20 +22,8 @@ export class LoginPage {
     public toastController: ToastController
   ) {
   }
-  
-  ionViewDidLoad() {
-    this.loadingAuthState = false;
-    this.checkAuthState();
-  }
 
-  async checkAuthState() {
-    const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
-    loading.present();
-    await this.authProvider.init();
-    loading.dismiss();
-    if (this.authProvider.userUid) {
-      this.navCtrl.setRoot('TabsPage');
-    }
+  ionViewDidLoad() {
   }
 
   async signIn(provider: string) {
@@ -44,9 +32,13 @@ export class LoginPage {
     try {
       await this.authProvider.signIn(provider)
       loading.dismiss();
-      this.navCtrl.setRoot('TabsPage');
+      // this.navCtrl.setRoot('TabsPage');
     } catch (error) {
       loading.dismiss();
     }
+  }
+
+  logout() {
+    this.afAuth.auth.signOut();
   }
 }
