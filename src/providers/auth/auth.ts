@@ -130,54 +130,79 @@ export class AuthProvider {
   }
 
   async signIn(providerName: string): Promise<any> {
-    let firebaseAuthResponse = null;
-
-    if (this.platform.is("cordova")) {
-      switch (providerName) {
-        case "google":
-          firebaseAuthResponse = await this.sigInGoogleNative();
-      }
-    } else {
-      console.log("login browser");
-      switch (providerName) {
-        case "google":
-          console.log("login with google provider");
-          firebaseAuthResponse = await this.sigInGoogleBrowser();
-          console.log("RESOINBSE", firebaseAuthResponse);
-          break;
-      }
-    }
-    console.log("FIREBASE AUTH RESPONSE", firebaseAuthResponse);
-
     try {
-      // await this.storage.set('user_uid', firebaseAuthResponse.uid);
-      // this.afs.collection('users').doc(firebaseAuthResponse.uid).snapshotChanges().subscribe(user => {
-      //   if (user.payload.exists) {
-      //     this.userUid = firebaseAuthResponse.uid;
-      //     this.user = user.payload.data();
-      //     this.watchUser();
-      //   }
-      // });
+      if (this.platform.is("cordova")) {
+        switch (providerName) {
+          case "google":
+            await this.sigInGoogleNative();
+            break;
+          case "facebook":
+            await this.signInWithFacebookNative();
+            break;
+        }
+      } else {
+        await this.signInBrowser(this.getBrowserProvider(providerName));
+      }
     } catch (error) {
-      console.error(error);
-      const toast = this.toastCtrl.create({
-        message: "Ocorreu um erro ao tentar fazer o login."
-      });
-      toast.present();
-      throw Error(error);
+      if (error.code === "auth/account-exists-with-different-credential") {
+        const alert = this.alertController.create({
+          title: 'Email associado a outra conta no Naname',
+          message: `O seu email do ${providerName} já está em uso no nosso sistema. Você deve logar usando ${this.getProviderOpositeName(providerName)}.`,
+          buttons: ['Ok']
+        });
+        alert.present();
+      } else {
+        this.toast(
+          "Ocorreu um erro ao fazer o login. Por favor tente novamente."
+        );
+      }
     }
   }
 
-  async sigInGoogleBrowser() {
+  getProviderOpositeName(providerName: string) {
+    if (providerName == "google") {
+      return "facebook";
+    }
+    return "google";
+  }
+  getBrowserProvider = providerName => {
+    switch (providerName) {
+      case "google":
+        return new firebase.auth.GoogleAuthProvider();
+      case "facebook":
+        return new firebase.auth.FacebookAuthProvider();
+    }
+  };
+
+  async signInBrowser(ProviderInstance) {
     try {
       const authResponse = await this.afAuth.auth.signInWithPopup(
-        new firebase.auth.GoogleAuthProvider()
+        ProviderInstance
       );
       return authResponse.user;
     } catch (error) {
       console.error("Error login google browser", error);
       throw error;
     }
+  }
+  // async sigInFacebookBrowser() {
+  //   try {
+  //     const authResponse = await this.afAuth.auth.signInWithPopup(
+  //       new firebase.auth.FacebookAuthProvider()
+  //     );
+  //     return authResponse.user;
+  //   } catch (error) {
+  //     console.error("Error login google browser", error);
+  //     throw error;
+  //   }
+  // }
+  async signInWithFacebookNative() {
+    const response = await this.fb.login(["email", "public_profile"]);
+    return await this.afAuth.auth.signInWithCredential(
+      firebase.auth.FacebookAuthProvider.credential(
+        response.authResponse.accessToken
+      )
+    );
   }
   async sigInGoogleNative() {
     try {

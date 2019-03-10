@@ -87,5 +87,9 @@
     <plugin name="cordova-plugin-googleplus" spec="^7.0.0">
     </plugin>
     <plugin name="phonegap-plugin-barcodescanner" spec="8.0.1" />
+    <plugin name="cordova-plugin-facebook4" spec="1.7.4">
+        <variable name="APP_ID" value="716476418542630" />
+        <variable name="APP_NAME" value="Nename" />
+    </plugin>
     <engine name="android" spec="7.1.4" />
 </widget>
