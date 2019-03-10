@@ -20,6 +20,7 @@ import firebase from "firebase/app";
 import { AuthProvider } from "../../providers/auth/auth";
 import { PartnerInvitesProvider } from "../../providers/partner-invites/partner-invites";
 import { QRScanner, QRScannerStatus } from "@ionic-native/qr-scanner";
+import { BarcodeScanner } from "@ionic-native/barcode-scanner";
 
 /**
  * Generated class for the PartnerListPage page.
@@ -50,7 +51,8 @@ export class PartnerListPage {
     public alertCtrl: AlertController,
     public loaderCtrl: LoadingController,
     private qrScanner: QRScanner,
-    private platform: Platform
+    private platform: Platform,
+    private barcodeScanner: BarcodeScanner
   ) {}
 
   ionViewDidLoad() {
@@ -214,32 +216,20 @@ export class PartnerListPage {
   }
 
   async scanQrCode() {
-    this.qrScanner
-      .prepare()
-      .then((status: QRScannerStatus) => {
-        if (status.authorized) {
-          // camera permission was granted
-
-          // start scanning
-          let scanSub = this.qrScanner.scan().subscribe((text: string) => {
-            console.log("Scanned something", text);
-
-            this.qrScanner.hide(); // hide camera preview
-            scanSub.unsubscribe(); // stop scanning
-          });
-
-          // show camera preview
-          this.qrScanner.show();
-
-          // wait for user to scan something, then the observable callback will be called
-        } else if (status.denied) {
-          // camera permission was permanently denied
-          // you must use QRScanner.openSettings() method to guide the user to the settings page
-          // then they can grant the permission from there
-        } else {
-          // permission was denied, but not permanently. You can ask for permission again at a later time.
+    this.barcodeScanner
+      .scan({
+        resultDisplayDuration: 0,
+        orientation: "portrait",
+        prompt: 'Mire no QRCODE do parceiro para adicioná-lo automaticamente'
+      })
+      .then(barcodeData => {
+        console.log("Barcode data", barcodeData);
+        if (!barcodeData.cancelled) {
+          this.addPartner(barcodeData.text);
         }
       })
-      .catch((e: any) => console.log("Error is", e));
+      .catch(err => {
+        console.log("Error", err);
+      });
   }
 }

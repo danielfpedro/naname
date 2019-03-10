@@ -86,10 +86,6 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="5.4.4" />
     <plugin name="cordova-plugin-googleplus" spec="^7.0.0">
     </plugin>
-    <plugin name="cordova-plugin-facebook4" spec="4.2.1">
-        <variable name="APP_ID" value="123456789" />
-        <variable name="APP_NAME" value="myApplication" />
-    </plugin>
-    <plugin name="cordova-plugin-qrscanner" spec="2.6.0" />
+    <plugin name="phonegap-plugin-barcodescanner" spec="8.0.1" />
     <engine name="android" spec="7.1.4" />
 </widget>
