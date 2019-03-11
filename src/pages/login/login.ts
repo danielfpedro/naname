@@ -1,44 +1,30 @@
-import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, LoadingController, ToastController } from 'ionic-angular';
-import { AuthProvider } from '../../providers/auth/auth';
-import { AngularFireAuth } from '@angular/fire/auth';
-
+import { Component } from "@angular/core";
+import { IonicPage, LoadingController } from "ionic-angular";
+import { AuthProvider } from "../../providers/auth/auth";
 
 @IonicPage()
 @Component({
-  selector: 'page-login',
-  templateUrl: 'login.html',
+  selector: "page-login",
+  templateUrl: "login.html"
 })
 export class LoginPage {
-
-  public loadingAuthState: boolean = true;
-
   constructor(
-    public navCtrl: NavController,
-    public navParams: NavParams,
     public authProvider: AuthProvider,
-    public loadingController: LoadingController,
-    public afAuth: AngularFireAuth,
-    public toastController: ToastController
-  ) {
-  }
+    public loadingController: LoadingController
+  ) {}
 
-  ionViewDidLoad() {
-  }
+  ionViewDidLoad() {}
 
   async signIn(provider: string) {
-    const loading = this.loadingController.create({ content: 'Carregando, aguarde...' });
+    const loading = this.loadingController.create({
+      content: "Entrando, aguarde..."
+    });
     loading.present();
     try {
-      await this.authProvider.signIn(provider)
+      await this.authProvider.signIn(provider);
       loading.dismiss();
-      // this.navCtrl.setRoot('TabsPage');
-    } catch (error) {
+    } finally {
       loading.dismiss();
     }
-  }
-
-  logout() {
-    this.afAuth.auth.signOut();
   }
 }

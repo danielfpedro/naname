@@ -105,31 +105,7 @@ export class AuthProvider {
       });
   }
 
-  init() {
-    // try {
-    //   console.log('USER UID FROM STORATE');
-    //   const response = await this.storage.get('user_uid');
-    //   if (response) {
-    //     const userUid = response;
-    //     this.userUid = userUid;
-    //     this.afs.collection('users').doc(userUid).snapshotChanges().subscribe(user => {
-    //       if (user.payload.exists) {
-    //         console.log('SETANDO USER UID');
-    //         this.userUid = userUid;
-    //         this.user = user.payload.data();
-    //         this.watchUser();
-    //       }
-    //     });
-    //   }
-    // } catch (error) {
-    //   const toast = this.toastCtrl.create({ message: 'Ocorreu um erro ao iniciar o login' });
-    //   toast.present();
-    //   console.error(error);
-    //   throw Error(error);
-    // }
-  }
-
-  async signIn(providerName: string): Promise<any> {
+  async signIn(providerName: string): Promise<void> {
     try {
       if (this.platform.is("cordova")) {
         switch (providerName) {
@@ -144,19 +120,27 @@ export class AuthProvider {
         await this.signInBrowser(this.getBrowserProvider(providerName));
       }
     } catch (error) {
+      // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
+      // eu jogo um alert explicando pq ele nao pode fazer isso
       if (error.code === "auth/account-exists-with-different-credential") {
-        const alert = this.alertController.create({
-          title: 'Email associado a outra conta no Naname',
-          message: `O seu email do ${providerName} já está em uso no nosso sistema. Você deve logar usando ${this.getProviderOpositeName(providerName)}.`,
-          buttons: ['Ok']
-        });
-        alert.present();
+        this.providerCollisionAlert(providerName);
       } else {
         this.toast(
           "Ocorreu um erro ao fazer o login. Por favor tente novamente."
         );
       }
     }
+  }
+
+  providerCollisionAlert(providerName: string): void {
+    const alert = this.alertController.create({
+      title: "Email associado a outra conta no Naname",
+      message: `O seu email do ${providerName} já está em uso no nosso sistema. Você deve logar usando ${this.getProviderOpositeName(
+        providerName
+      )}.`,
+      buttons: ["Ok"]
+    });
+    alert.present();
   }
 
   getProviderOpositeName(providerName: string) {
