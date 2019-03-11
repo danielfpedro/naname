@@ -10,9 +10,8 @@ import { Storage } from "@ionic/storage";
 import firebase from "firebase/app";
 import { AlertController, App, Platform, ToastController } from "ionic-angular";
 import * as _ from "lodash";
-import { of, Subject, Observable } from "rxjs";
-import { flatMap, map, mergeMap, switchMap, filter } from "rxjs/operators";
-import { UserTabPage } from "../../pages/user-tab/user-tab";
+import { of, Subject } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 
 /*
   Generated class for the AuthProvider provider.
@@ -25,16 +24,20 @@ export class AuthProvider {
   public userDoc: AngularFirestoreDocument;
 
   public userUid: string = null;
-  public user: any;
+  public user: any = null;
   public partner: any = null;
   public blockedUsers = [];
 
   public partnerLoaded = false;
 
+  public isSignedIn = false;
+
   // Names
   mergedNames = [];
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
+  initThingsIsDone: Subject<void> = new Subject();
+
   authStateFirstCheck: boolean;
   partnerChange = new Subject();
   // Object with two users (currentUser and partner) to easely fetch their profiles
@@ -52,37 +55,46 @@ export class AuthProvider {
     private toastCtrl: ToastController,
     public gPlus: GooglePlus
   ) {
+
     this.afAuth.authState
       .pipe(
         mergeMap(userSignedIn => {
-          console.log("USER SIGNED IN", userSignedIn);
+          console.log('Is user signed in?', userSignedIn);
           if (userSignedIn) {
-            return this.createUserIfNeeded(userSignedIn);
-          } else {
-            return of(null);
-          }
-        }),
-        mergeMap(userId => {
-          if (userId) {
+            console.log('Yes it is');
             return this.afs
               .collection("users")
-              .doc(userId)
+              .doc(userSignedIn.uid)
               .valueChanges();
-          } else {
+          }
+          return of(null);
+        }),
+        mergeMap(userDoc => {
+
+          console.log('Result of user doc', userDoc);
+          // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
+          if (typeof userDoc == 'undefined') {
+            console.log('User does not exists, we are signing out here');
+            this.user = null;
+            this.afAuth.auth.signOut();
+            // Se null não está logado
+          } else if (userDoc === null) {
+            this.user = null;
             return of(null);
           }
-        }),
-        mergeMap(userProfile => {
-          console.log("USER DO /users", userProfile);
-          this.user = userProfile ? userProfile : null;
+
+          this.user = userDoc;
+          console.log('Now the value of authProvider.user is', this.user);
           if (this.user) {
+            // populate actors object with user doc, this variable will be thourgh the app
+            // so we tech user and partner(if has it) only this time
             this.actors[this.user.id] = this.user;
           }
-
+          // Se tem partner pego ele
           if (this.user && this.user.partner_id) {
             return this.afs
               .collection("users")
-              .doc(userProfile.partner_id)
+              .doc(userDoc.partner_id)
               .ref.get();
           }
           return of(null);
@@ -101,8 +113,14 @@ export class AuthProvider {
         if (this.partner) {
           this.actors[this.partner.id] = this.partner;
         }
+        console.log('Next on watch', this.user);
         this.watchFirebaseAuthState.next(this.user !== null);
+        this.initThingsIsDone.complete();
       });
+  }
+
+  initThings(): void {
+
   }
 
   async signIn(providerName: string): Promise<void> {
@@ -117,7 +135,9 @@ export class AuthProvider {
             break;
         }
       } else {
-        await this.signInBrowser(this.getBrowserProvider(providerName));
+        console.log('Sign in browser popup with provider', providerName);
+        const response = await this.signInBrowser(this.getBrowserProvider(providerName));
+        console.log('Sign in response', response);
       }
     } catch (error) {
       // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
@@ -160,6 +180,7 @@ export class AuthProvider {
 
   async signInBrowser(ProviderInstance) {
     try {
+
       const authResponse = await this.afAuth.auth.signInWithPopup(
         ProviderInstance
       );
@@ -169,17 +190,6 @@ export class AuthProvider {
       throw error;
     }
   }
-  // async sigInFacebookBrowser() {
-  //   try {
-  //     const authResponse = await this.afAuth.auth.signInWithPopup(
-  //       new firebase.auth.FacebookAuthProvider()
-  //     );
-  //     return authResponse.user;
-  //   } catch (error) {
-  //     console.error("Error login google browser", error);
-  //     throw error;
-  //   }
-  // }
   async signInWithFacebookNative() {
     const response = await this.fb.login(["email", "public_profile"]);
     return await this.afAuth.auth.signInWithCredential(
@@ -213,155 +223,12 @@ export class AuthProvider {
       email: userData.email,
       profilePhotoURL: userData.photoURL
     };
-    console.log("SALVA LA", userToAdd);
     try {
-      const userCheck = await this.afs
-        .collection("users")
-        .doc(userToAdd.id)
-        .ref.get();
-      if (!userCheck.exists) {
-        await this.afs
-          .collection("users")
-          .doc(userToAdd.id)
-          .set(userToAdd);
-      }
-      return userToAdd.id;
+      await this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
     } catch (error) {
       throw Error(error);
     }
   }
-  // watchUser() {
-  //   this.getMyUserRef().snapshotChanges()
-  //     .pipe(
-  //       flatMap(user => {
-  //         if (user.payload.exists) {
-  //           return this.watchBlockedUsers();
-  //         } else {
-  //           return of(null);
-  //         }
-  //       })
-  //       , flatMap(blockedUsers => {
-
-  //         this.blockedUsers = blockedUsers;
-  //         if (this.user && this.user.partner_uid) {
-  //           return this.afs.collection('users').doc(this.user.partner_uid).snapshotChanges();
-  //         } else {
-  //           return of(null);
-  //         }
-  //       })
-  //       , map(partner => {
-  //         return partner && partner.payload.exists ? partner.payload.data() : null;
-  //       })
-  //       , switchMap(partner => {
-  //         if (!this.user) {
-  //           return of(null);
-  //         }
-
-  //         this.partner = partner;
-  //         return this.afs.collection('users').doc(this.user.uid).collection('chosenNames').valueChanges()
-  //           .pipe(
-  //             map(w => {
-  //               return w.map(e => {
-  //                 return this.getNameSubscription(e, 'me');
-  //               });
-  //             }),
-  //             mergeMap(r => {
-  //               if (this.partner) {
-  //                 return this.afs.collection('users').doc(this.partner.uid).collection('chosenNames').valueChanges()
-  //                   .pipe(
-  //                     map(w => {
-  //                       return w.map(e => {
-  //                         return this.getNameSubscription(e, 'partner');
-  //                       });
-  //                     })
-  //                     , map(x => {
-  //                       return [r, x];
-  //                     })
-  //                   );
-  //               } else {
-  //                 return of([r, []]);
-  //               }
-  //             })
-  //           );
-  //       })
-  //     )
-  //     .subscribe(result => {
-  //       if (!result || result.length < 2) {
-  //         return;
-  //       }
-  //       let mergedNames = _.keyBy(result[0], 'id');
-  //       const partnerNames = result[1];
-
-  //       partnerNames.forEach((q: any) => {
-  //         let output = q;
-  //         if (typeof mergedNames[q.id] != 'undefined') {
-  //           output = { ...output, votes: (parseInt(mergedNames[q.id].votes) + parseInt(output.votes)), owner: 'both' };
-  //         }
-  //         mergedNames[q.id] = output;
-  //       });
-
-  //       this.mergedNames = _.values(mergedNames);
-  //       console.log('MERGED', this.mergedNames);
-
-  //       // const user = res.payload.data();
-  //       // if (!res.payload.exists) {
-  //       //   this.logout();
-  //       //   return;
-  //       // }
-
-  //       // this.user = user;
-  //       // if (user.partner_uid) {
-  //       //   this.afs.collection('users').doc(user.partner_uid).valueChanges()
-  //       //     .subscribe(partner => {
-  //       //       this.partner = partner;
-  //       //       // Watch names
-  //       //       this.watchMyNames();
-  //       //     });
-  //       // } else {
-  //       //   this.partner = null;
-  //       // }
-  //     });
-  // }
-
-  // watchMyNames() {
-  //   this.getMyUserRef().collection('chosenNames').valueChanges()
-  //     .pipe(
-  //       map(w => {
-  //         return w.map(e => {
-  //           return this.getNameSubscription(e.id, 'me');
-  //         });
-  //       }),
-  //       mergeMap(r => {
-  //         return this.getPartnerRef().collection('chosenNames').valueChanges()
-  //           .pipe(
-  //             map(w => {
-  //               return w.map(e => {
-  //                 return this.getNameSubscription(e.id, 'partner');
-  //               });
-  //             }),
-  //             map(x => {
-  //               return [r, x];
-  //             })
-  //           );
-  //       })
-  //     )
-  //     .subscribe(result => {
-  //       let mergedNames = _.keyBy(result[0], 'id');
-  //       const partnerNames = result[1];
-
-  //       partnerNames.forEach((q: any) => {
-  //         let output = q;
-  //         if (typeof mergedNames[q.id] != 'undefined') {
-  //           output = { ...output, owner: 'both' };
-  //         }
-  //         mergedNames[q.id] = output;
-  //       });
-
-  //       this.mergedNames = _.values(mergedNames);
-  //       console.log('MERGED', this.mergedNames);
-  //     });
-  // }
-
   getNameSubscription(nameChosen, owner) {
     return {
       id: nameChosen.id,
@@ -378,20 +245,9 @@ export class AuthProvider {
     return this.afs.collection("users").doc(this.user.id);
   }
   logout() {
+    console.log('Loggin out');
     this.afAuth.auth.signOut();
-    // try {
-    //   await this.storage.set('user_uid', null)
-    //   this.userUid = null;
-    //   this.user = null;
-    //   this.partner = null;
-    //   await this.afAuth.auth.signOut();
-    //   this.app.getActiveNavs()[0].setRoot('LoginPage');
-    // } catch (error) {
-    //   console.error(error);
-    //   this.toast('Ocorreu um erro ao tentar deslogar do app.');
-    // }
   }
-
   // Refs
   myUserRef() {
     return this.afs.collection("users").doc(this.user.id);

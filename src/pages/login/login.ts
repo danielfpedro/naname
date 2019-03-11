@@ -11,9 +11,12 @@ export class LoginPage {
   constructor(
     public authProvider: AuthProvider,
     public loadingController: LoadingController
-  ) {}
+  ) {
+  }
 
-  ionViewDidLoad() {}
+  ionViewDidLoad() {
+    
+  }
 
   async signIn(provider: string) {
     const loading = this.loadingController.create({
@@ -22,7 +25,6 @@ export class LoginPage {
     loading.present();
     try {
       await this.authProvider.signIn(provider);
-      loading.dismiss();
     } finally {
       loading.dismiss();
     }

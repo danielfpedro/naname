@@ -1,4 +1,5 @@
 <ion-content padding>
   <button ion-button block large (click)="signIn('facebook')">Entrar com Facebook</button>
   <button ion-button color="danger" block large (click)="signIn('google')">Entrar com Google</button>
+  <button ion-button color="danger" block large (click)="authProvider.logout()">Logout</button>
 </ion-content>
