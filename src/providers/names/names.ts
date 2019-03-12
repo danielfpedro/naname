@@ -34,9 +34,7 @@ export class NamesProvider {
     //   this.partnerNamesChosen
     // );
   }
-
-  wathcN
-
+  
   listenNames(userId, arrayToAdd) {
     this.afs
       .collection("users")
@@ -53,26 +51,26 @@ export class NamesProvider {
                 .doc(value.payload.doc.id)
                 .ref.get()
             );
-          } else if(value.type == "removed") {
-            
+          } else if (value.type == "removed") {
+
             let indexToDelete = -1;
             arrayToAdd.forEach((v, index) => {
-                if (v.id == value.payload.doc.id) {
-                    indexToDelete = index;
-                }
+              if (v.id == value.payload.doc.id) {
+                indexToDelete = index;
+              }
             });
             if (indexToDelete > -1) {
-                arrayToAdd.splice(indexToDelete, 1);
+              arrayToAdd.splice(indexToDelete, 1);
             }
             console.log('depois', arrayToAdd);
           }
         });
 
         if (allNamesPromises.length < 1) {
-            console.log('Cartiga', arrayToAdd);
-            this.mergeChoices();
+          console.log('Cartiga', arrayToAdd);
+          this.mergeChoices();
         }
-            
+
 
         forkJoin(allNamesPromises)
           .pipe(

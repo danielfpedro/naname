@@ -15,6 +15,9 @@ export class MyApp {
 
   rootPage: any = 'LoginPage';
 
+  loginPage = 'LoginPage';
+  tabsPage = 'TabsPage';
+
   constructor(
     platform: Platform,
     statusBar: StatusBar,
@@ -37,14 +40,27 @@ export class MyApp {
     loader.present();
 
     this.authProvider.watchFirebaseAuthState.subscribe(isLogedIn => {
+      console.log('Dentro do next do watch login state');
       loader.dismiss()
       console.log('is loggedIn?', isLogedIn);
       if (isLogedIn) {
-        this.nav.setRoot('TabsPage');
+        console.log('Set TabsPage root if needed');
+        this.setRootIfNeeded(this.tabsPage);
       } else {
-        this.nav.setRoot('LoginPage');
+        console.log('Set LoginPage root if needed');
+        this.setRootIfNeeded(this.loginPage);
       }
     });
-
+  }
+  setRootIfNeeded(ref: string): void {
+    const activeView = this.nav.getActive().id;
+    console.log('Current root', activeView);
+    console.log('Root asked', ref);
+    if (activeView != ref) {
+      console.log('Set root is needed, setting...');
+      this.nav.setRoot(ref);
+    } else {
+      console.log('Set root was not necessary');
+    }
   }
 }

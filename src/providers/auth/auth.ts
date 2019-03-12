@@ -30,10 +30,10 @@ export class AuthProvider {
 
   public partnerLoaded = false;
 
-  public isSignedIn = false;
+  public isLoggedIn = false;
 
   // Names
-  mergedNames = [];
+  maxChosenNames = 1;
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
   initThingsIsDone: Subject<void> = new Subject();
@@ -60,17 +60,20 @@ export class AuthProvider {
       .pipe(
         mergeMap(userSignedIn => {
           console.log('Is user signed in?', userSignedIn);
+
           if (userSignedIn) {
+            this.isLoggedIn = true;
             console.log('Yes it is');
             return this.afs
               .collection("users")
               .doc(userSignedIn.uid)
               .valueChanges();
           }
+          this.user = null;
+          this.isLoggedIn = false;
           return of(null);
         }),
         mergeMap(userDoc => {
-
           console.log('Result of user doc', userDoc);
           // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
           if (typeof userDoc == 'undefined') {
@@ -113,9 +116,11 @@ export class AuthProvider {
         if (this.partner) {
           this.actors[this.partner.id] = this.partner;
         }
-        console.log('Next on watch', this.user);
-        this.watchFirebaseAuthState.next(this.user !== null);
-        this.initThingsIsDone.complete();
+        console.log('this.user value', this.user);
+        console.log('this.isLoggedIn value', this.isLoggedIn);
+        console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
+        this.watchFirebaseAuthState.next(this.isLoggedIn && this.user);
+        // this.initThingsIsDone.complete();
       });
   }
 
@@ -125,20 +130,23 @@ export class AuthProvider {
 
   async signIn(providerName: string): Promise<void> {
     try {
+      let authResponse = null;
       if (this.platform.is("cordova")) {
         switch (providerName) {
           case "google":
-            await this.sigInGoogleNative();
+            authResponse = await this.sigInGoogleNative();
             break;
           case "facebook":
-            await this.signInWithFacebookNative();
+            authResponse = await this.signInWithFacebookNative();
             break;
         }
       } else {
         console.log('Sign in browser popup with provider', providerName);
-        const response = await this.signInBrowser(this.getBrowserProvider(providerName));
-        console.log('Sign in response', response);
+        authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
+        console.log('Sign in response', authResponse);
       }
+
+      await this.createUserIfNeeded(authResponse);
     } catch (error) {
       // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
       // eu jogo um alert explicando pq ele nao pode fazer isso
@@ -262,10 +270,15 @@ export class AuthProvider {
     return this.myUserRef().collection("blockedUsers");
   }
   chosenNamesRef() {
-    return this.afs
-      .collection("partnerships")
-      .doc(this.user.partnership_id)
-      .collection("chosenNames");
+    if (this.user.partnership_id) {
+      return this.afs
+        .collection("partnerships")
+        .doc(this.user.partnership_id)
+        .collection("chosenNames");
+    } else {
+      return this.getMyUserRef()
+        .collection("chosenNames");
+    }
   }
 
   // Partnership
@@ -276,9 +289,12 @@ export class AuthProvider {
    */
   async addPartner(email: string): Promise<void> {
     try {
+      if (!email) {
+        throw new PartnerError("Você não informou nenhum email");
+      }
       // Verifico se ele não informou o próprio email
       if (email == this.user.email) {
-        throw "Você informou o seu próprio email";
+        throw new PartnerError("Você informou o seu próprio email");
       }
       // Verifico se ele informou um usuario do sistema
       const targetUserQuery = await this.afs
@@ -288,11 +304,11 @@ export class AuthProvider {
       // console.log('QUERY COM EMAIL', email);
       // console.log('QUERY QUERY RESULT', targetUserQuery);
       if (targetUserQuery.empty) {
-        throw "Você informou um email que não existe no sistema.";
+        throw new PartnerError("Você informou um email que não existe no sistema.");
       }
       const targetUser = targetUserQuery.docs[0];
       if (targetUser.get("partner_id")) {
-        throw "O usuário que você tentou adicionar já possui um parceiro.";
+        throw new PartnerError("O usuário que você tentou adicionar já possui um parceiro.");
       }
       const targetUserRef = this.afs.collection("users").doc(targetUser.id);
       //Verifico se o id dele está na minha lista de bloqueados
@@ -301,7 +317,7 @@ export class AuthProvider {
         .doc(this.user.id)
         .ref.get();
       if (imBlocked.exists) {
-        throw "Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.";
+        throw new PartnerError("Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.");
       }
       // Add target uid as partner and add logged user uid on partner record too
       const partnershipResponse = await this.afs
@@ -315,10 +331,32 @@ export class AuthProvider {
         partner_id: this.user.id,
         partnership_id: partnershipResponse.id
       });
+
+      const promises = [];
+      const userChosenNames = await this.myUserRef().collection('chosenNames').ref.get();
+      userChosenNames.forEach(chosenName => {
+        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ owners: { [this.user.id]: true }, }, { merge: true }));
+      });
+      const targetChosenNames = await targetUserRef.collection('chosenNames').ref.get();
+      targetChosenNames.forEach(chosenName => {
+        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ owners: { [this.user.partner_id]: true } }, { merge: true }));
+      });
+      await Promise.all(promises);
       // DONE!
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.log(error);
+      console.log(typeof error);
+      if (error instanceof PartnerError) {
+        const alert = this.alertController.create({
+          title: "Ops, algo deu errado!",
+          message: error.message,
+          buttons: ["ok"]
+        });
+        alert.present();
+
+      } else {
+        this.toast('Ocorreu um erro ao tentar adicionar o seu parceiro.');
+      }
     }
   }
   /**
@@ -326,13 +364,29 @@ export class AuthProvider {
    */
   async removePartner(partner: any): Promise<void> {
     try {
+      const promises = [];
+      const namesToAdd = [];
+
+      const chosenNames = await this.chosenNamesRef().ref.get();
+      chosenNames.forEach(chosenName => {
+        let chosenNameData = chosenName.data();
+        chosenNameData.owners = {};
+        chosenNameData = { ...chosenNameData, owners: { [this.partner.id]: true } };
+        namesToAdd.push(chosenNameData);
+      });
+
+      namesToAdd.forEach(name => {
+        promises.push(this.myUserRef().collection('chosenNames').add(name));
+        promises.push(this.partnerRef().collection('chosenNames').add(name));
+      });
+      Promise.all(promises);
+      
       // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
       // PQ ELE FOI DELETADO KKK
-      await this.partnerRef().update({
-        partner_id: null,
-        partnership_id: null
-      });
+      await this.partnerRef().update({ partner_id: null, partnership_id: null });
       await this.myUserRef().update({ partner_id: null, partnership_id: null });
+
+
     } catch (error) {
       this.toast("Ocorreu um erro ao tentar remover o parceiro.");
     }
@@ -374,164 +428,116 @@ export class AuthProvider {
     toast.present();
   }
 
-  getChosenNamesRef() {
-    return this.getMyUserRef().collection("chosenNames");
-  }
-
   // Names
   getNamesCacheRef() {
     return this.getMyUserRef().collection("namesCache");
   }
-  async choseName(name, like: boolean) {
+  async choseName(name: any, like: boolean) {
     console.log("ESCOLHI NOME");
     console.log("LIKE?", like);
-    if (like) {
-      console.log("LIKED");
-      if (this.partner) {
-        console.log("TENHO PARTNER");
-        const response = await this.afs
-          .collection("partnerships")
-          .doc(this.user.partnership_id)
-          .collection("chosenNames")
+    try {
+      if (like) {
+        await this.chosenNamesRef()
           .doc(name.id)
-          .ref.get();
-        if (response.exists) {
-          const tey = await this.afs
-            .collection("partnerships")
-            .doc(this.user.partnership_id)
-            .collection("chosenNames")
-            .doc(name.id)
-            .update({
-              owners: { ...response.data().owners, [this.user.id]: true }
-            });
-        } else {
-          console.log("NÂO TEM NAME, ADD");
-          const response = await this.afs
-            .collection("partnerships")
-            .doc(this.user.partnership_id)
-            .collection("chosenNames")
-            .doc(name.id)
-            .set({ owners: { [this.user.id]: true } });
-        }
+          .set({ owners: { [this.user.id]: true } }, { merge: true });
       }
-      await this.getChosenNamesRef()
+      await this.myUserRef()
+        .collection("namesCache")
         .doc(name.id)
-        .set({ id: name.id });
+        .delete();
+    } catch (error) {
+      this.toast('Ocorreu um erro ao tentar escolher o nome');
     }
-    await this.myUserRef()
-      .collection("namesCache")
-      .doc(name.id)
-      .delete();
+
   }
   async removeChosenName(id: string) {
-    console.log("Removendo nome");
+    console.log("Removendo nome", id);
     try {
-      if (this.user.partnership_id) {
-        console.log("tem partnership, remover nessa estrategia");
-        const response = await this.afs
-          .collection("partnerships")
-          .doc(this.user.partnership_id)
-          .collection("chosenNames")
-          .doc(id)
-          .ref.get();
-
-        if (response.exists) {
-          console.log("o chosen name existe");
-          let data = response.data();
-          const owners = data.owners;
-          delete owners[this.user.id];
-          data = { ...data, owners: owners };
-          console.log("CARAI MANE", data.owners == {});
-          if (_.isEmpty(data.owners)) {
-            await this.afs
-              .collection("partnerships")
-              .doc(this.user.partnership_id)
-              .collection("chosenNames")
-              .doc(id)
-              .delete();
-          } else {
-            await this.afs
-              .collection("partnerships")
-              .doc(this.user.partnership_id)
-              .collection("chosenNames")
-              .doc(id)
-              .update(data);
-          }
+      const chosenName = await this.chosenNamesRef().doc(id).ref.get();
+      if (chosenName.exists) {
+        let name = chosenName.data();
+        console.log('name before remove owner', name);
+        delete name.owners[this.user.id];
+        if (_.isEmpty(name.owners)) {
+          await this.chosenNamesRef().doc(id).delete();
         } else {
-          console.log("o chosen name não existe");
+          console.log('Update name removendo o owners meu', name);
+          await this.chosenNamesRef().doc(id).update(name);
         }
-      } else {
-        await this.getChosenNamesRef()
-          .doc(id)
-          .delete();
       }
     } catch (error) {
-      console.error(error);
-      this.toast(
-        "Ocorreu um erro ao tentar remover o nome da sua lista de escolhas"
-      );
+      this.toast("Ocorreu um erro ao tentar remover o nome da sua lista de escolhas");
     }
   }
   async cacheNamesIfNeeded() {
-    const namesToCache = await this.afs
-      .collection("names", ref => {
-        let query:
-          | firebase.firestore.CollectionReference
-          | firebase.firestore.Query = ref;
-        if (this.user.names_cache_last_check) {
-          query = query.where(
-            "created_at",
-            ">",
-            this.user.names_cache_last_check
-          );
-        }
-        // Somente aprovados
-        query = query.where("aproved", "==", true);
-        return query;
-      })
-      .get()
-      .toPromise();
+    try {
+      const namesToCache = await this.afs
+        .collection("names", ref => {
+          let query:
+            | firebase.firestore.CollectionReference
+            | firebase.firestore.Query = ref;
+          if (this.user.names_cache_last_check) {
+            query = query.where(
+              "created_at",
+              ">",
+              this.user.names_cache_last_check
+            );
+          }
+          // Somente aprovados
+          query = query.where("aproved", "==", true);
+          return query;
+        })
+        .get()
+        .toPromise();
 
-    let namesToSavePromises = [];
-    namesToCache.forEach(name => {
-      namesToSavePromises.push(
-        this.getNamesCacheRef()
-          .doc(name.id)
-          .set({ ...name.data() }, { merge: true })
-      );
-    });
+      let namesToSavePromises = [];
+      namesToCache.forEach(name => {
+        namesToSavePromises.push(
+          this.getNamesCacheRef()
+            .doc(name.id)
+            .set({ ...name.data() }, { merge: true })
+        );
+      });
 
-    if (namesToSavePromises.length > 0) {
-      await Promise.all(namesToSavePromises);
-      await this.getMyUserRef().set(
-        { names_cache_last_check: new Date() },
-        { merge: true }
-      );
+      if (namesToSavePromises.length > 0) {
+        await Promise.all(namesToSavePromises);
+        await this.getMyUserRef().set(
+          { names_cache_last_check: new Date() },
+          { merge: true }
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
     }
   }
   async getNamesToChose(limit: number, conditions = null) {
-    const namesRef = this.getMyUserRef().collection("namesCache", ref => {
-      let query:
-        | firebase.firestore.CollectionReference
-        | firebase.firestore.Query = ref;
-      if (this.user.gender) {
-        query = query.where("gender", "==", this.user.gender);
-      }
-      if (conditions.firstLetter) {
-        query = query.where("first_letter", "==", conditions.firstLetter);
-      }
-      if (conditions.category) {
-        query = query.where(
-          "categories",
-          "array-contains",
-          conditions.category
-        );
-      }
-      query = query.limit(limit);
-      return query;
-    });
+    try {
+      const namesRef = this.getMyUserRef().collection("namesCache", ref => {
+        let query:
+          | firebase.firestore.CollectionReference
+          | firebase.firestore.Query = ref;
+        if (this.user.gender) {
+          query = query.where("gender", "==", this.user.gender);
+        }
+        if (conditions.firstLetter) {
+          query = query.where("first_letter", "==", conditions.firstLetter);
+        }
+        if (conditions.category) {
+          query = query.where(
+            "categories",
+            "array-contains",
+            conditions.category
+          );
+        }
+        query = query.limit(limit);
+        return query;
+      });
 
-    return await namesRef.get().toPromise();
+      return await namesRef.get().toPromise();
+    } catch (error) {
+      this.toast('Ocorreu um erro ao carregar os nomes.');
+    }
   }
 
   // GENDER
@@ -551,29 +557,50 @@ export class AuthProvider {
   }
 
   async addCustomNameIfNeeded(name: string, gender: string) {
-    // Checo se o nome já existe
-    const hasName = await this.afs
-      .collection("names")
-      .ref.where("name", "==", name)
-      .get();
-    let nameId = null;
-    // Se nao existe eu adiciono nos nomes como nao aprovados
-    if (hasName.size < 1) {
-      const newName = {
-        name: name,
-        gender: gender,
-        first_letter: name.charAt(0),
-        aproved: false
-      };
-      const response = await this.afs.collection("names").add(newName);
-      nameId = response.id;
-      // Se existe eu simplesmente pego o id do que já existe
-    } else {
-      nameId = hasName.docs[0].id;
+    try {
+      name = this.sanitazeName(name);
+      // Checo se o nome já existe
+      const hasName = await this.afs
+        .collection("names")
+        .ref.where("name", "==", name)
+        .get();
+      let nameId = null;
+      // Se nao existe eu adiciono nos nomes como nao aprovados
+      if (hasName.size < 1) {
+        const newName = {
+          name: name,
+          gender: gender,
+          first_letter: name.charAt(0).toLowerCase(),
+          aproved: false
+        };
+        const response = await this.afs.collection("names").add(newName);
+        nameId = response.id;
+        // Se existe eu simplesmente pego o id do que já existe
+      } else {
+        nameId = hasName.docs[0].id;
+      }
+      // Adiciono o id do nome(criado ou que já existia) e adiciono nos chosen
+      await this.chosenNamesRef()
+        .doc(nameId)
+        .set({ owners: { [this.user.id]: true } }, { merge: true });
+    } catch (error) {
+      this.toast('Erro ao tentar adicionar o nome.');
     }
-    // Adiciono o id do nome(criado ou que já existia) e adiciono nos chosen
-    await this.chosenNamesRef()
-      .doc(nameId)
-      .set({ owners: { [this.user.id]: true } }, { merge: true });
+  }
+  sanitazeName(name: string): string {
+    let nameArray = name.split(' ');
+    nameArray = nameArray.map(name => {
+      name = name.toLowerCase();
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+    return nameArray.join(' ');
+  }
+}
+
+export class PartnerError {
+  message: string;
+  constructor(message: string) {
+    this.message = message;
+    console.error(this.message);
   }
 }

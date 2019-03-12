@@ -15,12 +15,12 @@
 </ion-header>
 
 <ion-content>
-  <p *ngIf="names.length < 1">
+  <p *ngIf="names.length < 1 && !loadingChoices">
     Você ainda não escolheu nenhum nome.
   </p>
-
+  <h2 *ngIf="loadingChoices">Carregando escolhas...</h2>
   <div>
-    <ion-segment [(ngModel)]="gender">
+    <ion-segment [(ngModel)]="gender" *ngIf="hasMultiGender">
       <ion-segment-button value="m">
         Masculino
       </ion-segment-button>
@@ -30,24 +30,21 @@
     </ion-segment>
   </div>
 
-  <ion-searchbar [(ngModel)]="term"></ion-searchbar>
-
-  <ion-list>
-    <ion-item
-      *ngFor="
+  <div *ngIf="!loadingChoices && names.length > 0">
+    <ion-searchbar [(ngModel)]="term"></ion-searchbar>
+    <ion-list>
+      <ion-item *ngFor="
         let name of (names | orderBy: 'votes':true | search: 'name':term:gender)
-      "
-      (click)="onNameClick(name)"
-      (press)="presentNameActionSheetOption(name)"
-    >
-      {{ name.name }}
-      <h2>Votes: {{ name.votes }}</h2>
-      <h2>{{ name.porcentage }}%</h2>
-      <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
-        <img [src]="owner.profilePhotoURL" />
-      </ion-avatar>
-    </ion-item>
-  </ion-list>
+      " (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
+        {{ name.name }}
+        <h2>Votes: {{ name.votes }}</h2>
+        <h2>{{ name.porcentage }}%</h2>
+        <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
+          <img [src]="owner.profilePhotoURL" />
+        </ion-avatar>
+      </ion-item>
+    </ion-list>
+  </div>
 </ion-content>
 
 <ion-footer [hidden]="names.length < 2">

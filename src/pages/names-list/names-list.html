@@ -24,10 +24,13 @@
   <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
   <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p>
 
-  <div *ngIf="!noMoreNames && !loadingNames" swing-stack #myswing1 [stackConfig]="stackConfig"
+  <div *ngIf="!noMoreNames && !loadingNames && !choicesLimitReached" swing-stack #myswing1 [stackConfig]="stackConfig"
     (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">
     <ion-card #mycards1 swing-card *ngFor="let card of cards">
       <h2>{{card.name}}</h2>
     </ion-card>
   </div>
+
+  <button block ion-button (click)="getNamesChunk()" *ngIf="choicesLimitReached && !loadingNames">Tentar buscar mais nomes</button>
+
 </ion-content>

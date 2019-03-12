@@ -31,7 +31,8 @@ export class VotesPage {
 
   ionViewDidEnter() {
     this.name = this.navParams.get('name');
-    this.afs.collection('partnerships').doc(this.authService.user.partnership_id).collection('chosenNames').doc(this.name.id).collection('votes')
+    console.log('Name', this.name);
+    this.authService.chosenNamesRef().doc(this.name.id).collection('votes')
       .snapshotChanges()
       .pipe(
         mergeMap(votes => {

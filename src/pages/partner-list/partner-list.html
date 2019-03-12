@@ -33,11 +33,11 @@
       </ion-avatar>
       <h2>{{ blockedUser.name }}</h2>
       <p>{{ blockedUser.email }}</p>
-      <!-- <button ion-button item-end *ngIf="(blockedUser | async) as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button> -->
+      <button ion-button item-end *ngIf="blockedUser as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
     </ion-item>
   </ion-list>
 
-  <div *ngIf="!authProvider.partnership_id">
+  <div *ngIf="!authProvider.user.partner_id">
     <h2>Eu vou adicionar o parceiro</h2>
     <div>
       <button ion-button (click)="scanQrCode()">Ler QRCODE do parceiro</button>

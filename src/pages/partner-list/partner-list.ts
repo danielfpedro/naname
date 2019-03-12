@@ -1,26 +1,15 @@
 import { Component } from "@angular/core";
 import {
   IonicPage,
-  NavController,
-  NavParams,
   AlertController,
   LoadingController,
   AlertOptions,
-  ModalController,
   Platform
 } from "ionic-angular";
 
-import {
-  AngularFirestore,
-  AngularFirestoreCollection
-} from "@angular/fire/firestore";
-import { Observable, throwError, Subscription } from "rxjs";
-import firebase from "firebase/app";
-
 import { AuthProvider } from "../../providers/auth/auth";
-import { PartnerInvitesProvider } from "../../providers/partner-invites/partner-invites";
-import { QRScanner, QRScannerStatus } from "@ionic-native/qr-scanner";
 import { BarcodeScanner } from "@ionic-native/barcode-scanner";
+import { Subscription } from "rxjs";
 
 /**
  * Generated class for the PartnerListPage page.
@@ -42,21 +31,16 @@ export class PartnerListPage {
   blockedUsers = [];
 
   constructor(
-    public navCtrl: NavController,
-    public navParams: NavParams,
-    private afs: AngularFirestore,
+    public platform: Platform,
     public authProvider: AuthProvider,
-    public partnerInvitesProviders: PartnerInvitesProvider,
     // Ionic components
     public alertCtrl: AlertController,
     public loaderCtrl: LoadingController,
-    private qrScanner: QRScanner,
-    private platform: Platform,
     private barcodeScanner: BarcodeScanner
-  ) {}
+  ) { }
 
   ionViewDidLoad() {
-    console.log("SUBSCRIBING BLOCKED USERS");
+    console.log("subscribing blocked users");
 
     this.blockedUsersSubscription = this.authProvider
       .blockedUsersRef()
@@ -68,7 +52,7 @@ export class PartnerListPage {
       });
   }
   ionViewWillLeave() {
-    console.log("UNSUBSCRIBE BLOCKED USERS");
+    console.log("unsubscribe blocked users");
     this.blockedUsersSubscription.unsubscribe();
   }
 
@@ -101,23 +85,14 @@ export class PartnerListPage {
     loader.present();
     try {
       await this.authProvider.addPartner(email);
+    } finally {
       loader.dismiss();
-    } catch (error) {
-      loader.dismiss().then(() => {
-        const alert = this.alertCtrl.create({
-          title: "Ops, algo deu errado!",
-          message: error,
-          buttons: ["ok"]
-        });
-        alert.present();
-      });
-      throw Error(error);
     }
   }
   presentRemovePartnerAlert(block: boolean = false) {
     const title = `<strong>Remover</strong> o seu parceiro ${
       this.authProvider.partner.name
-    }?`;
+      }?`;
     const message =
       "Ao remover, a lista de nomes escolhidos irá exibir apenas os nomes que você escolheu.";
 
@@ -188,7 +163,7 @@ export class PartnerListPage {
     const loader = this.loaderCtrl.create({
       content: `Removendo ${this.authProvider.partner.name} (${
         this.authProvider.partner.email
-      })`
+        })`
     });
     loader.present();
     await this.authProvider.removePartner(partner);
@@ -198,7 +173,7 @@ export class PartnerListPage {
     const loader = this.loaderCtrl.create({
       content: `Bloqueando ${partnerToBeBlocked.name} (${
         partnerToBeBlocked.email
-      })`
+        })`
     });
     loader.present();
     await this.authProvider.blockUser(partnerToBeBlocked);
@@ -208,28 +183,22 @@ export class PartnerListPage {
     const loader = this.loaderCtrl.create({
       content: `Desbloqueando ${userToBeUnblocked.name} (${
         userToBeUnblocked.email
-      })`
+        })`
     });
     loader.present();
-    await this.authProvider.unblockUser(userToBeUnblocked.uid);
+    await this.authProvider.unblockUser(userToBeUnblocked.id);
     loader.dismiss();
   }
 
-  async scanQrCode() {
-    this.barcodeScanner
+  async scanQrCode(): Promise<void> {
+    const barcodeScanResult = await this.barcodeScanner
       .scan({
         resultDisplayDuration: 0,
         orientation: "portrait",
         prompt: 'Mire no QRCODE do parceiro para adicioná-lo automaticamente'
-      })
-      .then(barcodeData => {
-        console.log("Barcode data", barcodeData);
-        if (!barcodeData.cancelled) {
-          this.addPartner(barcodeData.text);
-        }
-      })
-      .catch(err => {
-        console.log("Error", err);
       });
+    if (!barcodeScanResult.cancelled) {
+      this.addPartner(barcodeScanResult.text);
+    }
   }
 }
