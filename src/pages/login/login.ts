@@ -8,6 +8,9 @@ import { AuthProvider } from "../../providers/auth/auth";
   templateUrl: "login.html"
 })
 export class LoginPage {
+
+  // @ViewChild(Slides) slides: Slides;
+
   constructor(
     public authProvider: AuthProvider,
     public loadingController: LoadingController

@@ -70,7 +70,7 @@ export class NamesListPage {
     this.init();
 
     this.swingStack.throwin.subscribe((event: DragEvent) => {
-      event.target.style.background = '#ffffff';
+      // event.target.style.background = '#ffffff';
     });
   }
   ionViewDidEnter() {
@@ -135,15 +135,15 @@ export class NamesListPage {
   }
   // Connected through HTML
   async voteUp(like: boolean): Promise<void> {
-    try {
-      const removedCard = this.cards.pop();
-      this.loadingNames = this.cards.length < 1;
-      await this.authProvider.choseName(removedCard, like);
-      if (this.cards.length < 1) {
-        this.getNamesChunk();
-      }
-    } catch (error) {
-    }
+    // try {
+    //   const removedCard = this.cards.pop();
+    //   this.loadingNames = this.cards.length < 1;
+    //   await this.authProvider.choseName(removedCard, like);
+    //   if (this.cards.length < 1) {
+    //     this.getNamesChunk();
+    //   }
+    // } catch (error) {
+    // }
   }
   // Cards
   addNewCard(card) {
@@ -193,7 +193,7 @@ export class NamesListPage {
       color = '#' + hexCode + 'FF' + hexCode;
     }
 
-    element.style.background = color;
+    // element.style.background = color;
     element.style['transform'] = `translate3d(0, 0, 0) translate(${x}px, ${y}px) rotate(${r}deg)`;
   }
   // http://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript

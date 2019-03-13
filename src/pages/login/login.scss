@@ -1,3 +1,21 @@
 page-login {
+  .content {
+    // background-color: map-get($colors, "primary");
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+  .slides-content {
+    flex: 1;
+  }
+  .buttons-content {
+    margin: 30px 0 15px 0;
+  }
+  .buttons-content button {
+    margin-bottom: 10px;
+  }
 
+  button[color=light] {
+    color: map-get($colors, 'google');
+  }
 }

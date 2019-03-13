@@ -15,15 +15,12 @@ import { AuthProvider } from '../../providers/auth/auth';
   templateUrl: 'gender-selection.html',
 })
 export class GenderSelectionPage {
-
   constructor(public navCtrl: NavController, public navParams: NavParams, public authService: AuthProvider,
     public loadingCtrl: LoadingController, public viewCtrl: ViewController) {
   }
-
   ionViewDidLoad() {
     console.log('ionViewDidLoad GenderSelectionPage');
   }
-
   async selectGender(gender: string) {
     const loader = this.loadingCtrl.create({ content: 'Alterando gênero, por favor aguarde...' })
     loader.present();
@@ -31,5 +28,4 @@ export class GenderSelectionPage {
     loader.dismiss();
     this.viewCtrl.dismiss();
   }
-
 }

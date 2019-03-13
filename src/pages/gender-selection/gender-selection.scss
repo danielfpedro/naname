@@ -1,3 +1,20 @@
 page-gender-selection {
-
+  .content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .details {
+    text-align: center;
+    padding: 25px 0;
+  }
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
+  }
+  .buttons button {
+    margin: 30px 0px;
+  }
 }

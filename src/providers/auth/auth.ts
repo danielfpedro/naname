@@ -566,9 +566,9 @@ export class AuthProvider {
   }
   getGenderLabel() {
     if (!this.user.gender) {
-      return "Ambos";
+      return "Menino ou Menina";
     }
-    return this.user.gender === "m" ? "Macho Alfa" : "Fêmea";
+    return this.user.gender === "m" ? "Menino" : "Menina";
   }
 
   async addCustomNameIfNeeded(name: string, gender: string) {

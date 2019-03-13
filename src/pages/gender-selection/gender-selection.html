@@ -1,16 +1,22 @@
-<ion-header>
-  
-  <ion-navbar>
-    <ion-title>genderSelection</ion-title>
-  </ion-navbar>
-
-</ion-header>
-
-
 <ion-content padding>
-  
-  <button ion-button (click)="selectGender('m')">Macho</button>
-  <button ion-button (click)="selectGender('f')">Femea</button>
-  <button ion-button (click)="selectGender('')">Ambos</button>
+
+  <div class="content">
+    <div class="details">
+      <h1 class="title">
+        Escolha o sexo do seu bebezinho
+      </h1>
+      <p class="subtitle">
+        A opção que você selecionar irá definir os nomes que você verá.
+      </p>
+    </div>
+    <div class="buttons">
+      <div>
+        <button ion-button cute color="blue" block round large (click)="selectGender('m')">Menino</button>
+        <button ion-button color="pink" block round large (click)="selectGender('f')">Menina</button>
+        <button ion-button color="yellow" block round large (click)="selectGender('')">Ambos</button>
+        <p style="text-align: center;">Ideal se você ainda não sabe o sexo da criança ou se forem gêmeos de sexo diferente.</p>
+      </div>
+    </div>
+  </div>
 
 </ion-content>
