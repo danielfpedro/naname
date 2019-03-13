@@ -33,7 +33,7 @@ export class AuthProvider {
   public isLoggedIn = false;
 
   // Names
-  maxChosenNames = 1;
+  maxChosenNames = 100;
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
   initThingsIsDone: Subject<void> = new Subject();
@@ -364,30 +364,45 @@ export class AuthProvider {
    */
   async removePartner(partner: any): Promise<void> {
     try {
-      const promises = [];
-      const namesToAdd = [];
-
       const chosenNames = await this.chosenNamesRef().ref.get();
+
+      const promises = [];
+      const myNames = [];
+      const partnerNames = [];
+      const partnershipId = this.user.partnership_id;
+
       chosenNames.forEach(chosenName => {
-        let chosenNameData = chosenName.data();
-        chosenNameData.owners = {};
-        chosenNameData = { ...chosenNameData, owners: { [this.partner.id]: true } };
-        namesToAdd.push(chosenNameData);
+
+        let chosenNameData: any = { ...chosenName.data(), id: chosenName.id };
+
+        if (typeof chosenNameData.owners[this.user.id] != 'undefined') {
+          myNames.push({ ...chosenNameData, owners: { [this.user.id]: true } });
+        }
+        if (typeof chosenNameData.owners[this.partner.id] != 'undefined') {
+          partnerNames.push({ ...chosenNameData, owners: { [this.partner.id]: true } });
+        }
       });
 
-      namesToAdd.forEach(name => {
-        promises.push(this.myUserRef().collection('chosenNames').add(name));
-        promises.push(this.partnerRef().collection('chosenNames').add(name));
+      myNames.forEach(name => {
+        promises.push(this.myUserRef().collection('chosenNames').doc(name.id).set(name));
       });
+      partnerNames.forEach(name => {
+        promises.push(this.partnerRef().collection('chosenNames').doc(name.id).set(name));
+      });
+
+      console.log('My names', myNames);
+      console.log('Partner names', partnerNames);
+      console.log('GEt my ref', this.myUserRef());
+      console.log('GEt partner ref', this.partnerRef());
       Promise.all(promises);
-      
+
       // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
       // PQ ELE FOI DELETADO KKK
       await this.partnerRef().update({ partner_id: null, partnership_id: null });
       await this.myUserRef().update({ partner_id: null, partnership_id: null });
-
-
+      await this.afs.collection('partnerships').doc(partnershipId).delete();
     } catch (error) {
+      console.error(error);
       this.toast("Ocorreu um erro ao tentar remover o parceiro.");
     }
   }
