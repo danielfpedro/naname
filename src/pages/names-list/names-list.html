@@ -30,28 +30,42 @@
 
 
 <ion-content padding>
-  <div class="content">
+
+  <div class="content" *ngIf="choicesLimitReached && !loadingNames || noMoreNames">
+    <div class="main-message">
+      <p>Nós já mostramos todos os nomes disponíveis</p>
+      <button block ion-button large round (click)="getNamesChunk()" name="primary">
+        Verificar nomes novos
+      </button>
+    </div>
+  </div>
+
+  <div class="content" *ngIf="loadingNames">
+    <div class="main-message">
+      <img src="/assets/imgs/bebe.png">
+      <p>Trazendo nomes, aguarde...</p>
+    </div>
+  </div>
+  <div class="content" [hidden]="loadingNames || noMoreNamesionic ">
     <div class="content-wrap">
       <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
       <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p>
 
       <div *ngIf="!noMoreNames && !loadingNames && !choicesLimitReached" swing-stack #myswing1
         [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">
-        <div class="card" #mycards1 swing-card *ngFor="let card of cards">
+        <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index" [style.top]="(i * 1.5) + '%'">
           <h2>{{card.name}}</h2>
         </div>
       </div>
       <div>
-        <button type="button" cards-action color="pink" (click)="voteUp(false)">
+        <button type="button" button-cards-action negative (click)="voteUp(false)">
           <ion-icon name="close"></ion-icon>
         </button>
-        <button type="button" cards-action positive color="pink" style="margin-left: 60px;" (click)="voteUp(true)">
+        <button type="button" button-cards-action positive style="margin-left: 60px;" (click)="voteUp(true)">
           <ion-icon name="heart"></ion-icon>
         </button>
       </div>
     </div>
-    <button block ion-button (click)="getNamesChunk()" *ngIf="choicesLimitReached && !loadingNames">Tentar buscar mais
-      nomes</button>
   </div>
 
 </ion-content>

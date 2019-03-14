@@ -168,7 +168,7 @@ export class ChosenListPage {
       "Escolhe o nome do filhão ai meu amigo, é divertix",
       "Aqui o assunto não sei a diferença",
       null,
-      "http://naname.com.br./enquete/123456789"
+      this.getPoolUrl()
     );
   }
 

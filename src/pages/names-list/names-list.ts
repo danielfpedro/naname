@@ -28,6 +28,7 @@ export class NamesListPage {
 
   noMoreNames: boolean = false;
   loadingNames: boolean = false;
+  cachingNames: boolean = false;
 
   chunkSize: number = 30;
 
@@ -64,14 +65,16 @@ export class NamesListPage {
         return 1200;
       }
     };
+
+
   }
   ionViewDidLoad() {
     console.log('Did load');
     this.init();
-
     this.swingStack.throwin.subscribe((event: DragEvent) => {
       // event.target.style.background = '#ffffff';
     });
+
   }
   ionViewDidEnter() {
     console.log('Subscribe filter form');
@@ -89,8 +92,9 @@ export class NamesListPage {
     this.filterFormSubscription.unsubscribe();
   }
   async init(): Promise<void> {
-    const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
-    loader.present();
+    this.loadingNames = true;
+    // const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
+    // loader.present();
     try {
       await this.authProvider.cacheNamesIfNeeded();
       // Atenção... só abre selecionar gender se for null... não ''... pois '' significa ambos e null
@@ -104,7 +108,7 @@ export class NamesListPage {
     } catch (error) {
 
     } finally {
-      loader.dismiss();
+      this.loadingNames = false;
     }
   }
   async getNamesChunk(): Promise<void> {
@@ -135,15 +139,15 @@ export class NamesListPage {
   }
   // Connected through HTML
   async voteUp(like: boolean): Promise<void> {
-    // try {
-    //   const removedCard = this.cards.pop();
-    //   this.loadingNames = this.cards.length < 1;
-    //   await this.authProvider.choseName(removedCard, like);
-    //   if (this.cards.length < 1) {
-    //     this.getNamesChunk();
-    //   }
-    // } catch (error) {
-    // }
+    try {
+      const removedCard = this.cards.pop();
+      this.loadingNames = this.cards.length < 1;
+      await this.authProvider.choseName(removedCard, like);
+      if (this.cards.length < 1) {
+        this.getNamesChunk();
+      }
+    } catch (error) {
+    }
   }
   // Cards
   addNewCard(card) {
@@ -160,6 +164,10 @@ export class NamesListPage {
   openFiltersModal() {
     const modal = this.modalController.create('NamesFiltersPage', { filterForm: this.filterForm });
     modal.onDidDismiss(data => {
+      if (data.cancel) {
+        this.filterForm.patchValue(this.filterValuesBeforeOpenModal);
+        return;
+      }
       const hasFilterTouched = JSON.stringify(this.filterForm.value) !== JSON.stringify(this.filterValuesBeforeOpenModal);
       if (hasFilterTouched) {
         this.cards = [];

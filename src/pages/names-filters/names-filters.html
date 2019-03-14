@@ -1,18 +1,18 @@
 <ion-header>
   <ion-navbar>
     <ion-buttons start>
-      <button ion-button (click)="dismiss()">
-        Aplicar filtro
+      <button ion-button (click)="dismiss(true)">
+        Cancelar
       </button>
     </ion-buttons>
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content>
   <form [formGroup]="filterForm">
     <ion-list>
       <ion-item>
-        <ion-label>Inicial?</ion-label>
+        <ion-label>Letra inicial</ion-label>
         <ion-select formControlName="firstLetter">
           <ion-option value="">Todas</ion-option>
           <ion-option [value]="letter" *ngFor="let letter of letters">{{letter}}</ion-option>
@@ -26,5 +26,10 @@
         </ion-select>
       </ion-item>
     </ion-list>
+    <div padding>
+      <button ion-button large round block (click)="dismiss(false)">
+        Aplicar filtro
+      </button>
+    </div>
   </form>
 </ion-content>

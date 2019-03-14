@@ -1,54 +1,71 @@
-<!--
-  Generated template for the ChosenListPage page.
-
-  See http://ionicframework.com/docs/components/#navigation for more info on
-  Ionic pages and navigation.
--->
-<ion-header>
-  <ion-navbar>
-    <ion-buttons start>
-      <button ion-button (click)="openAddName()">
-        Add name
-      </button>
-    </ion-buttons>
+<ion-header no-border>
+  <ion-navbar color="secondary">
+    <ion-title>Escolhidos</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content>
-  <p *ngIf="names.length < 1 && !loadingChoices">
-    Você ainda não escolheu nenhum nome.
-  </p>
-  <h2 *ngIf="loadingChoices">Carregando escolhas...</h2>
-  <div>
-    <ion-segment [(ngModel)]="gender" *ngIf="hasMultiGender">
-      <ion-segment-button value="m">
-        Masculino
-      </ion-segment-button>
-      <ion-segment-button value="f">
-        Feminimo
-      </ion-segment-button>
-    </ion-segment>
+  <ion-segment [(ngModel)]="gender" *ngIf="hasMultiGender">
+    <ion-segment-button value="m">
+      Masculino
+    </ion-segment-button>
+    <ion-segment-button value="f">
+      Feminimo
+    </ion-segment-button>
+  </ion-segment>
+
+  <div class="content" *ngIf="names.length < 1 && !loadingChoices">
+    <div class="main-message">
+      <p>
+        Você ainda não escolheu nenhum nome, tenta lá.
+      </p>
+    </div>
+  </div>
+
+  <!-- <h2 >Carregando escolhas...</h2> -->
+
+  <div *ngIf="loadingChoices" padding>
+    <div *ngFor="let item of [1,2,3]">
+      <div class="ghost-line ghost-line-md"></div>
+      <div class="ghost-line ghost-line-md ghost-line-block"></div>
+    </div>
   </div>
 
   <div *ngIf="!loadingChoices && names.length > 0">
-    <ion-searchbar [(ngModel)]="term"></ion-searchbar>
-    <ion-list>
-      <ion-item *ngFor="
-        let name of (names | orderBy: 'votes':true | search: 'name':term:gender)
-      " (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
-        {{ name.name }}
-        <h2>Votes: {{ name.votes }}</h2>
-        <h2>{{ name.porcentage }}%</h2>
-        <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
-          <img [src]="owner.profilePhotoURL" />
-        </ion-avatar>
-      </ion-item>
+    <!-- <ion-searchbar [(ngModel)]="term"></ion-searchbar> -->
+    <ion-list no-lines>
+      <ng-container *ngFor="
+      let name of (names | orderBy: 'votes':true | search: 'name':term:gender)" (click)="onNameClick('oi')">
+        <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
+          <ion-item>
+            {{ name.name }}
+
+            <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
+              <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id" />
+            </ion-avatar>
+          </ion-item>
+          <div class="progress-wrap">
+            <div class="progress-container">
+              <div class="progress-bar" [style.width]="(name.porcentage > 0) ? name.porcentage + '%' : '18px'"></div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </ion-list>
   </div>
+
+  <ion-fab bottom right edge>
+    <button ion-fab color="primary" (click)="openAddName()">
+      <ion-icon name="add"></ion-icon>
+    </button>
+  </ion-fab>
+
 </ion-content>
 
 <ion-footer [hidden]="names.length < 2">
   <ion-toolbar>
-    <button ion-button block (click)="share()">Compartilhar enquete</button>
+    <button ion-button block icon-start (click)="share()">
+      <ion-icon name="share-alt"></ion-icon> Compartilhar enquete
+    </button>
   </ion-toolbar>
 </ion-footer>

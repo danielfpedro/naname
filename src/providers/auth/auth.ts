@@ -566,7 +566,7 @@ export class AuthProvider {
   }
   getGenderLabel() {
     if (!this.user.gender) {
-      return "Menino ou Menina";
+      return "Menino e Menina";
     }
     return this.user.gender === "m" ? "Menino" : "Menina";
   }

@@ -34,17 +34,22 @@ $colors: (
   light: #f4f4f4,
   dark: #222,
   yellow: #fcfdcd,
-  green: #d6fbe4,
+  green: #378d58,
   blue: #cff1fb,
   pink: #ffdbdb,
   purple: #d1d1f9,
   facebook: #395693,
-  google: #d64937
+  google: #d64937,
 );
-
 $darken-amount: 5%;
 
 $text-color: #757575;
+
+// PROGRESS
+$progress-height: 15px;
+$progress-bgcolor: map-get($colors, light);
+$progress-bar-color: map-get($colors, green);
+$progress-border-radius: 20px;
 
 // App iOS Variables
 // --------------------------------------------------
@@ -64,6 +69,19 @@ $text-color: #757575;
 // then be future customized. This import comes last
 // so that the above variables are used and Ionic's
 // default are overridden.
+
+$tabs-md-tab-font-size: 15px;
+$tabs-ios-tab-font-size: 15px;
+
+$item-md-font-size: 1.5em;
+$item-ios-font-size: 1.5em;
+
+/** GHOST **/
+$ghost-color: #EEE;
+$ghost-margin: 8px;
+$ghost-md-height: 20px;
+$ghost-md-width: 160px;
+
 
 @import "ionic.theme.default";
 

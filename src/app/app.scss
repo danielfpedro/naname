@@ -35,28 +35,116 @@ p {
   font-weight: bold;
   font-size: 1.6em;
 }
-$size: 120px;
-[cards-action] {
+$size: 60px;
+button[button-cards-action] {
   width: $size;
   height: $size;
-  font-size: 4.5em;
+  font-size: 2em;
   border-radius: 100%;
-  color: #FFF;
-  text-shadow: 0px 2px 1px rgba(0,0,0,.3);
+  color: #fff;
+  text-shadow: 0px 2px 1px rgba(0, 0, 0, 0.3);
 }
-[cards-action][positive] {
+[button-cards-action][positive] {
   background-color: map-get($colors, green);
+}
+[button-cards-action][negative] {
+  background-color: map-get($colors, danger);
+}
 
+[color="blue"] {
+  color: #4e7587;
 }
-[cards-action][negative] {
-  background-color: map-get($colors, light);
+[color="pink"] {
+  color: #9b6969;
 }
-// [color="pink"] {
-//   color: shade(map-get($colors, pink), $darken-amount);
-// }
-// [color="green"] {
-//   color: shade(map-get($colors, green), $darken-amount);
-// }
-// [color="yellow"] {
-//   color: shade(map-get($colors, yellow), $darken-amount);
-// }
+[color="green"] {
+  color: #466d54;
+}
+[color="yellow"] {
+  color: #868756;
+}
+
+button[fat] {
+  height: 100px;
+  text-transform: lowercase;
+  font-weight: bold;
+  font-size: 2.2em;
+}
+
+$img-loader-size: 60px;
+.main-message {
+  text-align: center;
+  // background-color: #466d54;
+  width: 100%;
+}
+.main-message p {
+  color: map-get($colors, primary);
+  font-weight: bold;
+  font-size: 1.8em;
+}
+.main-message img {
+  width: $img-loader-size;
+  animation: pulse 3s infinite;
+  margin-bottom: -15px;
+}
+
+.pulse {
+  width: $img-loader-size;
+  height: $img-loader-size;
+  // padding-bottom: 40px;
+  // border-radius: 50%;
+  // background: #cca92c;
+}
+@keyframes pulse {
+  0% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(-10deg);
+  }
+}
+
+.item-md,
+.item-ios {
+  font-weight: bold;
+}
+
+// Progress
+.progress-container {
+  height: $progress-height;
+  width: 100%;
+  background-color: $progress-bgcolor;
+  border-radius: $progress-border-radius;
+  display: inline-block;
+}
+.progress-bar {
+  background-color: $progress-bar-color;
+  height: 100%;
+  width: 100%;
+  border-radius: $progress-border-radius;
+  -webkit-transition: width 1s;
+  transition: width 1s;
+}
+
+.content {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+// GHOST
+.ghost-line {
+  margin-bottom: $ghost-margin;
+}
+.ghost-line-md {
+  height: $ghost-md-height;
+  width: $ghost-md-width;
+  background-color: $ghost-color;
+}
+.ghost-line-block {
+  width: 100%;
+}

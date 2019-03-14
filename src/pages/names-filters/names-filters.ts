@@ -33,8 +33,8 @@ export class NamesFiltersPage {
 
   }
 
-  dismiss() {
-    this.viewCtrl.dismiss();
+  dismiss(flag: boolean) {
+    this.viewCtrl.dismiss({cancel: flag});
   }
 
 }

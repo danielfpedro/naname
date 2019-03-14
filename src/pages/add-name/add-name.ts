@@ -3,7 +3,8 @@ import {
   IonicPage,
   NavController,
   NavParams,
-  ViewController
+  ViewController,
+  LoadingController
 } from "ionic-angular";
 import { AuthProvider } from "../../providers/auth/auth";
 
@@ -32,8 +33,9 @@ export class AddNamePage {
     public navCtrl: NavController,
     public navParams: NavParams,
     public viewController: ViewController,
-    public authService: AuthProvider
-  ) {}
+    public authService: AuthProvider,
+    public loadingController: LoadingController
+  ) { }
 
   ionViewDidLoad() {
     console.log("ionViewDidLoad AddNamePage");
@@ -44,7 +46,15 @@ export class AddNamePage {
   }
 
   async addName() {
-    await this.authService.addCustomNameIfNeeded(this.name, this.gender);
-    // this.dismiss()
+    const loader = this.loadingController.create({ content: 'Adicionando nome, por favor aguarde...' });
+    loader.present();
+    try {
+      await this.authService.addCustomNameIfNeeded(this.name, this.gender);
+      this.dismiss();
+    } catch (error) {
+
+    } finally {
+      loader.dismiss();
+    }
   }
 }

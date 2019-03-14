@@ -10,12 +10,13 @@
       </p>
     </div>
     <div class="buttons">
-      <div>
-        <button ion-button cute color="blue" block round large (click)="selectGender('m')">Menino</button>
-        <button ion-button color="pink" block round large (click)="selectGender('f')">Menina</button>
-        <button ion-button color="yellow" block round large (click)="selectGender('')">Ambos</button>
-        <p style="text-align: center;">Ideal se você ainda não sabe o sexo da criança ou se forem gêmeos de sexo diferente.</p>
-      </div>
+      <button ion-button cute color="blue" block round large fat (click)="selectGender('m')">menino</button>
+      <button ion-button color="pink" block round large fat (click)="selectGender('f')">menino</button>
+      <button ion-button color="yellow" block round large fat (click)="selectGender('')">*menino e menina</button>
+    </div>
+    <div class="footer">
+      <p>*Ideal se você ainda não sabe o sexo da criança ou se forem gêmeos de sexo
+        diferente.</p>
     </div>
   </div>
 
