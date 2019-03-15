@@ -1,3 +1,21 @@
 page-partner-list {
+  .avatar-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+  .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 100px;
+  }
 
+  .details {
+      padding: 30px 10px;;
+  }
+  .avatar-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
 }

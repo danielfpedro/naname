@@ -28,7 +28,7 @@ $app-direction: ltr;
 // The "primary" color is the only required color in the map.
 
 $colors: (
-  primary: #83d5f7,
+  primary: #222,
   secondary: #FFFF,
   danger: #f53d3d,
   light: #f4f4f4,
@@ -78,7 +78,7 @@ $item-ios-font-size: 1.5em;
 
 /** GHOST **/
 $ghost-color: #EEE;
-$ghost-margin: 8px;
+$ghost-margin: 10px;
 $ghost-md-height: 20px;
 $ghost-md-width: 160px;
 

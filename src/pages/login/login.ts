@@ -9,8 +9,6 @@ import { AuthProvider } from "../../providers/auth/auth";
 })
 export class LoginPage {
 
-  // @ViewChild(Slides) slides: Slides;
-
   constructor(
     public authProvider: AuthProvider,
     public loadingController: LoadingController
@@ -30,6 +28,7 @@ export class LoginPage {
       await this.authProvider.signIn(provider);
     } finally {
       loading.dismiss();
+      
     }
   }
 }

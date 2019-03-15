@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
 import { AuthProvider } from '../../providers/auth/auth';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map, take } from 'rxjs/operators';
 
 /**
  * Generated class for the VotesPage page.
@@ -18,6 +18,7 @@ import { mergeMap } from 'rxjs/operators';
 })
 export class VotesPage {
 
+  loading: boolean = true;
   name = null;
   voters = [];
 
@@ -30,22 +31,44 @@ export class VotesPage {
   }
 
   ionViewDidEnter() {
+    console.log('LOADING?', this.loading);
+    this.loading = true;
     this.name = this.navParams.get('name');
-    console.log('Name', this.name);
-    this.authService.chosenNamesRef().doc(this.name.id).collection('votes')
-      .snapshotChanges()
-      .pipe(
-        mergeMap(votes => {
-          const promises = votes.map(vote => {
-            return this.afs.collection('users').doc(vote.payload.doc.id).ref.get();
-          });
+    this.loadVoters();
+  }
 
-          return Promise.all(promises);
-        })
-      )
-      .subscribe(res => {
-        this.voters = res.map(name => name.data());
-      });
+  async loadVoters() {
+    try {
+      this.loading = true;
+      this.voters = await this.authService.chosenNamesRef().doc(this.name.id).collection('votes')
+        .snapshotChanges()
+        .pipe(
+          mergeMap(votes => {
+            console.log('Votes', votes);
+            const promises = votes.map(vote => {
+              console.log('Vote inside mao', vote);
+              return this.afs.collection('users').doc(vote.payload.doc.id).ref.get();
+            });
+            console.log('Promises array', promises);
+            return Promise.all(promises);
+          }),
+          map((res: any) => {
+            console.log('Inside res', res);
+            return res.map(name => {
+              console.log('Inside map name', name.data());
+              return name.data();
+            });
+          }),
+          take(1)
+        ).toPromise();
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.loading = false;
+      
+    }
+
   }
 
   dismiss() {

@@ -6,24 +6,94 @@
 -->
 <ion-header>
   <ion-navbar>
-    <ion-title>PartnerList</ion-title>
+    <ion-title>Configurar parceiro</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only (click)="presentActionSheet()">
+        <ion-icon name="more"></ion-icon>
+      </button>
+    </ion-buttons>
   </ion-navbar>
 </ion-header>
 
 <ion-content>
-  <div *ngIf="authProvider.user && authProvider.partner">
-    O seu parça é <strong>{{ authProvider.partner?.name }}</strong>
-    <br />
-    <img [src]="authProvider.partner?.profilePhotoURL" width="80" />
-    <button ion-button color="danger" (click)="presentRemovePartnerAlert()">
-      Remover
-    </button>
-    <button ion-button color="danger" (click)="presentRemovePartnerAlert(true)">
-      Remover e Bloquear
-    </button>
+
+  <div class="content" *ngIf="authProvider.user.partner_id">
+    <div class="details">
+      <h1>Vocês estão conectados</h1>
+      <h2>O nomes que vcs escolherem vai servir para os dois bla bla bla</h2>
+    </div>
+    <div class="avatar-container">
+      <div>
+        <img [src]="authProvider.user?.profilePhotoURL" class="avatar" />
+        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
+      </div>
+    </div>
   </div>
 
-  <ion-list *ngIf="blockedUsers.length > 0">
+  <div class="container" *ngIf="authProvider.user && authProvider.partner" style="background-color: red;">
+    <div>
+      <h1>Vocês estão conectados</h1>
+    </div>
+    <div class="avatar-container">
+      <div>
+        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
+        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
+      </div>
+    </div>
+  </div>
+
+
+  <div padding>
+    <div *ngIf="!authProvider.user.partner_id">
+      <div class="naname-card naname-card-centered-content">
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <h2>Vou adicionar o meu parceiro</h2>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <button ion-button block round icon-start (click)="showPrompt()">
+                <ion-icon name="at"></ion-icon> Adicionar pelo email
+              </button>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <button ion-button block round icon-start (click)="scanQrCode()">
+                <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
+              </button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+      <div style="text-align: center;">
+        <h2>OU</h2>
+      </div>
+      <div class="naname-card naname-card-centered-content">
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <h2>O meu parceiro vai me adicionar</h2>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <h3>{{authProvider.user?.email}}</h3>
+              <div style="margin-left: 70px">
+                <qrcode [qrdata]="authProvider.user.email" [size]="150" [level]="'M'"></qrcode>
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- <ion-list *ngIf="blockedUsers.length > 0">
     <ion-list-header>
       Usuários Bloqueados
     </ion-list-header>
@@ -33,11 +103,12 @@
       </ion-avatar>
       <h2>{{ blockedUser.name }}</h2>
       <p>{{ blockedUser.email }}</p>
-      <button ion-button item-end *ngIf="blockedUser as blockedUser" (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
+      <button ion-button item-end *ngIf="blockedUser as blockedUser"
+        (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
     </ion-item>
   </ion-list>
 
-  <div *ngIf="!authProvider.user.partner_id">
+  <div *ngIf="!authProvider.user.partner_id && 1 ==23">
     <h2>Eu vou adicionar o parceiro</h2>
     <div>
       <button ion-button (click)="scanQrCode()">Ler QRCODE do parceiro</button>
@@ -48,11 +119,7 @@
     <h2>O meu parceiro vai me adicionar</h2>
     <div>
       <p>Ele vai ler o meu QR CODE</p>
-      <qrcode
-        [qrdata]="authProvider.user.email"
-        [size]="200"
-        [level]="'M'"
-      ></qrcode>
+      <qrcode [qrdata]="authProvider.user.email" [size]="200" [level]="'M'"></qrcode>
     </div>
-  </div>
+  </div> -->
 </ion-content>

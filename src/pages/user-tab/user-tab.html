@@ -8,32 +8,40 @@
 
   <ion-navbar>
     <ion-title>Naname</ion-title>
+    <!-- <ion-buttons end>
+      <button ion-button icon-only>
+        <img [src]="authProvider.partner?.profilePhotoURL" class="image-button" *ngIf="authProvider.partner">
+      </button>
+      <button ion-button icon-only>
+        <img [src]="authProvider.user?.profilePhotoURL" class="image-button">
+      </button>
+    </ion-buttons> -->
   </ion-navbar>
 
 </ion-header>
 
 
-<ion-content padding>
+<ion-content>
   <ion-list>
     <ion-item>
       <ion-avatar item-start>
         <img [src]="authProvider.user?.profilePhotoURL">
       </ion-avatar>
-      <h2>{{authProvider.user?.name}}</h2>
-      <h2>{{authProvider.user?.email}}</h2>
+      <h2>Configurações da conta</h2>
+      <p>{{authProvider.user?.name}}</p>
     </ion-item>
 
-    <button ion-item (click)="navController.push('PartnerListPage')">
-      Configurar Parceiro
+    <button ion-item *ngIf="!authProvider.partner" (click)="navController.push('PartnerListPage')">
+      <h2>Configurações do parceiro</h2>
     </button>
 
-    <button ion-item (click)="navController.push('PartnerListPage')" *ngIf="authProvider.partner">
+    <button ion-item *ngIf="authProvider.partner" (click)="navController.push('PartnerListPage')">
       <ion-avatar item-start>
         <img [src]="authProvider.partner?.profilePhotoURL">
       </ion-avatar>
-      <h2>{{ authProvider.partner?.name}}</h2>
+      <h2>Configurações do parceiro</h2>
+      <p>{{authProvider.user?.name}}</p>
     </button>
-
     <button ion-item (click)="authProvider.logout()">
       Sair
     </button>

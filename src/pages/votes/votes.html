@@ -1,5 +1,6 @@
 <ion-header>
   <ion-navbar>
+    <ion-title>{{name?.name}}</ion-title>
     <ion-buttons start>
       <button ion-button (click)="dismiss()">
         Fechar
@@ -8,18 +9,34 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
-  <h1>{{name?.name}} ({{name?.total_votes}} - {{name?.porcentage}})</h1>
+<ion-content>
 
-  <h3>Quem votou</h3>
-  <ion-list>
+  <div style="text-align: center;" padding>
+    <h1>{{name?.total_votes}} | {{name?.porcentage}}</h1>
+  </div>
+
+  <div *ngIf="loading" padding>
+    <div *ngFor="let item of [1,2]">
+      <div class="ghost-container">
+        <div class="ghost-avatar ghost-margin-right"></div>
+      </div>
+      <div class="ghost-container">
+        <div class="ghost-line ghost-line-md"></div>
+      </div>
+    </div>
+  </div>
+
+  <ion-list *ngIf="voters.length > 0 && !loading">
     <ion-item *ngFor="let name of voters">
       <ion-avatar item-start>
         <img [src]="name.profilePhotoURL">
       </ion-avatar>
       <h2>{{name.name}}</h2>
+      <p item-end>3 horas atrás</p>
     </ion-item>
   </ion-list>
 
-  <h3 *ngIf="voters.length < 1">Ninguem votou ainda</h3>
+  <div class="main-message" *ngIf="voters.length < 1 && !loading" padding>
+    <p>Ninguem votou ainda, =[</p>
+  </div>
 </ion-content>

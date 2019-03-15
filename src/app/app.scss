@@ -18,18 +18,14 @@
 //   background-image: none;
 // }
 
-p {
-  color: $text-color;
-  font-size: 1em;
-}
-.title {
-  font-size: 2.5em;
-  color: map-get($colors, primary);
-  font-weight: bold;
-}
-.subtitle {
-  font-size: 1.2em;
-}
+// .title {
+//   font-size: 2.5em;
+//   color: map-get($colors, primary);
+//   font-weight: bold;
+// }
+// .subtitle {
+//   font-size: 1.2em;
+// }
 
 [cute] {
   font-weight: bold;
@@ -107,11 +103,6 @@ $img-loader-size: 60px;
   }
 }
 
-.item-md,
-.item-ios {
-  font-weight: bold;
-}
-
 // Progress
 .progress-container {
   height: $progress-height;
@@ -129,16 +120,42 @@ $img-loader-size: 60px;
   transition: width 1s;
 }
 
-.content {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-}
+// .content {
+  
+//   height: 100%;
+//   // display: flex;
+//   // flex-direction: column;
+//   // align-items: center;
+//   // justify-content: center;
+  
+//   text-align: center;
+// }
 
 // GHOST
-.ghost-line {
+.ghost-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  margin-bottom: $ghost-margin * 1.5;
+}
+.ghost-container-top {
+  align-items: flex-start;
+}
+.ghost-margin-right {
+  margin-right: $ghost-margin;
+}
+.ghost-margin-bottom {
   margin-bottom: $ghost-margin;
+}
+.ghost-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  background-color: $ghost-color;
+}
+.ghost-line {
+  // margin-bottom: $ghost-margin;
 }
 .ghost-line-md {
   height: $ghost-md-height;
@@ -147,4 +164,40 @@ $img-loader-size: 60px;
 }
 .ghost-line-block {
   width: 100%;
+}
+
+// HEADER
+h1,h2,h3,h4,h5,h6 {
+  font-weight: bold;
+}
+h1 {
+  font-size: 2em;
+}
+h2 {
+  font-size: 1.4em;
+}
+h3 {
+  font-size: .9em;
+}
+// Cards
+.naname-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px 5px;
+  // h,v,r,s
+  -webkit-box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
+}
+.naname-card-centered-content {
+  text-align: center;
+}
+
+
+.image-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 30px;
 }

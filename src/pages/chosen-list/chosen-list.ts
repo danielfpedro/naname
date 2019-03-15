@@ -1,9 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, ViewChild } from "@angular/core";
 import {
   IonicPage,
   ActionSheetController,
   LoadingController,
   ModalController,
+  Content,
 } from "ionic-angular";
 
 import {
@@ -28,6 +29,8 @@ import _ from "lodash";
 })
 export class ChosenListPage {
 
+  @ViewChild(Content) content: Content;
+
   poolBaseUrl = 'https://naname.com.r/enquete';
 
   term = "";
@@ -47,6 +50,8 @@ export class ChosenListPage {
   ) { }
 
   ionViewDidLoad() {
+
+
     this.loadingChoices = true;
     this.authProvider
       .myUserRef()
@@ -91,6 +96,9 @@ export class ChosenListPage {
           // deletar este nome some as abas e os nome sque estavam na aba masculino ficam invisiveis
           this.gender = '';
         }
+
+        this.content.resize();
+
       });
   }
   getOwners(owners) {

@@ -1,10 +1,13 @@
-import { Component } from "@angular/core";
+import { Component, ViewChild } from "@angular/core";
 import {
   IonicPage,
   AlertController,
   LoadingController,
   AlertOptions,
-  Platform
+  Platform,
+  ActionSheet,
+  ActionSheetController,
+  Content
 } from "ionic-angular";
 
 import { AuthProvider } from "../../providers/auth/auth";
@@ -24,6 +27,9 @@ import { Subscription } from "rxjs";
   templateUrl: "partner-list.html"
 })
 export class PartnerListPage {
+
+
+  
   usersBlockedCollection: any;
   requestsSentCollection: any;
 
@@ -36,7 +42,8 @@ export class PartnerListPage {
     // Ionic components
     public alertCtrl: AlertController,
     public loaderCtrl: LoadingController,
-    private barcodeScanner: BarcodeScanner
+    private barcodeScanner: BarcodeScanner,
+    private actionSheetController: ActionSheetController
   ) { }
 
   ionViewDidLoad() {
@@ -50,6 +57,10 @@ export class PartnerListPage {
           return blockedUser;
         });
       });
+
+      
+
+      
   }
   ionViewWillLeave() {
     console.log("unsubscribe blocked users");
@@ -201,4 +212,33 @@ export class PartnerListPage {
       this.addPartner(barcodeScanResult.text);
     }
   }
+
+  presentActionSheet() {
+    const actionSheet = this.actionSheetController.create({
+      title: 'Opções do parceiro',
+      buttons: [
+        {
+          text: 'Remover',
+          role: 'destructive',
+          handler: () => {
+            this.presentRemovePartnerAlert();
+          }
+        }, {
+          text: 'Remover e bloquear',
+          role: 'destructive',
+          handler: () => {
+            this.presentRemovePartnerAlert(true);
+          }
+        }, {
+          text: 'Cancelar',
+          role: 'cancel',
+          handler: () => {
+            console.log('Cancel clicked');
+          }
+        }
+      ]
+    });
+    actionSheet.present();
+  }
+
 }

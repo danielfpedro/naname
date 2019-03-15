@@ -1,21 +1,20 @@
 page-login {
   .content {
-    // background-color: map-get($colors, "primary");
-    display: flex;
     height: 100%;
-    flex-direction: column;
+    display: flex;
+    width: 100%;
   }
   .slides-content {
+    width: 100%;
+    // display: flex;
+    // flex-direction: column;
+    // width: 100%;
     flex: 1;
   }
-  .buttons-content {
-    margin: 30px 0 15px 0;
-  }
-  .buttons-content button {
-    margin-bottom: 10px;
-  }
-
-  button[color=light] {
-    color: map-get($colors, 'google');
-  }
+  // .buttons-content {
+  //   margin: 30px 0 15px 0;
+  // }
+  // .buttons-content button {
+  //   margin-bottom: 10px;
+  // }
 }
