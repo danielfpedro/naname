@@ -11,7 +11,7 @@
 
 <ion-content>
 
-  <div style="text-align: center;" padding>
+  <div style="text-align: center;" padding *ngIf="voters.length > 0 && !loading">
     <h1>{{name?.total_votes}} | {{name?.porcentage}}</h1>
   </div>
 

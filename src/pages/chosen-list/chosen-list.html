@@ -49,7 +49,7 @@
         <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
           <ion-item>
             {{ name.name }}
-
+            <p>{{name.total_votes}} votos</p>
             <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
               <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id" />
             </ion-avatar>
@@ -68,7 +68,7 @@
 
 <ion-footer [hidden]="names.length < 2">
   <ion-toolbar>
-    <button ion-button block icon-start (click)="share()">
+    <button ion-button block icon-start round (click)="share()">
       <ion-icon name="share-alt"></ion-icon> Compartilhar enquete
     </button>
   </ion-toolbar>

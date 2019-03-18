@@ -31,13 +31,11 @@
 
 <ion-content padding>
 
-  <div class="content" *ngIf="choicesLimitReached && !loadingNames || noMoreNames">
-    <div class="main-message">
-      <p>Nós já mostramos todos os nomes disponíveis</p>
-      <button block ion-button large round (click)="getNamesChunk()" name="primary">
-        Verificar nomes novos
-      </button>
-    </div>
+  <div class="content text-center" *ngIf="choicesLimitReached && !loadingNames || noMoreNames">
+    <h1 class="margin-bottom-extra">Nós já mostramos todos os nomes disponíveis</h1>
+    <button block ion-button large round (click)="getNamesChunk()" name="primary">
+      Verificar nomes novos
+    </button>
   </div>
 
   <div class="content" *ngIf="loadingNames">

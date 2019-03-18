@@ -31,7 +31,7 @@ export class ChosenListPage {
 
   @ViewChild(Content) content: Content;
 
-  poolBaseUrl = 'https://naname.com.r/enquete';
+  poolBaseUrl = 'https://nenem-381db.firebaseapp.com/enquete';
 
   term = "";
   gender = "";

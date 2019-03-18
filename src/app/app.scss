@@ -120,16 +120,13 @@ $img-loader-size: 60px;
   transition: width 1s;
 }
 
-// .content {
+.content {
   
-//   height: 100%;
-//   // display: flex;
-//   // flex-direction: column;
-//   // align-items: center;
-//   // justify-content: center;
-  
-//   text-align: center;
-// }
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center
+}
 
 // GHOST
 .ghost-container {
@@ -200,4 +197,18 @@ h3 {
   width: 30px;
   height: 30px;
   border-radius: 30px;
+}
+
+// Helpers
+.margin-bottom {
+  margin-bottom: $margin;
+}
+.margin-bottom-extra {
+  margin-bottom: $margin-extra;
+}
+.margin-left {
+  margin-left: $margin;
+}
+.text-center {
+  text-align: center; 
 }

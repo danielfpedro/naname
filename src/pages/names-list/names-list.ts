@@ -74,7 +74,6 @@ export class NamesListPage {
     this.swingStack.throwin.subscribe((event: DragEvent) => {
       // event.target.style.background = '#ffffff';
     });
-
   }
   ionViewDidEnter() {
     console.log('Subscribe filter form');

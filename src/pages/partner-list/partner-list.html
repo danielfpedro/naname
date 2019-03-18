@@ -7,7 +7,7 @@
 <ion-header>
   <ion-navbar>
     <ion-title>Configurar parceiro</ion-title>
-    <ion-buttons end>
+    <ion-buttons end *ngIf="authProvider.partner">
       <button ion-button icon-only (click)="presentActionSheet()">
         <ion-icon name="more"></ion-icon>
       </button>
@@ -18,76 +18,60 @@
 <ion-content>
 
   <div class="content" *ngIf="authProvider.user.partner_id">
-    <div class="details">
+    <div class="content-child text-center" padding>
       <h1>Vocês estão conectados</h1>
-      <h2>O nomes que vcs escolherem vai servir para os dois bla bla bla</h2>
-    </div>
-    <div class="avatar-container">
+      <h2 class="margin-bottom-extra">O nomes que vcs escolherem servir para os dois bla bla bla</h2>
+
       <div>
         <img [src]="authProvider.user?.profilePhotoURL" class="avatar" />
-        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
+        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar margin-left" />
       </div>
     </div>
   </div>
 
-  <div class="container" *ngIf="authProvider.user && authProvider.partner" style="background-color: red;">
-    <div>
-      <h1>Vocês estão conectados</h1>
+  <div *ngIf="!authProvider.user.partner_id" padding>
+    <div class="naname-card naname-card-centered-content">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <h2>Vou adicionar o meu parceiro</h2>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <button ion-button block round icon-start (click)="showPrompt()">
+              <ion-icon name="at"></ion-icon> Adicionar pelo email
+            </button>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <button ion-button block round icon-start (click)="scanQrCode()">
+              <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
+            </button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
-    <div class="avatar-container">
-      <div>
-        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
-        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar" />
-      </div>
+    <div style="text-align: center;">
+      <h2>OU</h2>
     </div>
-  </div>
-
-
-  <div padding>
-    <div *ngIf="!authProvider.user.partner_id">
-      <div class="naname-card naname-card-centered-content">
-        <ion-grid>
-          <ion-row>
-            <ion-col>
-              <h2>Vou adicionar o meu parceiro</h2>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col>
-              <button ion-button block round icon-start (click)="showPrompt()">
-                <ion-icon name="at"></ion-icon> Adicionar pelo email
-              </button>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col>
-              <button ion-button block round icon-start (click)="scanQrCode()">
-                <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
-              </button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </div>
-      <div style="text-align: center;">
-        <h2>OU</h2>
-      </div>
-      <div class="naname-card naname-card-centered-content">
-        <ion-grid>
-          <ion-row>
-            <ion-col>
-              <h2>O meu parceiro vai me adicionar</h2>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col>
-              <h3>{{authProvider.user?.email}}</h3>
-              <div style="margin-left: 70px">
-                <qrcode [qrdata]="authProvider.user.email" [size]="150" [level]="'M'"></qrcode>
-              </div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </div>
+    <div class="naname-card naname-card-centered-content">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <h2>O meu parceiro vai me adicionar</h2>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <h3>{{authProvider.user?.email}}</h3>
+            <div style="margin-left: 70px">
+              <qrcode [qrdata]="authProvider.user.email" [size]="150" [level]="'M'"></qrcode>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
   </div>
 

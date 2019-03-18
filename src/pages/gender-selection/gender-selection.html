@@ -1,23 +1,17 @@
 <ion-content padding>
 
-  <div class="content">
-    <div class="details">
-      <h1 class="title">
-        Escolha o sexo do seu bebezinho
-      </h1>
-      <p class="subtitle">
-        A opção que você selecionar irá definir os nomes que você verá.
-      </p>
-    </div>
-    <div class="buttons">
-      <button ion-button cute color="blue" block round large fat (click)="selectGender('m')">menino</button>
-      <button ion-button color="pink" block round large fat (click)="selectGender('f')">menino</button>
-      <button ion-button color="yellow" block round large fat (click)="selectGender('')">*menino e menina</button>
-    </div>
-    <div class="footer">
-      <p>*Ideal se você ainda não sabe o sexo da criança ou se forem gêmeos de sexo
-        diferente.</p>
-    </div>
+  <div class="content text-center">
+    <h1>
+      Escolha o sexo do seu bebezinho
+    </h1>
+    <h2 class="margin-bottom-extra">
+      A opção que você selecionar irá definir os nomes que você verá.
+    </h2>
+    <button ion-button cute color="blue" block round large fat (click)="selectGender('m')">menino</button>
+    <button ion-button color="pink" block round large fat (click)="selectGender('f')">menina</button>
+    <button ion-button color="yellow" block round large fat (click)="selectGender('')">*menino e menina</button>
+    <p>*Ideal se você ainda não sabe o sexo da criança ou se forem gêmeos de sexo
+      diferente.</p>
   </div>
 
 </ion-content>

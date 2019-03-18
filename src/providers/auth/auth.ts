@@ -44,6 +44,8 @@ export class AuthProvider {
   // across the app
   actors = {};
 
+  userSignedIn = null;
+
   constructor(
     private platform: Platform,
     private fb: Facebook,
@@ -59,34 +61,38 @@ export class AuthProvider {
     this.afAuth.authState
       .pipe(
         mergeMap(userSignedIn => {
-          console.log('Is user signed in?', userSignedIn);
-
+          this.userSignedIn = userSignedIn;
           if (userSignedIn) {
-            this.isLoggedIn = true;
+            return this.createUserIfNeeded(userSignedIn);
+          }
+          return of(null);
+        }),
+        mergeMap(nothingHere => {
+          console.log('Is user signed in?', this.userSignedIn);
+
+          if (this.userSignedIn) {
             console.log('Yes it is');
             return this.afs
               .collection("users")
-              .doc(userSignedIn.uid)
-              .valueChanges();
+              .doc(this.userSignedIn.uid)
+              .snapshotChanges();
           }
           this.user = null;
-          this.isLoggedIn = false;
           return of(null);
         }),
         mergeMap(userDoc => {
           console.log('Result of user doc', userDoc);
           // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
-          if (typeof userDoc == 'undefined') {
+          if (userDoc === null) {
+            this.user = null;
+            return of(null);
+          } else if (!userDoc.payload.exists) {
             console.log('User does not exists, we are signing out here');
             this.user = null;
             this.afAuth.auth.signOut();
-            // Se null não está logado
-          } else if (userDoc === null) {
-            this.user = null;
-            return of(null);
           }
 
-          this.user = userDoc;
+          this.user = userDoc.payload.data();
           console.log('Now the value of authProvider.user is', this.user);
           if (this.user) {
             // populate actors object with user doc, this variable will be thourgh the app
@@ -95,10 +101,13 @@ export class AuthProvider {
           }
           // Se tem partner pego ele
           if (this.user && this.user.partner_id) {
+            console.log('Has partner_id, fetch partner profile');
             return this.afs
               .collection("users")
-              .doc(userDoc.partner_id)
+              .doc(this.user.partner_id)
               .ref.get();
+          } else {
+            console.log('Has NOT partner_id, fetch partner profile');
           }
           return of(null);
         })
@@ -119,7 +128,10 @@ export class AuthProvider {
         console.log('this.user value', this.user);
         console.log('this.isLoggedIn value', this.isLoggedIn);
         console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
-        this.watchFirebaseAuthState.next(this.isLoggedIn && this.user);
+        console.log('THIS PARTNER', this.partner);
+        console.log('PARTNER', partner);
+        console.log('THIS AUTH PROVIDER', this);
+        this.watchFirebaseAuthState.next(this.user);
         // this.initThingsIsDone.complete();
       });
   }
@@ -145,8 +157,6 @@ export class AuthProvider {
         authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
         console.log('Sign in response', authResponse);
       }
-
-      await this.createUserIfNeeded(authResponse);
     } catch (error) {
       // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
       // eu jogo um alert explicando pq ele nao pode fazer isso
@@ -224,18 +234,14 @@ export class AuthProvider {
     }
   }
 
-  async createUserIfNeeded(userData) {
+  createUserIfNeeded(userData) {
     const userToAdd = {
       id: userData.uid,
       name: userData.displayName,
       email: userData.email,
       profilePhotoURL: userData.photoURL
     };
-    try {
-      await this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
-    } catch (error) {
-      throw Error(error);
-    }
+    return this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
   }
   getNameSubscription(nameChosen, owner) {
     return {
@@ -594,10 +600,18 @@ export class AuthProvider {
       } else {
         nameId = hasName.docs[0].id;
       }
+
+      // GAMBIIII ALERT!!!!!!!!!!!
+      // Gambi add o id depois que ja adicionei ali em cima
       // Adiciono o id do nome(criado ou que já existia) e adiciono nos chosen
+      const responsenameToAddId = await this.afs.collection("names").doc(nameId).ref.get();
+      if (responsenameToAddId.exists) {
+        await this.afs.collection("names").doc(nameId).set({ id: nameId }, { merge: true });
+      }
+
       await this.chosenNamesRef()
         .doc(nameId)
-        .set({ owners: { [this.user.id]: true } }, { merge: true });
+        .set({ id: nameId, owners: { [this.user.id]: true } }, { merge: true });
     } catch (error) {
       this.toast('Erro ao tentar adicionar o nome.');
     }
