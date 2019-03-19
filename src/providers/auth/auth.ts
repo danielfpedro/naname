@@ -11,7 +11,7 @@ import firebase from "firebase/app";
 import { AlertController, App, Platform, ToastController } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
-import { mergeMap } from "rxjs/operators";
+import { mergeMap, map, take } from "rxjs/operators";
 
 /*
   Generated class for the AuthProvider provider.
@@ -21,6 +21,8 @@ import { mergeMap } from "rxjs/operators";
 */
 @Injectable()
 export class AuthProvider {
+
+  choicesLimit = 15;
   public userDoc: AngularFirestoreDocument;
 
   public userUid: string = null;
@@ -45,6 +47,10 @@ export class AuthProvider {
   actors = {};
 
   userSignedIn = null;
+  /**
+   * Pedung names list interatinons
+   */
+  namesListPendingInsterations = 0;
 
   constructor(
     private platform: Platform,
@@ -419,7 +425,7 @@ export class AuthProvider {
     try {
       await this.blockedUsersRef()
         .doc(userToBeBlocked.id)
-        .set({ ...userToBeBlocked });
+        .set({ name: userToBeBlocked.name, email: userToBeBlocked.email, profilePhotoURL: userToBeBlocked.profilePhotoURL });
     } catch (error) {
       console.error(error);
       this.toast("Ocorreu um erro ao tentar bloquear o parceiro");
@@ -438,9 +444,7 @@ export class AuthProvider {
       this.toast("Ocorreu um erro ao tentar desbloquear o parceiro");
     }
   }
-
   // Helpers
-
   /** Toast Helper
    * @param message Message to be displayed at toast
    */
@@ -456,20 +460,26 @@ export class AuthProvider {
   async choseName(name: any, like: boolean) {
     console.log("ESCOLHI NOME");
     console.log("LIKE?", like);
+    this.namesListPendingInsterations += 1;
     try {
       if (like) {
         await this.chosenNamesRef()
           .doc(name.id)
           .set({ owners: { [this.user.id]: true } }, { merge: true });
       }
+      console.log('Name to delete', name);
       await this.myUserRef()
         .collection("namesCache")
         .doc(name.id)
         .delete();
+      await this.myUserRef()
+        .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
     } catch (error) {
+      console.error(error);
       this.toast('Ocorreu um erro ao tentar escolher o nome');
+    } finally {
+      this.namesListPendingInsterations -= 1;
     }
-
   }
   async removeChosenName(id: string) {
     console.log("Removendo nome", id);
@@ -484,6 +494,11 @@ export class AuthProvider {
         } else {
           console.log('Update name removendo o owners meu', name);
           await this.chosenNamesRef().doc(id).update(name);
+        }
+
+        if (parseInt(this.user.total_choices) > 0) {
+          await this.myUserRef()
+            .set({ total_choices: (parseInt(this.user.total_choices || 0) - 1) }, { merge: true });
         }
       }
     } catch (error) {
@@ -532,7 +547,11 @@ export class AuthProvider {
       this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
     }
   }
-  async getNamesToChose(limit: number, conditions = null) {
+  async getNamesToChoose(limit: number, conditions = null) {
+    if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
+      this.alertChoicesReached();
+      throw new ChoicesLimitReached('bla');
+    }
     try {
       const namesRef = this.getMyUserRef().collection("namesCache", ref => {
         let query:
@@ -555,9 +574,19 @@ export class AuthProvider {
         return query;
       });
 
-      return await namesRef.get().toPromise();
+      return await namesRef.get().pipe(
+        // map(names => {
+        //   return names.docs.map(name => {
+        //     // console.log('NAME', name);
+        //     return { ...name.data(), id: name.id };
+        //   });
+        // })
+      ).toPromise();
     } catch (error) {
-      this.toast('Ocorreu um erro ao carregar os nomes.');
+      if (error !instanceof ChoicesLimitReached) {
+        this.toast('Ocorreu um erro ao carregar os nomes.');
+      }
+
     }
   }
 
@@ -577,7 +606,20 @@ export class AuthProvider {
     return this.user.gender === "m" ? "Menino" : "Menina";
   }
 
+  alertChoicesReached(): void {
+    const alert = this.alertController.create({
+      title: 'Limite excedido',
+      message: `Você pode escolher no máximo ${this.choicesLimit}. Caso você queira escolher mas nomes você deve remover alguns da sua lista`,
+      buttons: ['Ok']
+    });
+    alert.present();
+  }
+
   async addCustomNameIfNeeded(name: string, gender: string) {
+    if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
+      this.alertChoicesReached();
+      return;
+    }
     try {
       name = this.sanitazeName(name);
       // Checo se o nome já existe
@@ -604,15 +646,20 @@ export class AuthProvider {
       // GAMBIIII ALERT!!!!!!!!!!!
       // Gambi add o id depois que ja adicionei ali em cima
       // Adiciono o id do nome(criado ou que já existia) e adiciono nos chosen
-      const responsenameToAddId = await this.afs.collection("names").doc(nameId).ref.get();
-      if (responsenameToAddId.exists) {
-        await this.afs.collection("names").doc(nameId).set({ id: nameId }, { merge: true });
-      }
+      // const responsenameToAddId = await this.afs.collection("names").doc(nameId).ref.get();
+      // if (responsenameToAddId.exists) {
+      //   await this.afs.collection("names").doc(nameId).set({ id: nameId }, { merge: true });
+      // }
+
+      // await this.afs.collection("names").doc(nameId).set({ id: nameId }, { merge: true });
 
       await this.chosenNamesRef()
         .doc(nameId)
         .set({ id: nameId, owners: { [this.user.id]: true } }, { merge: true });
+      await this.myUserRef()
+        .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
     } catch (error) {
+      console.error(error);
       this.toast('Erro ao tentar adicionar o nome.');
     }
   }
@@ -624,8 +671,26 @@ export class AuthProvider {
     });
     return nameArray.join(' ');
   }
+
+  async blockedUsersLimited() {
+    try {
+      return await this.blockedUsersRef().ref.limit(50).get();
+      // console.log('Response', response.docs);
+    } catch (error) {
+      console.log(error);
+      this.toast('Ocorreu um erro ao tentar mostrar os seus usuários bloqueados.');
+    }
+  }
+
 }
 
+export class ChoicesLimitReached {
+  message: string;
+  constructor(message: string) {
+    this.message = message;
+    console.error(this.message);
+  }
+}
 export class PartnerError {
   message: string;
   constructor(message: string) {

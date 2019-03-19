@@ -7,19 +7,14 @@ import {
   Platform,
   ActionSheet,
   ActionSheetController,
-  Content
+  Content,
+  PopoverController,
+  ModalController
 } from "ionic-angular";
 
 import { AuthProvider } from "../../providers/auth/auth";
 import { BarcodeScanner } from "@ionic-native/barcode-scanner";
 import { Subscription } from "rxjs";
-
-/**
- * Generated class for the PartnerListPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
 
 @IonicPage()
 @Component({
@@ -28,8 +23,6 @@ import { Subscription } from "rxjs";
 })
 export class PartnerListPage {
 
-
-  
   usersBlockedCollection: any;
   requestsSentCollection: any;
 
@@ -43,7 +36,9 @@ export class PartnerListPage {
     public alertCtrl: AlertController,
     public loaderCtrl: LoadingController,
     private barcodeScanner: BarcodeScanner,
-    private actionSheetController: ActionSheetController
+    private actionSheetController: ActionSheetController,
+    private popoverController: PopoverController,
+    private modalController: ModalController
   ) { }
 
   ionViewDidLoad() {
@@ -58,9 +53,9 @@ export class PartnerListPage {
         });
       });
 
-      
 
-      
+
+
   }
   ionViewWillLeave() {
     console.log("unsubscribe blocked users");
@@ -239,6 +234,37 @@ export class PartnerListPage {
       ]
     });
     actionSheet.present();
+  }
+
+  presentPopover(event) {
+    let items = [{ index: 0, label: 'Usuários bloqueados' }];
+
+    if (this.authProvider.user.partner_id) {
+      items.push({ index: 1, label: 'Remover parceiro' });
+      items.push({ index: 2, label: 'Remover e bloquear parceiro' });
+    }
+
+    const popover = this.popoverController.create('PopoverListPage', { items });
+    popover.onDidDismiss(data => {
+      console.log('Popover was dismissed', data);
+      console.log('IS !== NULL', data !== null);
+      if (data !== null) {
+        switch (data) {
+          case 0:
+            const modal = this.modalController.create('BlockedUsersPage');
+            console.log('Presenting modal');
+            modal.present();
+            break;
+          case 1:
+            this.presentRemovePartnerAlert();
+            break;
+          case 2:
+            this.presentRemovePartnerAlert(true);
+            break;
+        }
+      }
+    });
+    popover.present({ ev: event });
   }
 
 }

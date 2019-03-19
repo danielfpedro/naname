@@ -8,7 +8,7 @@ import {
   SwingStackComponent,
   SwingCardComponent
 } from 'angular2-swing';
-import { AuthProvider } from '../../providers/auth/auth';
+import { AuthProvider, ChoicesLimitReached } from '../../providers/auth/auth';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -30,7 +30,7 @@ export class NamesListPage {
   loadingNames: boolean = false;
   cachingNames: boolean = false;
 
-  chunkSize: number = 30;
+  chunkSize: number = 15;
 
   choicesLimitReached = false;
 
@@ -92,8 +92,8 @@ export class NamesListPage {
   }
   async init(): Promise<void> {
     this.loadingNames = true;
-    // const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
-    // loader.present();
+    const loader = this.loadingController.create({ content: 'Baixando nomes, isso pode demorar um pouquinho, aguarde...' });
+    loader.present();
     try {
       await this.authProvider.cacheNamesIfNeeded();
       // Atenção... só abre selecionar gender se for null... não ''... pois '' significa ambos e null
@@ -108,33 +108,52 @@ export class NamesListPage {
 
     } finally {
       this.loadingNames = false;
+      loader.dismiss();
     }
   }
   async getNamesChunk(): Promise<void> {
-    try {
-      this.choicesLimitReached = false;
-      this.loadingNames = true;
+    this.loadingNames = true;
+    console.log('Get names chunk, pending coisas?', this.authProvider.namesListPendingInsterations);
+    if (this.authProvider.namesListPendingInsterations === 0) {
+      console.log('Não tinha pendencia pegar mais');
+      try {
+        this.choicesLimitReached = false;
 
-      const chosenNames = await this.authProvider.chosenNamesRef().ref.get();
-      console.log('Total chosen names', chosenNames.size);
-      if (chosenNames.size >= this.authProvider.maxChosenNames) {
-        this.choicesLimitReached = true;
-        const alert = this.alertController.create({ title: 'Máximo nomes', message: 'Você atingiu o máximo de nomes que pode escolher. Você pode deletar alguns para abrir espaço para escrever mais', buttons: ['Ok'] });
-        alert.present();
-        throw "Máximo de nomes escolhidos";
+        const chosenNames = await this.authProvider.chosenNamesRef().ref.get();
+        console.log('Total chosen names', chosenNames.size);
+        if (chosenNames.size >= this.authProvider.maxChosenNames) {
+          this.choicesLimitReached = true;
+          const alert = this.alertController.create({
+            title: 'Máximo nomes',
+            message: 'Você atingiu o máximo de nomes que pode escolher. Você pode deletar alguns para abrir espaço para escrever mais',
+            buttons: ['Ok']
+          });
+          alert.present();
+          throw "Máximo de nomes escolhidos";
+        }
+        const names = await this.authProvider.getNamesToChoose(this.chunkSize, this.filterForm.value);
+        this.noMoreNames = names.size < 1;
+        if (!this.noMoreNames) {
+          this.cards = [];
+          names.forEach(name => {
+            this.addNewCard({ ...name.data(), id: name.id });
+          });
+        }
+      } catch (error) {
+        if (error instanceof ChoicesLimitReached) {
+          this.choicesLimitReached = true;
+        }
+        console.log(error);
+      } finally {
+        this.loadingNames = false;
       }
-      const names = await this.authProvider.getNamesToChose(this.chunkSize, this.filterForm.value);
-      this.noMoreNames = names.size < 1;
-      if (!this.noMoreNames) {
-        names.forEach(name => {
-          this.addNewCard(name.data());
-        });
-      }
-    } catch (error) {
-
-    } finally {
-      this.loadingNames = false;
+    } else {
+      console.log('Tinha pendnecia esperar um segundo e pegar de novo');
+      setTimeout(() => {
+        this.getNamesChunk()
+      }, 1000);
     }
+
   }
   // Connected through HTML
   async voteUp(like: boolean): Promise<void> {

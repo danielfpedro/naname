@@ -9,7 +9,7 @@ import { QRCodeModule } from 'angularx-qrcode';
   ],
   imports: [
     IonicPageModule.forChild(PartnerListPage),
-    QRCodeModule
+    QRCodeModule,
   ],
 })
-export class PartnerListPageModule {}
+export class PartnerListPageModule { }

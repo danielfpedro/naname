@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Usuários bloqueados
+    </ion-title>
+    <ion-buttons start>
+      <button ion-button (click)="close()">
+        Fechar
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <div class="container" *ngIf="!loading && blockedUsers < 1">
+    <h1>Você não bloqueou ninguém =]</h1>
+  </div>
+
+  <div *ngIf="loading">
+    <div class="ghost-container">
+        <div class="ghost-avatar ghost-margin-right"></div>
+        <div class="ghost-line-md"></div>
+    </div>
+  </div>
+
+  <ion-list *ngFor="let user of blockedUsers">
+    <ion-item>
+      <ion-avatar item-start>
+        <img [src]="user.profilePhotoURL">
+      </ion-avatar>
+      <h2>{{user.name}}</h2>
+      <p>{{user.email}}</p>
+    </ion-item>
+  </ion-list>
+</ion-content>

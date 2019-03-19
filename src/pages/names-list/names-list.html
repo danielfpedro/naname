@@ -51,11 +51,11 @@
 
       <div *ngIf="!noMoreNames && !loadingNames && !choicesLimitReached" swing-stack #myswing1
         [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">
-        <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index" [style.top]="(i * 1.5) + '%'">
+        <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index" [style.top]="(i * .5) + '%'">
           <h2>{{card.name}}</h2>
         </div>
       </div>
-      <div>
+      <div class="text-center">
         <button type="button" button-cards-action negative (click)="voteUp(false)">
           <ion-icon name="close"></ion-icon>
         </button>

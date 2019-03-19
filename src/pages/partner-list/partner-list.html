@@ -7,8 +7,8 @@
 <ion-header>
   <ion-navbar>
     <ion-title>Configurar parceiro</ion-title>
-    <ion-buttons end *ngIf="authProvider.partner">
-      <button ion-button icon-only (click)="presentActionSheet()">
+    <ion-buttons end>
+      <button ion-button icon-only (click)="presentPopover($event)">
         <ion-icon name="more"></ion-icon>
       </button>
     </ion-buttons>
@@ -16,7 +16,6 @@
 </ion-header>
 
 <ion-content>
-
   <div class="content" *ngIf="authProvider.user.partner_id">
     <div class="content-child text-center" padding>
       <h1>Vocês estão conectados</h1>

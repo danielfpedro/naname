@@ -12,15 +12,8 @@ import {
 } from "@angular/fire/firestore";
 import { AuthProvider } from "../../providers/auth/auth";
 import { SocialSharing } from "@ionic-native/social-sharing";
-import { mergeMap, map } from "rxjs/operators";
+import { mergeMap, map, switchMap } from "rxjs/operators";
 import _ from "lodash";
-
-/**
- * Generated class for the ChosenListPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
 
 @IonicPage()
 @Component({
@@ -62,7 +55,7 @@ export class ChosenListPage {
             .chosenNamesRef()
             .snapshotChanges();
         }),
-        mergeMap(chosenNames => {
+        switchMap(chosenNames => {
           const promises = chosenNames.map(chosenName => {
             return this.afs
               .collection("names")
@@ -110,13 +103,16 @@ export class ChosenListPage {
   }
   countVotes(names): [] {
     console.log('Names to count', names);
+
     return names.map((name: any) => {
       console.log("Name to insert to this.names", name);
       name.ownersProfiles = this.getOwners(name.owners);
       console.log('Total votes', this.totalVotes);
 
-      this.totalVotes[name.gender].total += 1;
-      this.totalVotes[name.gender].total_votes += parseInt(name.total_votes);
+      if (typeof name.gender != 'undefined' && (name.gender == 'f' || name.gender == 'm')) {
+        this.totalVotes[name.gender].total += 1;
+        this.totalVotes[name.gender].total_votes += parseInt(name.total_votes || 0);
+      }
       return name;
     });
   }
@@ -184,7 +180,7 @@ export class ChosenListPage {
     return `${this.poolBaseUrl}/${this.authProvider.user.id}`;
   }
   getPercentage(name: any) {
-    if (this.totalVotes[name.gender].total_votes < 1) {
+    if (typeof name.gender == 'undefined' || this.totalVotes[name.gender].total_votes < 1) {
       return 0;
     }
     return ((name.total_votes * 100) / this.totalVotes[name.gender].total_votes).toFixed(0);
