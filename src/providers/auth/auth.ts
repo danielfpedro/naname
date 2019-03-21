@@ -7,11 +7,12 @@ import {
 import { Facebook } from "@ionic-native/facebook";
 import { GooglePlus } from "@ionic-native/google-plus";
 import { Storage } from "@ionic/storage";
-import firebase from "firebase/app";
+import firebase, { database } from "firebase/app";
 import { AlertController, App, Platform, ToastController } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
 import { mergeMap, map, take, delay } from "rxjs/operators";
+import { NamesFiltersPage } from "../../pages/names-filters/names-filters";
 
 /*
   Generated class for the AuthProvider provider.
@@ -22,7 +23,7 @@ import { mergeMap, map, take, delay } from "rxjs/operators";
 @Injectable()
 export class AuthProvider {
 
-  choicesLimit = 15;
+  choicesLimit = 50;
   public userDoc: AngularFirestoreDocument;
 
   public userUid: string = null;
@@ -35,7 +36,7 @@ export class AuthProvider {
   public isLoggedIn = false;
 
   // Names
-  maxChosenNames = 100;
+  maxChosenNames = 50;
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
   initThingsIsDone: Subject<void> = new Subject();
@@ -57,6 +58,7 @@ export class AuthProvider {
    * Pedung names list interatinons
    */
   namesListPendingInsterations = 0;
+  namesChunkSize = 15;
 
   constructor(
     private platform: Platform,
@@ -472,7 +474,7 @@ export class AuthProvider {
       if (like) {
         await this.chosenNamesRef()
           .doc(name.id)
-          .set({ owners: { [this.user.id]: true } }, { merge: true });
+          .set({ ...name, owners: { [this.user.id]: true } }, { merge: true });
       }
       console.log('Name to delete', name);
       await this.myUserRef()
@@ -519,13 +521,13 @@ export class AuthProvider {
           let query:
             | firebase.firestore.CollectionReference
             | firebase.firestore.Query = ref;
-          // if (this.user.names_cache_last_check) {
-          //   query = query.where(
-          //     "created_at",
-          //     ">",
-          //     this.user.names_cache_last_check
-          //   );
-          // }
+          if (this.user.names_cache_last_update) {
+            query = query.where(
+              "created_at",
+              ">",
+              this.user.names_cache_last_update
+            );
+          }
           // Somente aprovados
           query = query.where("aproved", "==", true);
           return query;
@@ -535,7 +537,7 @@ export class AuthProvider {
 
       const output = [];
       names.docs.forEach(name => {
-        output.push(this.myUserRef().collection('namesCache').doc(name.id).set(name.data()));
+        output.push({ ...name.data(), id: name.id });
       });
 
       console.log('Output', output);
@@ -590,38 +592,40 @@ export class AuthProvider {
   //     this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
   //   }
   // }
-  async cacheNames(namesToCache) {
-    try {
-      let namesToSavePromises = [];
-      namesToCache.forEach(name => {
-        namesToSavePromises.push(
-          this.getNamesCacheRef()
-            .doc(name.id)
-            .set({ ...name.data() }, { merge: true })
-        );
-      });
+  // async cacheNames(namesToCache) {
+  //   try {
+  //     let namesToSavePromises = [];
+  //     namesToCache.forEach(name => {
+  //       namesToSavePromises.push(
+  //         this.getNamesCacheRef()
+  //           .doc(name.id)
+  //           .set({ ...name.data() }, { merge: true })
+  //       );
+  //     });
 
-      if (namesToSavePromises.length > 0) {
-        await Promise.all(namesToSavePromises);
-        await this.getMyUserRef().set(
-          { names_cache_last_check: new Date() },
-          { merge: true }
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
-    }
+  //     if (namesToSavePromises.length > 0) {
+  //       await Promise.all(namesToSavePromises);
+  //       await this.getMyUserRef().set(
+  //         { names_cache_last_check: new Date() },
+  //         { merge: true }
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
+  //   }
+  // }
+
+  async waiting(waitTime: number): Promise<void> {
+    return await of(null).pipe(delay(waitTime)).toPromise();
   }
-  async she() {
-    return await of('dummy').pipe(delay(500)).toPromise();
-  }
+
   async tey(names) {
-
-    const limit = 20;
+    const limit = 250;
     const chunk = _.chunk(names, limit);
 
     if (chunk.length < 1) {
+      await this.myUserRef().set({ names_cache_last_update: new Date() }, { merge: true });
       this.cacheNamesListen.complete();
       return;
     }
@@ -629,19 +633,21 @@ export class AuthProvider {
     let output = chunk.slice(0);
     output.shift();
     output = _.flatten(output);
-    
-    await Promise.all(chunk[0]);
+
+    const batch = this.afs.firestore.batch();
+    chunk[0].map(name => {
+      batch.set(this.afs.firestore.collection('users').doc(this.user.id).collection('namesCache').doc(name.id), name);
+    });
+    console.log('Waitnig batch commit', chunk[0]);
+    await batch.commit();
+    console.log('FOI!');
+    // console.log('Delay here... not doing nothing.. thats wwhat i think its happening lol');
+    // await this.waiting(500);
     this.namesCacheCurrent = this.namesCacheCurrent + chunk[0].length;
     this.namesCacheProgress = parseInt(((100 * this.namesCacheCurrent) / this.namesCacheTotal).toFixed(0));
 
-    if (names.length > 0) {
-      console.log('Dentro do call de novo');
-      this.cacheNamesListen.next();
-      this.tey(output);
-    } else {
-      console.log('Completou');
-      this.cacheNamesListen.complete();
-    }
+    this.cacheNamesListen.next();
+    this.tey(output);
   }
 
   // async getNamesToChooseLocal(limit: number, conditions = null, namesInteractedIds) {
@@ -678,12 +684,17 @@ export class AuthProvider {
   //   }
   // }
 
-  async getNamesToChoose(limit: number, conditions = null) {
-    // if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
-    //   this.alertChoicesReached();
-    //   throw new ChoicesLimitReached('bla');
-    // }
+  isChoicesLimitReached(): boolean {
+    return (parseInt(this.user.total_choices || 0) >= this.choicesLimit);
+  }
+
+  async getNamesToChoose(conditions = null) {
+
     try {
+      if (this.isChoicesLimitReached()) {
+        throw new ChoicesLimitReached();
+      }
+
       const namesRef = this.getMyUserRef().collection("namesCache", ref => {
         let query:
           | firebase.firestore.CollectionReference
@@ -701,7 +712,7 @@ export class AuthProvider {
             conditions.category
           );
         }
-        query = query.limit(limit);
+        query = query.limit(this.namesChunkSize);
         return query;
       });
 
@@ -714,10 +725,12 @@ export class AuthProvider {
         // })
       ).toPromise();
     } catch (error) {
-      if (error! instanceof ChoicesLimitReached) {
+      console.log('eRROR', error instanceof ChoicesLimitReached);
+      if (error instanceof ChoicesLimitReached) {
+        throw error;
+      } else {
         this.toast('Ocorreu um erro ao carregar os nomes.');
       }
-
     }
   }
 
@@ -815,7 +828,7 @@ export class AuthProvider {
 
   async isCacheNamesNeeded(): Promise<boolean> {
     const response = await this.afs.collection('settings').doc('names').ref.get();
-    if (!this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
+    if (typeof this.user.names_cache_last_update == 'undefined'|| !this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
       return true;
     }
     return false;
@@ -823,10 +836,8 @@ export class AuthProvider {
 }
 
 export class ChoicesLimitReached {
-  message: string;
-  constructor(message: string) {
-    this.message = message;
-    console.error(this.message);
+  constructor() {
+    console.error('Máximo de nomes para escolher atingido');
   }
 }
 export class PartnerError {

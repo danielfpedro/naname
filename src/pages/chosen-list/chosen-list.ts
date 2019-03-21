@@ -5,6 +5,7 @@ import {
   LoadingController,
   ModalController,
   Content,
+  AlertController,
 } from "ionic-angular";
 
 import {
@@ -40,6 +41,7 @@ export class ChosenListPage {
     public socialSharing: SocialSharing,
     public afs: AngularFirestore,
     public modalController: ModalController,
+    private alertController: AlertController
   ) { }
 
   ionViewDidLoad() {
@@ -53,30 +55,16 @@ export class ChosenListPage {
         mergeMap(user => {
           return this.authProvider
             .chosenNamesRef()
-            .snapshotChanges();
-        }),
-        switchMap(chosenNames => {
-          const promises = chosenNames.map(chosenName => {
-            return this.afs
-              .collection("names")
-              .doc(chosenName.payload.doc.id)
-              .get()
-              .pipe(
-                map(name => {
-                  return {
-                    ...name.data(),
-                    id: name.id,
-                    total_votes: chosenName.payload.doc.data().total_votes || 0,
-                    owners: chosenName.payload.doc.data().owners || {}
-                  };
-                })
-              )
-              .toPromise();
-          });
-          return Promise.all(promises);
+            .snapshotChanges()
+            .pipe(map(res => {
+              return res.map(name => {
+                return name.payload.doc.data();
+              });
+            }));
         })
       )
       .subscribe(res => {
+        console.log('Chosen names snapshot', res);
         this.loadingChoices = false;
         this.totalVotes = { m: { total: 0, total_votes: 0 }, f: { total: 0, total_votes: 0 } };
         const names = this.countVotes(res);
@@ -194,6 +182,15 @@ export class ChosenListPage {
     modal.present();
   }
   openAddName() {
+    if (this.authProvider.isChoicesLimitReached()) {
+      const alert = this.alertController.create({
+        title: 'Limite atingido',
+        message: `Você atingiu o limite de nomes que é de ${this.authProvider.choicesLimit}. Você pode deletar alguns nomes para liberar espaço.`,
+        buttons: ['Ok']
+      });
+      alert.present();
+      return;
+    }
     const modal = this.modalController.create("AddNamePage");
     modal.present();
   }

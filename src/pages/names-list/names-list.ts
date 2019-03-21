@@ -30,8 +30,6 @@ export class NamesListPage {
   loadingNames: boolean = false;
   cachingNames: boolean = false;
 
-  chunkSize: number = 15;
-
   choicesLimitReached = false;
 
   filterForm: FormGroup;
@@ -64,8 +62,6 @@ export class NamesListPage {
         return 1200;
       }
     };
-
-
   }
   ionViewDidLoad() {
     console.log('Did load');
@@ -91,24 +87,30 @@ export class NamesListPage {
   }
 
   async init(): Promise<void> {
-    // this.authProvider.cacheNames().subscribe(() => {
-    //   console.log('Olar');
-    // });
+    const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
+    loader.present();
     const isNeeded = await this.authProvider.isCacheNamesNeeded();
-    if (isNeeded || 1 == 1) {
+    loader.dismiss();
+    console.log('Is needed?', isNeeded);
+
+    if (isNeeded) {
       const allNames = await this.authProvider.allNames();
+      this.cachingNames = true;
       this.authProvider.cacheNamesListen.subscribe(() => {
-      });
+      },
+        error => { },
+        () => {
+          this.cachingNames = false;
+          this.init();
+        });
       this.authProvider.tey(allNames);
-      // this.cachingNames = true;
-      // const loader = this.loadingController.create({ content: 'Baixando nomes, isso pode demorar um pouquinho, aguarde...' });
-      // loader.present();
+    } else {
+      if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
+        this.openGenderSelectionModal();
+      } else {
+        this.getNamesChunk();
+      }
     }
-    // if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
-    //   this.openGenderSelectionModal();
-    // } else {
-    //   this.getNamesChunk();
-    // }
   }
   async getNamesChunk(): Promise<void> {
     this.loadingNames = true;
@@ -117,23 +119,10 @@ export class NamesListPage {
       console.log('Não tinha pendencia pegar mais');
       try {
         this.choicesLimitReached = false;
-
-        const chosenNames = await this.authProvider.chosenNamesRef().ref.get();
-        console.log('Total chosen names', chosenNames.size);
-        if (chosenNames.size >= this.authProvider.maxChosenNames) {
-          this.choicesLimitReached = true;
-          const alert = this.alertController.create({
-            title: 'Máximo nomes',
-            message: 'Você atingiu o máximo de nomes que pode escolher. Você pode deletar alguns para abrir espaço para escrever mais',
-            buttons: ['Ok']
-          });
-          alert.present();
-          throw "Máximo de nomes escolhidos";
-        }
-        const names = await this.authProvider.getNamesToChoose(this.chunkSize, this.filterForm.value);
+        // const chosenNames = await this.authProvider.chosenNamesRef().ref.get();
+        const names = await this.authProvider.getNamesToChoose(this.filterForm.value);
         this.noMoreNames = names.size < 1;
         if (!this.noMoreNames) {
-          this.cards = [];
           names.forEach(name => {
             this.addNewCard({ ...name.data(), id: name.id });
           });
@@ -142,7 +131,6 @@ export class NamesListPage {
         if (error instanceof ChoicesLimitReached) {
           this.choicesLimitReached = true;
         }
-        console.log(error);
       } finally {
         this.loadingNames = false;
       }
@@ -158,8 +146,7 @@ export class NamesListPage {
   async voteUp(like: boolean): Promise<void> {
     try {
       const removedCard = this.cards.pop();
-      this.loadingNames = this.cards.length < 1;
-      await this.authProvider.choseName(removedCard, like);
+      this.authProvider.choseName(removedCard, like);
       if (this.cards.length < 1) {
         this.getNamesChunk();
       }

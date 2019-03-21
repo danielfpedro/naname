@@ -80,6 +80,7 @@
 
 <ion-footer [hidden]="slides.getActiveIndex() != 2">
   <ion-toolbar>
+
     <button ion-button block round (click)="skipAddPartner()">
       <span *ngIf="!authProvider.partner">Depois eu vejo isso, começar a usar</span>
       <span *ngIf="authProvider.partner">Tudo certo! começar a usar</span>

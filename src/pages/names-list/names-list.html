@@ -32,33 +32,38 @@
 <ion-content padding>
 
   <div class="content text-center">
-    <h1>Caching names, isso pode demorar um pouco mas é só uma vez. Por favor aguarde...</h1>
-    <div class="progress-container">
-      <div class="progress-bar" [style.width]="(authProvider.namesCacheProgress > 5 ? authProvider.namesCacheProgress : 5) + '%'"></div>
+    <div *ngIf="cachingNames && !loadingNames">
+      <h1>Caching names, isso pode demorar um pouco mas é só uma vez. Por favor aguarde...</h1>
+      <div class="progress-container">
+        <div class="progress-bar"
+          [style.width]="(authProvider.namesCacheProgress > 5 ? authProvider.namesCacheProgress : 5) + '%'"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- <div class="content text-center" *ngIf="choicesLimitReached && !loadingNames || noMoreNames">
-    <h1 class="margin-bottom-extra">Nós já mostramos todos os nomes disponíveis</h1>
-    <button block ion-button large round (click)="getNamesChunk()" name="primary">
-      Verificar nomes novos
-    </button>
-  </div> -->
 
-  <!-- <div class="content" *ngIf="loadingNames">
-    <div class="main-message">
+    <div class="main-message" *ngIf="loadingNames && !cachingNames && cards.length < 1">
       <img src="/assets/imgs/bebe.png">
       <p>Trazendo nomes, aguarde...</p>
     </div>
-  </div> -->
 
-  <div class="content" [hidden]="1 == 1">
-    <div class="content-wrap">
-      <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
-      <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p>
+    <div *ngIf="noMoreNames && !loadingNames && !cachingNames">
+      <h2>Não temos mais nomes para mostrar. Você pode alterar alguns filtros para que aparecam bla bla bla.</h2>
+    </div>
 
-      <div *ngIf="!noMoreNames && !loadingNames && !choicesLimitReached" swing-stack #myswing1
-        [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)" (throwoutright)="voteUp(true)" id="card-stack">
+    <div *ngIf="!loadingNames && !cachingNames && choicesLimitReached">
+      <h2>Você atingiu o maximo de nomes para escolher que é {{authProvider.choicesLimit}}. Você pode deletar alguns
+        nomes para continuar escolhendo aqui. =[ ô poxa poxa</h2>
+      <button ion-button (click)="getNamesChunk()">
+        Tentar novamente
+      </button>
+    </div>
+
+    <div class="content-wrap" [hidden]="loadingNames || cachingNames || cards.length < 1">
+      <!-- <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
+        <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p> -->
+
+      <div swing-stack #myswing1 [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)"
+        (throwoutright)="voteUp(true)" id="card-stack">
         <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index" [style.top]="(i * .5) + '%'">
           <h2>{{card.name}}</h2>
         </div>
@@ -72,6 +77,20 @@
         </button>
       </div>
     </div>
+
+  </div>
+
+  <!-- <div class="content text-center" *ngIf="choicesLimitReached && !loadingNames || noMoreNames">
+    <h1 class="margin-bottom-extra">Nós já mostramos todos os nomes disponíveis</h1>
+    <button block ion-button large round (click)="getNamesChunk()" name="primary">
+      Verificar nomes novos
+    </button>
+  </div> -->
+
+
+
+  <div class="content" [hidden]="1 == 1">
+
   </div>
 
 </ion-content>
