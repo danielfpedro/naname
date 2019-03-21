@@ -11,7 +11,7 @@ import firebase from "firebase/app";
 import { AlertController, App, Platform, ToastController } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
-import { mergeMap, map, take } from "rxjs/operators";
+import { mergeMap, map, take, delay } from "rxjs/operators";
 
 /*
   Generated class for the AuthProvider provider.
@@ -39,6 +39,12 @@ export class AuthProvider {
 
   watchFirebaseAuthState: Subject<boolean> = new Subject();
   initThingsIsDone: Subject<void> = new Subject();
+
+  // Names Cache
+  cacheNamesListen: Subject<void> = new Subject();
+  namesCacheTotal = 0;
+  namesCacheCurrent = 0;
+  namesCacheProgress = 0;
 
   authStateFirstCheck: boolean;
   partnerChange = new Subject();
@@ -441,6 +447,7 @@ export class AuthProvider {
         .doc(id)
         .delete();
     } catch (error) {
+      console.error(error);
       this.toast("Ocorreu um erro ao tentar desbloquear o parceiro");
     }
   }
@@ -505,20 +512,20 @@ export class AuthProvider {
       this.toast("Ocorreu um erro ao tentar remover o nome da sua lista de escolhas");
     }
   }
-  async cacheNamesIfNeeded() {
+  async allNames() {
     try {
-      const namesToCache = await this.afs
+      const names = await this.afs
         .collection("names", ref => {
           let query:
             | firebase.firestore.CollectionReference
             | firebase.firestore.Query = ref;
-          if (this.user.names_cache_last_check) {
-            query = query.where(
-              "created_at",
-              ">",
-              this.user.names_cache_last_check
-            );
-          }
+          // if (this.user.names_cache_last_check) {
+          //   query = query.where(
+          //     "created_at",
+          //     ">",
+          //     this.user.names_cache_last_check
+          //   );
+          // }
           // Somente aprovados
           query = query.where("aproved", "==", true);
           return query;
@@ -526,6 +533,65 @@ export class AuthProvider {
         .get()
         .toPromise();
 
+      const output = [];
+      names.docs.forEach(name => {
+        output.push(this.myUserRef().collection('namesCache').doc(name.id).set(name.data()));
+      });
+
+      console.log('Output', output);
+      console.log('Output length', output.length);
+      this.namesCacheTotal = output.length;
+      this.namesCacheCurrent = 0;
+      return output;
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  // async cacheNames() {
+  //   try {
+  //     const namesToCache = await this.afs
+  //       .collection("names", ref => {
+  //         let query:
+  //           | firebase.firestore.CollectionReference
+  //           | firebase.firestore.Query = ref;
+  //         if (this.user.names_cache_last_check) {
+  //           query = query.where(
+  //             "created_at",
+  //             ">",
+  //             this.user.names_cache_last_check
+  //           );
+  //         }
+  //         // Somente aprovados
+  //         query = query.where("aproved", "==", true);
+  //         return query;
+  //       })
+  //       .get()
+  //       .toPromise();
+
+  //     let namesToSavePromises = [];
+  //     namesToCache.forEach(name => {
+  //       namesToSavePromises.push(
+  //         this.getNamesCacheRef()
+  //           .doc(name.id)
+  //           .set({ ...name.data() }, { merge: true })
+  //       );
+  //     });
+
+  //     if (namesToSavePromises.length > 0) {
+  //       await Promise.all(namesToSavePromises);
+  //       await this.getMyUserRef().set(
+  //         { names_cache_last_check: new Date() },
+  //         { merge: true }
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
+  //   }
+  // }
+  async cacheNames(namesToCache) {
+    try {
       let namesToSavePromises = [];
       namesToCache.forEach(name => {
         namesToSavePromises.push(
@@ -547,11 +613,76 @@ export class AuthProvider {
       this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
     }
   }
-  async getNamesToChoose(limit: number, conditions = null) {
-    if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
-      this.alertChoicesReached();
-      throw new ChoicesLimitReached('bla');
+  async she() {
+    return await of('dummy').pipe(delay(500)).toPromise();
+  }
+  async tey(names) {
+
+    const limit = 20;
+    const chunk = _.chunk(names, limit);
+
+    if (chunk.length < 1) {
+      this.cacheNamesListen.complete();
+      return;
     }
+
+    let output = chunk.slice(0);
+    output.shift();
+    output = _.flatten(output);
+    
+    await Promise.all(chunk[0]);
+    this.namesCacheCurrent = this.namesCacheCurrent + chunk[0].length;
+    this.namesCacheProgress = parseInt(((100 * this.namesCacheCurrent) / this.namesCacheTotal).toFixed(0));
+
+    if (names.length > 0) {
+      console.log('Dentro do call de novo');
+      this.cacheNamesListen.next();
+      this.tey(output);
+    } else {
+      console.log('Completou');
+      this.cacheNamesListen.complete();
+    }
+  }
+
+  // async getNamesToChooseLocal(limit: number, conditions = null, namesInteractedIds) {
+
+  //   try {
+  //     const names = await this.http.get('/assets/names.json').toPromise();
+  //     let total = 0;
+  //     const limit = 2;
+  //     let namesFiltered = _.take(_.values(names)
+  //       .filter(value => {
+
+  //         if (namesInteractedIds.indexOf(value.id) > -1) {
+  //           return false;
+  //         }
+
+  //         if (this.user.gender) {
+  //           if (this.user.gender != value.gender) {
+  //             return false;
+  //           }
+  //         }
+  //         if (conditions && conditions.firstLetter) {
+  //           if (conditions.firstLetter == value.first_letter) {
+  //             return false;
+  //           }
+  //         }
+
+  //         total++;
+  //         return true;
+  //       }), 3);
+
+  //     console.log('Names', namesFiltered);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
+
+  async getNamesToChoose(limit: number, conditions = null) {
+    // if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
+    //   this.alertChoicesReached();
+    //   throw new ChoicesLimitReached('bla');
+    // }
     try {
       const namesRef = this.getMyUserRef().collection("namesCache", ref => {
         let query:
@@ -560,7 +691,7 @@ export class AuthProvider {
         if (this.user.gender) {
           query = query.where("gender", "==", this.user.gender);
         }
-        if (conditions.firstLetter) {
+        if (conditions && conditions.firstLetter) {
           query = query.where("first_letter", "==", conditions.firstLetter);
         }
         if (conditions.category) {
@@ -583,7 +714,7 @@ export class AuthProvider {
         // })
       ).toPromise();
     } catch (error) {
-      if (error !instanceof ChoicesLimitReached) {
+      if (error! instanceof ChoicesLimitReached) {
         this.toast('Ocorreu um erro ao carregar os nomes.');
       }
 
@@ -682,6 +813,13 @@ export class AuthProvider {
     }
   }
 
+  async isCacheNamesNeeded(): Promise<boolean> {
+    const response = await this.afs.collection('settings').doc('names').ref.get();
+    if (!this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
+      return true;
+    }
+    return false;
+  }
 }
 
 export class ChoicesLimitReached {

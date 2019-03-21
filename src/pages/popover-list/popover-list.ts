@@ -18,10 +18,11 @@ export class PopoverListPage {
   items: any;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private viewController: ViewController) {
+    this.items = this.navParams.get('items');
   }
 
   ionViewDidEnter() {
-    this.items = this.navParams.get('items');
+    
   }
 
   close(index) {

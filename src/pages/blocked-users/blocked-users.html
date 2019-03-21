@@ -25,12 +25,12 @@
   </div>
 
   <ion-list *ngFor="let user of blockedUsers">
-    <ion-item>
+    <button ion-item (click)="presentUnblockUserAlert(user)">
       <ion-avatar item-start>
         <img [src]="user.profilePhotoURL">
       </ion-avatar>
       <h2>{{user.name}}</h2>
       <p>{{user.email}}</p>
-    </ion-item>
+    </button>
   </ion-list>
 </ion-content>

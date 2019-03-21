@@ -197,4 +197,13 @@ export class ChosenListPage {
     const modal = this.modalController.create("AddNamePage");
     modal.present();
   }
+
+  swipeEvent(event) {
+    if (event.direction === 2) {
+      this.gender = 'f';
+    } else {
+      this.gender = 'm';
+    }
+  }
+
 }

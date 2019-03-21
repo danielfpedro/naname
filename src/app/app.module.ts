@@ -27,6 +27,8 @@ import { NamesProvider } from "../providers/names/names";
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { QRScanner } from "@ionic-native/qr-scanner";
 
+import { HttpClientModule } from '@angular/common/http';
+
 const firebaseConfig: FirebaseAppConfig = {
   apiKey: "AIzaSyAXpIzdLG-2o0CP4EBhfOEt3p2sdJbohBo",
   authDomain: "nenem-381db.firebaseapp.com",
@@ -45,6 +47,7 @@ const firebaseConfig: FirebaseAppConfig = {
     AngularFireAuthModule,
     AngularFirestoreModule,
     SwingModule,
+    HttpClientModule,
     IonicStorageModule.forRoot(),
     AngularFireModule.initializeApp(firebaseConfig)
   ],
@@ -66,4 +69,4 @@ const firebaseConfig: FirebaseAppConfig = {
     NamesProvider
   ]
 })
-export class AppModule {}
+export class AppModule { }

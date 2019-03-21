@@ -145,26 +145,7 @@ export class PartnerListPage {
     const alert = this.alertCtrl.create(alertOptions);
     alert.present();
   }
-  presentUnblockUserAlert(userToBeUnblocked): void {
-    const title = `<strong>Desbloquear</strong> ${userToBeUnblocked.name}?`;
-    const message = `Ao desbloquear, o usuário poderá te adicionar como parceiro novamente.`;
 
-    const alertOptions: AlertOptions = {
-      title,
-      message,
-      buttons: [
-        {
-          text: "Ok, quero desbloquear",
-          handler: () => {
-            this.unblockUser(userToBeUnblocked);
-          }
-        },
-        "Cancelar"
-      ]
-    };
-    const alert = this.alertCtrl.create(alertOptions);
-    alert.present();
-  }
   async removePartner(partner) {
     const loader = this.loaderCtrl.create({
       content: `Removendo ${this.authProvider.partner.name} (${
@@ -185,17 +166,6 @@ export class PartnerListPage {
     await this.authProvider.blockUser(partnerToBeBlocked);
     loader.dismiss();
   }
-  async unblockUser(userToBeUnblocked) {
-    const loader = this.loaderCtrl.create({
-      content: `Desbloqueando ${userToBeUnblocked.name} (${
-        userToBeUnblocked.email
-        })`
-    });
-    loader.present();
-    await this.authProvider.unblockUser(userToBeUnblocked.id);
-    loader.dismiss();
-  }
-
   async scanQrCode(): Promise<void> {
     const barcodeScanResult = await this.barcodeScanner
       .scan({

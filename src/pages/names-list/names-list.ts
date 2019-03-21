@@ -47,7 +47,6 @@ export class NamesListPage {
     public loadingController: LoadingController,
     private alertController: AlertController
   ) {
-
     this.filterForm = formBuilder.group({
       firstLetter: [''],
       category: [''],
@@ -90,26 +89,26 @@ export class NamesListPage {
     console.log('Unsubscribe filter form');
     this.filterFormSubscription.unsubscribe();
   }
-  async init(): Promise<void> {
-    this.loadingNames = true;
-    const loader = this.loadingController.create({ content: 'Baixando nomes, isso pode demorar um pouquinho, aguarde...' });
-    loader.present();
-    try {
-      await this.authProvider.cacheNamesIfNeeded();
-      // Atenção... só abre selecionar gender se for null... não ''... pois '' significa ambos e null
-      // significa que ele ainda não selecionou
-      if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
-        this.openGenderSelectionModal();
-      } else {
-        console.log('Get names chunk');
-        this.getNamesChunk();
-      }
-    } catch (error) {
 
-    } finally {
-      this.loadingNames = false;
-      loader.dismiss();
+  async init(): Promise<void> {
+    // this.authProvider.cacheNames().subscribe(() => {
+    //   console.log('Olar');
+    // });
+    const isNeeded = await this.authProvider.isCacheNamesNeeded();
+    if (isNeeded || 1 == 1) {
+      const allNames = await this.authProvider.allNames();
+      this.authProvider.cacheNamesListen.subscribe(() => {
+      });
+      this.authProvider.tey(allNames);
+      // this.cachingNames = true;
+      // const loader = this.loadingController.create({ content: 'Baixando nomes, isso pode demorar um pouquinho, aguarde...' });
+      // loader.present();
     }
+    // if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
+    //   this.openGenderSelectionModal();
+    // } else {
+    //   this.getNamesChunk();
+    // }
   }
   async getNamesChunk(): Promise<void> {
     this.loadingNames = true;
