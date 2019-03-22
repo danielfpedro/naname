@@ -43,20 +43,10 @@ export class VotesPage {
       this.voters = await this.authService.chosenNamesRef().doc(this.name.id).collection('votes')
         .snapshotChanges()
         .pipe(
-          mergeMap(votes => {
-            console.log('Votes', votes);
-            const promises = votes.map(vote => {
-              console.log('Vote inside mao', vote);
-              return this.afs.collection('users').doc(vote.payload.doc.id).ref.get();
-            });
-            console.log('Promises array', promises);
-            return Promise.all(promises);
-          }),
           map((res: any) => {
-            console.log('Inside res', res);
+            console.log('REF', res);
             return res.map(name => {
-              console.log('Inside map name', name.data());
-              return name.data();
+              return name.payload.doc.data();
             });
           }),
           take(1)
@@ -66,7 +56,7 @@ export class VotesPage {
       console.error(error);
     } finally {
       this.loading = false;
-      
+
     }
 
   }

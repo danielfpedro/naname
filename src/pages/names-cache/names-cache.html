@@ -1,0 +1,11 @@
+<ion-content padding>
+  <div class="content text-center">
+    <div>
+      <h1>Caching names, isso pode demorar um pouco mas é só uma vez. Por favor aguarde...</h1>
+      <div class="progress-container">
+        <div class="progress-bar"
+          [style.width]="(authProvider.namesCacheProgress > 5 ? authProvider.namesCacheProgress : 5) + '%'"></div>
+      </div>
+    </div>
+  </div>
+</ion-content>

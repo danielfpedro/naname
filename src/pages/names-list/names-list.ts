@@ -94,25 +94,22 @@ export class NamesListPage {
     console.log('Is needed?', isNeeded);
 
     if (isNeeded) {
-      const allNames = await this.authProvider.allNames();
-      this.cachingNames = true;
-      this.authProvider.cacheNamesListen.subscribe(() => {
-      },
-        error => { },
-        () => {
-          this.cachingNames = false;
-          this.init();
-        });
-      this.authProvider.tey(allNames);
-    } else {
-      if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
-        this.openGenderSelectionModal();
-      } else {
+      const modal = this.modalController.create('NamesCachePage');
+      modal.onDidDismiss(() => {
         this.getNamesChunk();
-      }
+      });
+      modal.present();
+    } else {
+      this.getNamesChunk();
     }
   }
   async getNamesChunk(): Promise<void> {
+
+    if (typeof this.authProvider.user.gender == 'undefined' || this.authProvider.user.gender === null) {
+      this.openGenderSelectionModal();
+      return;
+    }
+
     this.loadingNames = true;
     console.log('Get names chunk, pending coisas?', this.authProvider.namesListPendingInsterations);
     if (this.authProvider.namesListPendingInsterations === 0) {

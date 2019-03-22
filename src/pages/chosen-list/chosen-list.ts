@@ -25,7 +25,7 @@ export class ChosenListPage {
 
   @ViewChild(Content) content: Content;
 
-  poolBaseUrl = 'https://nenem-381db.firebaseapp.com/enquete';
+  poolBaseUrl = 'https://nenem-381db.firebaseapp.com/enquetes';
 
   term = "";
   gender = "";
@@ -52,13 +52,13 @@ export class ChosenListPage {
       .myUserRef()
       .snapshotChanges()
       .pipe(
-        mergeMap(user => {
+        switchMap(user => {
           return this.authProvider
             .chosenNamesRef()
             .snapshotChanges()
             .pipe(map(res => {
               return res.map(name => {
-                return name.payload.doc.data();
+                return { ...name.payload.doc.data(), id: name.payload.doc.id };
               });
             }));
         })
@@ -147,6 +147,7 @@ export class ChosenListPage {
   }
 
   async removeName(name) {
+    console.log('Name to send', name);
     const loader = this.loadingCtrl.create({
       content: "Removendo nome da sua lista, por favor aguarde..."
     });

@@ -355,11 +355,11 @@ export class AuthProvider {
       const promises = [];
       const userChosenNames = await this.myUserRef().collection('chosenNames').ref.get();
       userChosenNames.forEach(chosenName => {
-        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ owners: { [this.user.id]: true }, }, { merge: true }));
+        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.id]: true }, }, { merge: true }));
       });
       const targetChosenNames = await targetUserRef.collection('chosenNames').ref.get();
       targetChosenNames.forEach(chosenName => {
-        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ owners: { [this.user.partner_id]: true } }, { merge: true }));
+        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.partner_id]: true } }, { merge: true }));
       });
       await Promise.all(promises);
       // DONE!
@@ -467,8 +467,6 @@ export class AuthProvider {
     return this.getMyUserRef().collection("namesCache");
   }
   async choseName(name: any, like: boolean) {
-    console.log("ESCOLHI NOME");
-    console.log("LIKE?", like);
     this.namesListPendingInsterations += 1;
     try {
       if (like) {
@@ -640,7 +638,10 @@ export class AuthProvider {
     });
     console.log('Waitnig batch commit', chunk[0]);
     await batch.commit();
-    console.log('FOI!');
+
+
+    // this.waiting(5000);
+
     // console.log('Delay here... not doing nothing.. thats wwhat i think its happening lol');
     // await this.waiting(500);
     this.namesCacheCurrent = this.namesCacheCurrent + chunk[0].length;
@@ -759,32 +760,38 @@ export class AuthProvider {
     alert.present();
   }
 
-  async addCustomNameIfNeeded(name: string, gender: string) {
+  async addCustomNameIfNeeded(nameString: string, gender: string) {
     if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
       this.alertChoicesReached();
       return;
     }
     try {
-      name = this.sanitazeName(name);
+      nameString = this.sanitazeName(nameString);
       // Checo se o nome já existe
       const hasName = await this.afs
         .collection("names")
-        .ref.where("name", "==", name)
+        .ref.where("name", "==", nameString)
         .get();
+
+      let nameData = null;
       let nameId = null;
+
       // Se nao existe eu adiciono nos nomes como nao aprovados
       if (hasName.size < 1) {
         const newName = {
-          name: name,
+          name: nameString,
           gender: gender,
-          first_letter: name.charAt(0).toLowerCase(),
+          first_letter: nameString.charAt(0).toLowerCase(),
           aproved: false
         };
         const response = await this.afs.collection("names").add(newName);
+        nameData = newName;
         nameId = response.id;
         // Se existe eu simplesmente pego o id do que já existe
       } else {
-        nameId = hasName.docs[0].id;
+        const name = hasName.docs[0];
+        nameId = name.id;
+        nameData = name.data();
       }
 
       // GAMBIIII ALERT!!!!!!!!!!!
@@ -796,10 +803,9 @@ export class AuthProvider {
       // }
 
       // await this.afs.collection("names").doc(nameId).set({ id: nameId }, { merge: true });
-
       await this.chosenNamesRef()
         .doc(nameId)
-        .set({ id: nameId, owners: { [this.user.id]: true } }, { merge: true });
+        .set({ ...nameData, owners: { [this.user.id]: true } }, { merge: true });
       await this.myUserRef()
         .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
     } catch (error) {
@@ -828,7 +834,7 @@ export class AuthProvider {
 
   async isCacheNamesNeeded(): Promise<boolean> {
     const response = await this.afs.collection('settings').doc('names').ref.get();
-    if (typeof this.user.names_cache_last_update == 'undefined'|| !this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
+    if (typeof this.user.names_cache_last_update == 'undefined' || !this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
       return true;
     }
     return false;

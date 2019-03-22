@@ -45,13 +45,13 @@
     <!-- <ion-searchbar [(ngModel)]="term"></ion-searchbar> -->
     <ion-list no-lines>
       <ng-container *ngFor="
-      let name of (names | orderBy: 'votes':true | search: 'name':term:gender)">
+      let name of (names | orderBy: 'total_votes':true | search: 'name':term:gender)">
         <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
           <ion-item>
             {{ name.name }}
             <p>{{name.total_votes}} votos</p>
             <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
-              <ion-img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id"></ion-img>
+              <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id">
             </ion-avatar>
           </ion-item>
           <div class="progress-wrap">
