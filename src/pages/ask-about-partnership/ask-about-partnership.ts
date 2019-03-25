@@ -54,7 +54,7 @@ export class AskAboutPartnershipPage {
   ) { }
 
   ionViewDidEnter() {
-    this.storage.set('visited_first_settings', true);
+    this.storage.set(`visited_first_settings.${this.authProvider.user.id}`, true);
   }
   ionViewDidLoad() {
 

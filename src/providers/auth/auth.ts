@@ -2,7 +2,10 @@ import { Injectable } from "@angular/core";
 import { AngularFireAuth } from "@angular/fire/auth";
 import {
   AngularFirestore,
-  AngularFirestoreDocument
+  AngularFirestoreDocument,
+  AngularFirestoreCollection,
+  CollectionReference,
+  DocumentReference
 } from "@angular/fire/firestore";
 import { Facebook } from "@ionic-native/facebook";
 import { GooglePlus } from "@ionic-native/google-plus";
@@ -13,6 +16,7 @@ import * as _ from "lodash";
 import { of, Subject } from "rxjs";
 import { mergeMap, map, take, delay } from "rxjs/operators";
 import { NamesFiltersPage } from "../../pages/names-filters/names-filters";
+import { FirebaseFirestore } from "@angular/fire";
 
 /*
   Generated class for the AuthProvider provider.
@@ -277,8 +281,11 @@ export class AuthProvider {
     this.afAuth.auth.signOut();
   }
   // Refs
-  myUserRef() {
+  myUserRef(raw = false) {
     return this.afs.collection("users").doc(this.user.id);
+  }
+  myUserRawRef() {
+    return this.afs.firestore.collection("users").doc(this.user.id);
   }
   namesRef() {
     return this.afs.collection("names");
@@ -289,16 +296,35 @@ export class AuthProvider {
   blockedUsersRef() {
     return this.myUserRef().collection("blockedUsers");
   }
-  chosenNamesRef() {
+  chosenNamesRawRef(raw = false): CollectionReference {
+    if (this.user.partnership_id) {
+      return this.afs.firestore
+        .collection("partnerships")
+        .doc(this.user.partnership_id)
+        .collection("chosenNames");
+    } else {
+      return this.afs.firestore.collection('users').doc(this.user.id)
+        .collection("chosenNames");
+    }
+  }
+  chosenNamesRef(raw = false) {
     if (this.user.partnership_id) {
       return this.afs
         .collection("partnerships")
         .doc(this.user.partnership_id)
         .collection("chosenNames");
     } else {
-      return this.getMyUserRef()
+      return this.myUserRef(raw)
         .collection("chosenNames");
     }
+  }
+
+  firestoreRef(raw): FirebaseFirestore | AngularFirestore {
+    if (raw) {
+      return this.afs.firestore;
+    }
+
+    return this.afs;
   }
 
   // Partnership
@@ -461,26 +487,25 @@ export class AuthProvider {
     const toast = this.toastCtrl.create({ message, duration });
     toast.present();
   }
-
   // Names
   getNamesCacheRef() {
     return this.getMyUserRef().collection("namesCache");
   }
-  async choseName(name: any, like: boolean) {
+  async chooseName(name: any, like: boolean) {
     this.namesListPendingInsterations += 1;
     try {
+
+      let batch = this.afs.firestore.batch();
       if (like) {
-        await this.chosenNamesRef()
-          .doc(name.id)
-          .set({ ...name, owners: { [this.user.id]: true } }, { merge: true });
+        // Marco a escolha
+        batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
+        // Adiciono +1 na quantidade de escolhas que ele já fez
+        batch.set(this.myUserRawRef(), { total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
       }
-      console.log('Name to delete', name);
-      await this.myUserRef()
-        .collection("namesCache")
-        .doc(name.id)
-        .delete();
-      await this.myUserRef()
-        .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
+      // Delet o nome do cache dele
+      batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
+
+      await batch.commit();
     } catch (error) {
       console.error(error);
       this.toast('Ocorreu um erro ao tentar escolher o nome');
@@ -488,6 +513,30 @@ export class AuthProvider {
       this.namesListPendingInsterations -= 1;
     }
   }
+  // async choseName(name: any, like: boolean) {
+  //   this.namesListPendingInsterations += 1;
+  //   try {
+  //     if (like) {
+  //       // Salvando escolha
+  //       await this.chosenNamesRef()
+  //         .doc(name.id)
+  //         .set({ ...name, owners: { [this.user.id]: true } }, { merge: true });
+
+  //       await this.myUserRef()
+  //         .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
+  //     }
+  //     console.log('Name to delete', name);
+  //     await this.myUserRef()
+  //       .collection("namesCache")
+  //       .doc(name.id)
+  //       .delete();
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
+  //   } finally {
+  //     this.namesListPendingInsterations -= 1;
+  //   }
+  // }
   async removeChosenName(id: string) {
     console.log("Removendo nome", id);
     try {
@@ -548,72 +597,6 @@ export class AuthProvider {
       console.error(error);
     }
   }
-  // async cacheNames() {
-  //   try {
-  //     const namesToCache = await this.afs
-  //       .collection("names", ref => {
-  //         let query:
-  //           | firebase.firestore.CollectionReference
-  //           | firebase.firestore.Query = ref;
-  //         if (this.user.names_cache_last_check) {
-  //           query = query.where(
-  //             "created_at",
-  //             ">",
-  //             this.user.names_cache_last_check
-  //           );
-  //         }
-  //         // Somente aprovados
-  //         query = query.where("aproved", "==", true);
-  //         return query;
-  //       })
-  //       .get()
-  //       .toPromise();
-
-  //     let namesToSavePromises = [];
-  //     namesToCache.forEach(name => {
-  //       namesToSavePromises.push(
-  //         this.getNamesCacheRef()
-  //           .doc(name.id)
-  //           .set({ ...name.data() }, { merge: true })
-  //       );
-  //     });
-
-  //     if (namesToSavePromises.length > 0) {
-  //       await Promise.all(namesToSavePromises);
-  //       await this.getMyUserRef().set(
-  //         { names_cache_last_check: new Date() },
-  //         { merge: true }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
-  //   }
-  // }
-  // async cacheNames(namesToCache) {
-  //   try {
-  //     let namesToSavePromises = [];
-  //     namesToCache.forEach(name => {
-  //       namesToSavePromises.push(
-  //         this.getNamesCacheRef()
-  //           .doc(name.id)
-  //           .set({ ...name.data() }, { merge: true })
-  //       );
-  //     });
-
-  //     if (namesToSavePromises.length > 0) {
-  //       await Promise.all(namesToSavePromises);
-  //       await this.getMyUserRef().set(
-  //         { names_cache_last_check: new Date() },
-  //         { merge: true }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     this.toast('Ocorreu um erro ao fazer o cache dos nomes.');
-  //   }
-  // }
-
   async waiting(waitTime: number): Promise<void> {
     return await of(null).pipe(delay(waitTime)).toPromise();
   }
@@ -650,41 +633,6 @@ export class AuthProvider {
     this.cacheNamesListen.next();
     this.tey(output);
   }
-
-  // async getNamesToChooseLocal(limit: number, conditions = null, namesInteractedIds) {
-
-  //   try {
-  //     const names = await this.http.get('/assets/names.json').toPromise();
-  //     let total = 0;
-  //     const limit = 2;
-  //     let namesFiltered = _.take(_.values(names)
-  //       .filter(value => {
-
-  //         if (namesInteractedIds.indexOf(value.id) > -1) {
-  //           return false;
-  //         }
-
-  //         if (this.user.gender) {
-  //           if (this.user.gender != value.gender) {
-  //             return false;
-  //           }
-  //         }
-  //         if (conditions && conditions.firstLetter) {
-  //           if (conditions.firstLetter == value.first_letter) {
-  //             return false;
-  //           }
-  //         }
-
-  //         total++;
-  //         return true;
-  //       }), 3);
-
-  //     console.log('Names', namesFiltered);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-
   isChoicesLimitReached(): boolean {
     return (parseInt(this.user.total_choices || 0) >= this.choicesLimit);
   }

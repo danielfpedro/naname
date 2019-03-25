@@ -69,10 +69,13 @@ export class MyApp {
     if (activeView === this.initialSettingsPage) {
       return;
     }
-    
+
     let desiredRef = ref;
 
-    const visitedFirstSettingsResponse = await this.storage.get('visited_first_settings');
+    let visitedFirstSettingsResponse = null;
+    if (this.authProvider.user) {
+      visitedFirstSettingsResponse = await this.storage.get(`visited_first_settings.${this.authProvider.user.id}`)
+    }
     console.log('Visited first settings response', visitedFirstSettingsResponse);
     if (visitedFirstSettingsResponse && ref == this.initialSettingsPage) {
       desiredRef = this.tabsPage;

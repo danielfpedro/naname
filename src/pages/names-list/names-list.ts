@@ -143,7 +143,7 @@ export class NamesListPage {
   async voteUp(like: boolean): Promise<void> {
     try {
       const removedCard = this.cards.pop();
-      this.authProvider.choseName(removedCard, like);
+      this.authProvider.chooseName(removedCard, like);
       if (this.cards.length < 1) {
         this.getNamesChunk();
       }
