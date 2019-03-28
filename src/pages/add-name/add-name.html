@@ -1,15 +1,15 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="light">
     <ion-title>Adicionar nome</ion-title>
-    <ion-buttons start>
+    <ion-buttons left>
       <button ion-button (click)="dismiss()">
-        Fechar
+        <ion-icon name="arrow-round-back"></ion-icon>
       </button>
     </ion-buttons>
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content>
   <ion-list>
     <ion-item>
       <ion-label>Nome</ion-label>
@@ -25,5 +25,7 @@
     </ion-item>
   </ion-list>
 
-  <button ion-button block large round (click)="addName()" [disabled]="!name || !gender">Adicionar</button>
+  <div padding>
+    <button ion-button icon-start block round large (click)="addName()" [disabled]="!name || !gender"><ion-icon name="checkmark"></ion-icon> Adicionar</button>
+  </div>
 </ion-content>

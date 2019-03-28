@@ -62,7 +62,7 @@ export class AuthProvider {
    * Pedung names list interatinons
    */
   namesListPendingInsterations = 0;
-  namesChunkSize = 15;
+  namesChunkSize = 10;
 
   constructor(
     private platform: Platform,

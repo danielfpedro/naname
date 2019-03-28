@@ -1,6 +1,7 @@
 <ion-header>
   <ion-navbar>
-    <ion-buttons start>
+    <ion-title>Filtros</ion-title>
+    <ion-buttons right>
       <button ion-button (click)="dismiss(true)">
         Cancelar
       </button>
@@ -27,8 +28,8 @@
       </ion-item>
     </ion-list>
     <div padding>
-      <button ion-button large round block (click)="dismiss(false)">
-        Aplicar filtro
+      <button ion-button large round block icon-start (click)="dismiss(false)">
+        <ion-icon name="checkmark"></ion-icon> Aplicar filtro
       </button>
     </div>
   </form>

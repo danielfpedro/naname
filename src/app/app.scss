@@ -27,7 +27,16 @@
 //   font-size: 1.2em;
 // }
 
-[cute] {
+@font-face {
+  font-family: Cocogoose;
+  src: url(../assets/fonts/Cocogoose-Pro-trial.ttf);
+  // font-weight: 200;
+}
+@font-face {
+  font-family: FunnyandCute;
+  src: url(../assets/fonts/FredokaOne-Regular.ttf);
+}
+ionic [cute] {
   font-weight: bold;
   font-size: 1.6em;
 }
@@ -67,31 +76,32 @@ button[fat] {
   font-size: 2.2em;
 }
 
-$img-loader-size: 60px;
-.main-message {
-  text-align: center;
-  // background-color: #466d54;
-  width: 100%;
-}
-.main-message p {
-  color: map-get($colors, primary);
-  font-weight: bold;
-  font-size: 1.8em;
-}
-.main-message img {
-  width: $img-loader-size;
-  animation: pulse 3s infinite;
-  margin-bottom: -15px;
-}
+$img-loader-size: 80px;
+// .main-message {
+//   text-align: center;
+//   // background-color: #466d54;
+//   width: 100%;
+// }
+// .main-message p {
+//   color: map-get($colors, primary);
+//   font-weight: bold;
+//   font-size: 1.8em;
+// }
+// .main-message img {
+//   width: $img-loader-size;
 
-.pulse {
+//   margin-bottom: -15px;
+// }
+
+.naname-loader {
   width: $img-loader-size;
-  height: $img-loader-size;
+
+  animation: teeter 4s infinite ease;
   // padding-bottom: 40px;
   // border-radius: 50%;
   // background: #cca92c;
 }
-@keyframes pulse {
+@keyframes teeter {
   0% {
     transform: rotate(-10deg);
   }
@@ -110,6 +120,7 @@ $img-loader-size: 60px;
   background-color: $progress-bgcolor;
   border-radius: $progress-border-radius;
   display: inline-block;
+  background-color: #f8f8f8;
 }
 .progress-bar {
   background-color: $progress-bar-color;
@@ -120,11 +131,12 @@ $img-loader-size: 60px;
   transition: width 1.5s;
 }
 
-.content {
+.content-bimbo {
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 20px;
 }
 
 // GHOST
@@ -162,6 +174,10 @@ $img-loader-size: 60px;
   width: 100%;
 }
 
+p {
+  color: rgba(60, 60, 60, 0.7);
+  font-weight: 200;
+}
 // HEADER
 h1,
 h2,
@@ -169,16 +185,19 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: bold;
+  padding: 0 !important;
+  font-weight: 200;
+  color: rgba(60, 60, 60, 0.7);
 }
 h1 {
-  font-size: 2em;
+  font-size: 1.8em;
+  color: color($colors, primary);
 }
 h2 {
   font-size: 1.4em;
 }
 h3 {
-  font-size: 0.9em;
+  font-size: 1.2em;
 }
 // Cards
 .naname-card {
@@ -203,6 +222,12 @@ h3 {
 }
 
 // Helpers
+.margin-top {
+  margin-top: $margin;
+}
+.margin-top-extra {
+  margin-top: $margin-extra;
+}
 .margin-bottom {
   margin-bottom: $margin;
 }
@@ -218,4 +243,65 @@ h3 {
 
 button[large] {
   font-size: 1.2em;
+}
+
+.content {
+  // background-image: url(/assets/imgs/bg.jpg);
+  // background-size: 100% auto;
+  // background-repeat: no-repeat;
+}
+
+.font-color-primary {
+  color: color($colors, primary) !important;
+}
+
+.my-title {
+  margin: $margin 0;
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  color: color($colors, primary);
+}
+
+.button-choose {
+  height: 70px;
+  width: 35px;
+  border-radius: 100%;
+  font-size: 2.3em;
+}
+
+.naname-image-header {
+  width: 90px;
+}
+.naname-loader {
+  width: 80px;
+}
+
+h1.color-primary {
+  color: color($colors, primary) !important;
+}
+.baby-message {
+  width: 70px;
+  margin-bottom: -15px;
+}
+
+.btn-chose-gender {
+}
+.btn-boy-chick {
+  background-image:  url(/assets/imgs/boy.png), url(/assets/imgs/chick.png);
+  background-position: left -1px, right -8px;
+  background-repeat: no-repeat, no-repeat;
+  background-size: 90px, 90px;
+}
+.btn-boy {
+  background-image: url(/assets/imgs/boy.png);
+  background-position: left -1px;
+  background-repeat: no-repeat;
+  background-size: 90px;
+}
+.btn-chick {
+  background-image: url(/assets/imgs/chick.png);
+  background-position: 8px -8px;
+  background-repeat: no-repeat;
+  background-size: 90px;
 }

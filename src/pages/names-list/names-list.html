@@ -4,70 +4,84 @@
   See http://ionicframework.com/docs/components/#navigation for more info on
   Ionic pages and navigation.
 -->
-<ion-header no-border>
+<ion-header>
 
-  <ion-navbar color="secondary">
+  <ion-navbar color="nename" mode="ios">
+    <ion-title mode="ios">
+      <img src="/assets/imgs/logo.png" width="128">
+    </ion-title>
+
     <ion-buttons left>
-      <button ion-button color="primary" icon-start (click)="openGenderSelectionModal()">
-        <ion-icon name="settings"></ion-icon> {{authProvider.getGenderLabel()}}
+      <button ion-button color="primary" icon-only (click)="openGenderSelectionModal()">
+        <ion-icon name="settings"></ion-icon>
       </button>
     </ion-buttons>
-
-    <ion-buttons end>
-      <button ion-button color="primary" (click)="openFiltersModal()">
-        Filtros
+    <ion-buttons right>
+      <button ion-button color="primary" icon-only (click)="openFiltersModal()">
+        <ion-icon name="funnel"></ion-icon>
         <span *ngIf="filterFormTotalTouchedControls > 0">
-          &nbsp;&nbsp;
-          <ion-badge color="danger">
+          &nbsp;
+          <ion-badge color="naname-danger">
             {{ filterFormTotalTouchedControls }}
           </ion-badge>
         </span>
       </button>
     </ion-buttons>
+
+    <!-- <ion-buttons end>
+
+    </ion-buttons>
+    -->
+
   </ion-navbar>
 
 </ion-header>
 
 
-<ion-content padding>
+<ion-content>
 
-  <div class="content text-center">
+  <div class="content-bimbo" text-center>
 
-    <div class="main-message" *ngIf="loadingNames && cards.length < 1">
-      <img src="/assets/imgs/bebe.png">
-      <p>Trazendo nomes, aguarde...</p>
+    <div *ngIf="loadingNames">
+      <img src="/assets/imgs/bebe.png" class="naname-loader">
+      <h1 class="color-primary">Trazendo nomes, aguarde...</h1>
     </div>
 
-    <div *ngIf="noMoreNames && !loadingNames ">
-      <h2>Não temos mais nomes para mostrar. Você pode alterar alguns filtros para que aparecam bla bla bla.</h2>
-      <button ion-button (click)="getNamesChunk()">
-        Ver se tem novidade
-      </button>
+    <div *ngIf="noMoreNames && !loadingNames">
+      <img src="/assets/imgs/baby_deu_ruim.png" class="baby-message">
+      <h2>Você já interagiu por todos os nomes que tinhamos para mostrar.</h2>
+      <h2 *ngIf="filterFormTotalTouchedControls > 0">Como você tem alguns filtros selecionados, pode ser que tenham mais
+        nomes se você alterar algum deles.</h2>
     </div>
 
     <div *ngIf="!loadingNames && choicesLimitReached">
-      <h2>Você atingiu o maximo de nomes para escolher que é {{authProvider.choicesLimit}}. Você pode deletar alguns
-        nomes para continuar escolhendo aqui. =[ ô poxa poxa</h2>
-      <button ion-button (click)="getNamesChunk()">
-        Tentar novamente
+      <img src="/assets/imgs/baby_deu_ruim.png" class="baby-message">
+      <h2>Você atingiu o máximo de nomes para escolher</h2>
+      <h3>É possível ir nos nomes escolhidos e deletar alguns para liberar espaço para escolher mais.</h3>
+      <button ion-button large round (click)="getNamesChunk()" class="margin-top-extra">
+        Carregar mais nomes
       </button>
     </div>
 
-    <div class="content-wrap" [hidden]="loadingNames || cards.length < 1">
+    <div class="" [hidden]="loadingNames || cards.length < 1">
       <!-- <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
         <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p> -->
 
       <div swing-stack #myswing1 [stackConfig]="stackConfig" (throwoutleft)="voteUp(false)"
         (throwoutright)="voteUp(true)" id="card-stack">
-        <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index" [style.top]="(i * .5) + '%'">
+
+        <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index"
+          [style.bottom]="-card.margin + 'px'" [style.opacity]="1 + (((i + 1) - cards.length) / 10)">
           <h2>{{card.name}}</h2>
         </div>
       </div>
+
       <div class="text-center">
-        <button type="button" button-cards-action negative (click)="voteUp(false)">
+        <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false)">
           <ion-icon name="close"></ion-icon>
         </button>
-        <button type="button" button-cards-action positive style="margin-left: 60px;" (click)="voteUp(true)">
+        <button ion-button color="naname-positive" class="button-choose" style="margin-left: 60px"
+          (click)="voteUp(true)">
           <ion-icon name="heart"></ion-icon>
         </button>
       </div>

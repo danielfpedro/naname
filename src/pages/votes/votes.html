@@ -1,9 +1,11 @@
 <ion-header>
-  <ion-navbar>
-    <ion-title>{{name?.name}}</ion-title>
-    <ion-buttons start>
-      <button ion-button (click)="dismiss()">
-        Fechar
+  <ion-navbar color="light">
+    <ion-title>
+      <span>{{name?.name}}</span>
+    </ion-title>
+    <ion-buttons left>
+      <button ion-button icon-start (click)="dismiss()">
+        <ion-icon name="arrow-round-back"></ion-icon>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -11,9 +13,10 @@
 
 <ion-content>
 
-  <div style="text-align: center;" padding *ngIf="voters.length > 0 && !loading">
-    <h1>{{name?.total_votes}} | {{name?.porcentage}}</h1>
+  <div class="my-title" *ngIf="voters.length > 0 && !loading">
+    {{name?.total_votes}} Voto<span *ngIf="name?.total_votes > 1">s</span>
   </div>
+
 
   <div *ngIf="loading" padding>
     <div *ngFor="let item of [1,2]">

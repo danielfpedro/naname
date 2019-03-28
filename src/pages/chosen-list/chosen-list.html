@@ -1,11 +1,13 @@
-<ion-header no-border>
-  <ion-navbar color="secondary">
-    <ion-title>Naname</ion-title>
+<ion-header>
+  <ion-navbar color="nename" mode="ios">
+    <ion-title mode="ios">
+      <img src="/assets/imgs/logo.png" width="116">
+    </ion-title>
     <ion-buttons end>
       <!-- <button ion-button icon-only (click)="openAddName()">
             <ion-icon name="search"></ion-icon>
           </button> -->
-      <button ion-button icon-only (click)="openAddName()">
+      <button ion-button icon-only color="dark" (click)="openAddName()">
         <ion-icon name="add"></ion-icon>
       </button>
     </ion-buttons>
@@ -13,20 +15,22 @@
 </ion-header>
 
 <ion-content>
-  <ion-segment [(ngModel)]="gender" *ngIf="hasMultiGender">
-    <ion-segment-button value="m">
-      Masculino
-    </ion-segment-button>
-    <ion-segment-button value="f">
-      Feminimo
-    </ion-segment-button>
-  </ion-segment>
+  <div padding *ngIf="hasMultiGender">
+    <ion-segment [(ngModel)]="gender"  mode="ios">
+      <ion-segment-button value="m">
+        Masculino
+      </ion-segment-button>
+      <ion-segment-button value="f">
+        Feminimo
+      </ion-segment-button>
+    </ion-segment>
 
-  <div class="content" *ngIf="names.length < 1 && !loadingChoices">
-    <div class="main-message">
-      <p>
-        Você ainda não escolheu nenhum nome, tenta lá.
-      </p>
+    <div class="content" *ngIf="names.length < 1 && !loadingChoices">
+      <div class="main-message">
+        <p>
+          Você ainda não escolheu nenhum nome, tenta lá.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -45,11 +49,11 @@
     <!-- <ion-searchbar [(ngModel)]="term"></ion-searchbar> -->
     <ion-list no-lines>
       <ng-container *ngFor="
-      let name of (names | orderBy: 'total_votes':true | search: 'name':term:gender)">
+      let name of (names | orderBy: 'total_votes':false | search: 'name':term:gender)">
         <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
           <ion-item>
             {{ name.name }}
-            <p>{{name.total_votes}} votos</p>
+            <!-- <p>{{name.total_votes}} votos</p> -->
             <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
               <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id">
             </ion-avatar>

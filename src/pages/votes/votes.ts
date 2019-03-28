@@ -28,12 +28,11 @@ export class VotesPage {
     public authService: AuthProvider,
     public afs: AngularFirestore,
     public viewController: ViewController) {
+    this.name = this.navParams.get('name');
   }
 
   ionViewDidEnter() {
-    console.log('LOADING?', this.loading);
     this.loading = true;
-    this.name = this.navParams.get('name');
     this.loadVoters();
   }
 

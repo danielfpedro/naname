@@ -120,9 +120,14 @@ export class NamesListPage {
         const names = await this.authProvider.getNamesToChoose(this.filterForm.value);
         this.noMoreNames = names.size < 1;
         if (!this.noMoreNames) {
+          const margin = 4;
+          let currentMargin = margin;
           names.forEach(name => {
-            this.addNewCard({ ...name.data(), id: name.id });
+            this.addNewCard({ ...name.data(), id: name.id, margin: currentMargin });
+            currentMargin += margin;
           });
+          this.cards = this.cards.reverse();
+          console.log('CARDS', this.cards);
         }
       } catch (error) {
         if (error instanceof ChoicesLimitReached) {

@@ -27,28 +27,60 @@ $app-direction: ltr;
 // colors so you can add, rename and remove colors as needed.
 // The "primary" color is the only required color in the map.
 
+// secondary: #51e9d2,
 $colors: (
-  primary: #395693,
-  secondary: #FFFF,
-  danger: #f53d3d,
-  light: #f4f4f4,
+  primary: #20c1f7,
+  secondary: #b0e7bc,
+  danger: #ffc6c6,
+  light: #fff,
   dark: #222,
   yellow: #fcfdcd,
-  green: #378d58,
   blue: #cff1fb,
   pink: #ffdbdb,
   purple: #d1d1f9,
   facebook: #395693,
   google: #d64937,
+  nename: (
+    base: #fff,
+    contrast: #222
+  ),
+  naname-primary: (
+    base: #6cdcdf,
+    contrast: #fff
+  ),
+  naname-secondary: (
+    base: #a9e185,
+    contrast: #3e542f
+  ),
+  naname-danger: (
+    base: #e75555,
+    contrast: #fff
+  ),
+  naname-warning: (
+    base: #f4df62,
+    contrast: #635d3c
+  ),
+  naname-chick: (
+    base: #f47cbf,
+    contrast: #502d41
+  ),
+  naname-positive: (
+    base: #a9e185,
+    contrast: #fff
+  ),
+  naname-negative: (
+    base: #e75555,
+    contrast: #fff
+  ),
 );
 $darken-amount: 5%;
 
-$text-color: #757575;
+$text-color: map-get($colors, dark);
 
 // PROGRESS
 $progress-height: 15px;
 $progress-bgcolor: map-get($colors, light);
-$progress-bar-color: map-get($colors, green);
+$progress-bar-color: map-get($colors, secondary);
 $progress-border-radius: 20px;
 
 // App iOS Variables
@@ -70,21 +102,30 @@ $progress-border-radius: 20px;
 // so that the above variables are used and Ionic's
 // default are overridden.
 
-$tabs-md-tab-font-size: 15px;
-$tabs-ios-tab-font-size: 15px;
+$font-family-md-base: "FunnyandCute";
+$font-family-ios-base: "FunnyandCute";
 
-$item-md-font-size: 1.5em;
-$item-ios-font-size: 1.5em;
+$toolbar-ios-height: 56px;
+$button-md-large-font-size: 16px;
+$button-md-large-padding: 60px;
+
+// Tabs
+$tabs-md-tab-font-size: 0.8em;
+$tabs-ios-tab-font-size: 0.8em;
+
+$tabs-md-tab-icon-size: 1.7em;
+
+$item-md-font-size: 1.3em;
+$item-ios-font-size: 1.3em;
 
 $margin: 15px;
 $margin-extra: $margin * 2;
 
 /** GHOST **/
-$ghost-color: #EEE;
+$ghost-color: #eee;
 $ghost-margin: 10px;
 $ghost-md-height: 20px;
 $ghost-md-width: 160px;
-
 
 @import "ionic.theme.default";
 
