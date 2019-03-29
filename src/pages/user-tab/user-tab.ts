@@ -35,7 +35,11 @@ export class UserTabPage {
   }
 
   ionViewDidEnter() {
-    
+
+  }
+
+  goToUserSettings() {
+    this.navController.push('UserSettingsPage');
   }
 
 }

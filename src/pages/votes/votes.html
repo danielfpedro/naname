@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar color="light">
+  <ion-navbar color="nename">
     <ion-title>
       <span>{{name?.name}}</span>
     </ion-title>
@@ -39,7 +39,8 @@
     </ion-item>
   </ion-list>
 
-  <div class="main-message" *ngIf="voters.length < 1 && !loading" padding>
-    <p>Ninguem votou ainda, =[</p>
+  <div class="content-bimbo nename-content-center text-center" *ngIf="voters.length < 1 && !loading">
+    <img src="/assets/imgs/baby-pistola.png" class="naname-image-header">
+    <h1>Este nome ainda não tem nenhum voto</h1>
   </div>
 </ion-content>

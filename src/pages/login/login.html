@@ -1,27 +1,29 @@
 <ion-content>
-  <div class="content">
+  <div class="content-bimbo">
 
     <div class="slides-content">
-      <ion-slides pager>
-        <ion-slide style="background-color: #CFF1FB" padding>
-          <h3>Aqui explicamos que ele arrasta para escolher os nomes</h3>
-        </ion-slide>
-        <ion-slide style="background-color: #FFDBDB" padding>
-          <h3>Aqui explicamos que com os nomes escolhidos ele pode compartilhar o link da enquete dele para os parças
-            votarem</h3>
-        </ion-slide>
-        <ion-slide style="background-color: #CFF1FB" padding>
-          <h3>Aqui explicamos que ele pode conectar no parceiro e escolher junto</h3>
-        </ion-slide>
-      </ion-slides>
+      <div class="xander">
+        <ion-slides pager>
+          <ion-slide style="background-color: #CFF1FB" padding>
+            <h3>Aqui explicamos que ele arrasta para escolher os nomes</h3>
+          </ion-slide>
+          <ion-slide style="background-color: #FFDBDB" padding>
+            <h3>Aqui explicamos que com os nomes escolhidos ele pode compartilhar o link da enquete dele para os parças
+              votarem</h3>
+          </ion-slide>
+          <ion-slide style="background-color: #CFF1FB" padding>
+            <h3>Aqui explicamos que ele pode conectar no parceiro e escolher junto</h3>
+          </ion-slide>
+        </ion-slides>
+      </div>
     </div>
 
     <div class="buttons-content">
-      <button ion-button icon-start round block large color="facebook" (click)="signIn('facebook')"
+      <button ion-button icon-start round block large color="naname-facebook" (click)="signIn('facebook')"
         class="margin-bottom">
         <ion-icon name="logo-facebook"></ion-icon> Entrar com Facebook
       </button>
-      <button ion-button icon-start round color="light" block large (click)="signIn('google')">
+      <button ion-button icon-start round color="naname-google" block large (click)="signIn('google')">
         <ion-icon name="logo-google"></ion-icon> Entrar com Google
       </button>
     </div>

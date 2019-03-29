@@ -27,6 +27,14 @@
 //   font-size: 1.2em;
 // }
 
+.content {
+  background-image: url(../assets/imgs/bg.png), url(../assets/imgs/bg2.jpg);
+  background-size: 100% auto, auto 100%;
+}
+.item {
+  background: none!important;
+}
+
 @font-face {
   font-family: Cocogoose;
   src: url(../assets/fonts/Cocogoose-Pro-trial.ttf);
@@ -190,7 +198,7 @@ h6 {
   color: rgba(60, 60, 60, 0.7);
 }
 h1 {
-  font-size: 1.8em;
+  font-size: 2.2em;
   color: color($colors, primary);
 }
 h2 {
@@ -207,9 +215,11 @@ h3 {
   margin: 10px 0;
   padding: 10px 5px;
   // h,v,r,s
-  -webkit-box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
-  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);
+  // -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.1);
+  // -moz-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.1);
+  // box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.1);
+
+  border-radius: $border-radius;
 }
 .naname-card-centered-content {
   text-align: center;
@@ -222,33 +232,19 @@ h3 {
 }
 
 // Helpers
-.margin-top {
-  margin-top: $margin;
+$sides: (left, top, right, bottom);
+@each $side in $sides {
+  .margin-#{$side} {
+    margin-#{$side}: $margin;
+  }
 }
-.margin-top-extra {
-  margin-top: $margin-extra;
-}
-.margin-bottom {
-  margin-bottom: $margin;
-}
-.margin-bottom-extra {
-  margin-bottom: $margin-extra;
-}
-.margin-left {
-  margin-left: $margin;
-}
+
 .text-center {
   text-align: center;
 }
 
 button[large] {
   font-size: 1.2em;
-}
-
-.content {
-  // background-image: url(/assets/imgs/bg.jpg);
-  // background-size: 100% auto;
-  // background-repeat: no-repeat;
 }
 
 .font-color-primary {
@@ -271,7 +267,7 @@ button[large] {
 }
 
 .naname-image-header {
-  width: 90px;
+  width: 120px;
 }
 .naname-loader {
   width: 80px;
@@ -288,7 +284,7 @@ h1.color-primary {
 .btn-chose-gender {
 }
 .btn-boy-chick {
-  background-image:  url(/assets/imgs/boy.png), url(/assets/imgs/chick.png);
+  background-image: url(/assets/imgs/boy.png), url(/assets/imgs/chick.png);
   background-position: left -1px, right -8px;
   background-repeat: no-repeat, no-repeat;
   background-size: 90px, 90px;
@@ -304,4 +300,33 @@ h1.color-primary {
   background-position: 8px -8px;
   background-repeat: no-repeat;
   background-size: 90px;
+}
+.naname-avatar-big {
+  width: 110px;
+  height: 110px;
+  border-radius: 140px;
+  border: 6px solid color($colors, primary);
+}
+
+.naname-or {
+  background-color: color($colors, naname-danger, base);
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 60px;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+.nename-content-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nename-img-loader-ionic {
+  animation: teeter 4s infinite ease;
+  width: 60px;
 }

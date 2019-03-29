@@ -87,7 +87,7 @@ export class NamesListPage {
   }
 
   async init(): Promise<void> {
-    const loader = this.loadingController.create({ content: 'Carregando, aguarde...' });
+    const loader = this.authProvider.customLoading();
     loader.present();
     const isNeeded = await this.authProvider.isCacheNamesNeeded();
     loader.dismiss();

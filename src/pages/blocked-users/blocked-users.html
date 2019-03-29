@@ -1,11 +1,11 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="nename">
     <ion-title>
       Usuários bloqueados
     </ion-title>
-    <ion-buttons start>
-      <button ion-button (click)="close()">
-        Fechar
+    <ion-buttons left>
+      <button ion-button icon-start (click)="close()">
+        <ion-icon name="arrow-round-back"></ion-icon>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -13,14 +13,15 @@
 
 <ion-content>
 
-  <div class="container" *ngIf="!loading && blockedUsers < 1">
+  <div class="content-bimbo nename-content-center text-center" *ngIf="!loading && blockedUsers < 1">
+    <img src="/assets/imgs/baby-holaquetal.png" class="naname-image-header">
     <h1>Você não bloqueou ninguém =]</h1>
   </div>
 
   <div *ngIf="loading">
     <div class="ghost-container">
-        <div class="ghost-avatar ghost-margin-right"></div>
-        <div class="ghost-line-md"></div>
+      <div class="ghost-avatar ghost-margin-right"></div>
+      <div class="ghost-line-md"></div>
     </div>
   </div>
 

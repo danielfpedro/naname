@@ -72,8 +72,17 @@ $colors: (
     base: #e75555,
     contrast: #fff
   ),
+  naname-google: (
+    base: #fff,
+    contrast: #d64937
+  ),
+  naname-facebook: (
+    base: #fff,
+    contrast: #395693
+  )
 );
 $darken-amount: 5%;
+$border-radius: 20px;
 
 $text-color: map-get($colors, dark);
 
@@ -120,6 +129,9 @@ $item-ios-font-size: 1.3em;
 
 $margin: 15px;
 $margin-extra: $margin * 2;
+
+// Loader
+$loading-md-border-radius: $border-radius;
 
 /** GHOST **/
 $ghost-color: #eee;

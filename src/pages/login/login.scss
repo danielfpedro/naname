@@ -1,23 +1,30 @@
 page-login {
-  .content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    // width: 100%;
-  }
   .slides-content {
     width: 100%;
-    
+
     // display: flex;
     // flex-direction: column;
     // width: 100%;
     flex: 1;
+    background-color: green;
+    display: flex;
+    align-items: stretch;
   }
-  [ion-slide]{
-    width: 100%;
+  [ion-slides] {
+    // height: 100%;
+    // background-color: pink;
+  }
+  [ion-slide] {
+    // height: 100%;
+    // width: 100%;
+    background-color: yellow;
   }
   .buttons-content {
     padding: 25px 15px;
+  }
+  .xander {
+    height: 100%;
+    background-color: peru;
   }
   // .buttons-content button {
   //   margin-bottom: 10px;

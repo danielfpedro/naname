@@ -5,8 +5,8 @@
   Ionic pages and navigation.
 -->
 <ion-header>
-  <ion-navbar>
-    <ion-title>Configurar parceiro</ion-title>
+  <ion-navbar color="nename">
+    <ion-title>Configurações do parceiro</ion-title>
     <ion-buttons end>
       <button ion-button icon-only (click)="presentPopover($event)">
         <ion-icon name="more"></ion-icon>
@@ -16,93 +16,39 @@
 </ion-header>
 
 <ion-content>
-  <div class="content" *ngIf="authProvider.user.partner_id">
-    <div class="content-child text-center" padding>
+  <div class="content-bimbo" *ngIf="authProvider.user.partner_id">
+    <div class="content-child text-center">
       <h1>Vocês estão conectados</h1>
-      <h2>Agora os nomes que ambos escolherem estão unificados</h2>
+      <h3>Agora os nomes que vocês escolherem serão unificados.</h3>
 
-      <div>
-        <img [src]="authProvider.user?.profilePhotoURL" class="avatar" />
-        <img [src]="authProvider.partner?.profilePhotoURL" class="avatar margin-left" />
+      <div class="margin-top-extra">
+        <img [src]="authProvider.user?.profilePhotoURL" class="naname-avatar-big" />
+        <img [src]="authProvider.partner?.profilePhotoURL" class="naname-avatar-big" />
       </div>
     </div>
   </div>
 
   <div *ngIf="!authProvider.user.partner_id" padding>
     <div class="naname-card naname-card-centered-content">
-      <ion-grid>
-        <ion-row>
-          <ion-col>
-            <h2>Vou adicionar o meu parceiro</h2>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <button ion-button block round icon-start (click)="showPrompt()">
-              <ion-icon name="at"></ion-icon> Adicionar pelo email
-            </button>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <button ion-button block round icon-start (click)="scanQrCode()">
-              <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
-            </button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <h3>Vou adicionar o meu parceiro</h3>
+      <button ion-button block round icon-start (click)="showPrompt()">
+        <ion-icon name="at"></ion-icon> Adicionar pelo email
+      </button>
+      <button ion-button block round icon-start (click)="scanQrCode()">
+        <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
+      </button>
     </div>
-    <div style="text-align: center;">
-      <h2>OU</h2>
+
+    <div class="nename-content-center margin-top margin-bottom">
+      <div class="naname-or">OU</div>
     </div>
+
     <div class="naname-card naname-card-centered-content">
-      <ion-grid>
-        <ion-row>
-          <ion-col>
-            <h2>O meu parceiro vai me adicionar</h2>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <h3>{{authProvider.user?.email}}</h3>
-            <div style="margin-left: 70px">
-              <qrcode [qrdata]="authProvider.user.email" [size]="150" [level]="'M'"></qrcode>
-            </div>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <h3>O meu parceiro vai me adicionar</h3>
+      <h4 class="font-color-primary">{{authProvider.user?.email}}</h4>
+      <div style="">
+        <qrcode [qrdata]="authProvider.user.email" [size]="100" [level]="'M'"></qrcode>
+      </div>
     </div>
   </div>
-
-
-
-  <!-- <ion-list *ngIf="blockedUsers.length > 0">
-    <ion-list-header>
-      Usuários Bloqueados
-    </ion-list-header>
-    <ion-item *ngFor="let blockedUser of blockedUsers">
-      <ion-avatar item-start>
-        <img [src]="blockedUser.profilePhotoURL" />
-      </ion-avatar>
-      <h2>{{ blockedUser.name }}</h2>
-      <p>{{ blockedUser.email }}</p>
-      <button ion-button item-end *ngIf="blockedUser as blockedUser"
-        (click)="presentUnblockUserAlert(blockedUser)">Desbloquear</button>
-    </ion-item>
-  </ion-list>
-
-  <div *ngIf="!authProvider.user.partner_id && 1 ==23">
-    <h2>Eu vou adicionar o parceiro</h2>
-    <div>
-      <button ion-button (click)="scanQrCode()">Ler QRCODE do parceiro</button>
-    </div>
-    <div>
-      <button ion-button (click)="showPrompt()">Adicionar manualmente</button>
-    </div>
-    <h2>O meu parceiro vai me adicionar</h2>
-    <div>
-      <p>Ele vai ler o meu QR CODE</p>
-      <qrcode [qrdata]="authProvider.user.email" [size]="200" [level]="'M'"></qrcode>
-    </div>
-  </div> -->
 </ion-content>

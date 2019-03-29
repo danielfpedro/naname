@@ -45,7 +45,7 @@
     </div>
   </div>
 
-  <div *ngIf="!loadingChoices && names.length > 0" (swipe)="swipeEvent($event)" style="height: 100%;">
+  <div *ngIf="!loadingChoices && names.length > 0">
     <!-- <ion-searchbar [(ngModel)]="term"></ion-searchbar> -->
     <ion-list no-lines>
       <ng-container *ngFor="
@@ -53,7 +53,7 @@
         <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
           <ion-item>
             {{ name.name }}
-            <!-- <p>{{name.total_votes}} votos</p> -->
+            <p>Votos: {{name.total_votes || 0}}</p>
             <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
               <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id">
             </ion-avatar>

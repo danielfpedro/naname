@@ -39,9 +39,7 @@ export class MyApp {
     });
 
 
-    const loader = this.loadingController.create({
-      content: "Entrando, aguarde..."
-    });
+    const loader = this.authProvider.customLoading();
     loader.present();
 
     this.authProvider.watchFirebaseAuthState.subscribe(isLogedIn => {

@@ -11,7 +11,7 @@ import { Facebook } from "@ionic-native/facebook";
 import { GooglePlus } from "@ionic-native/google-plus";
 import { Storage } from "@ionic/storage";
 import firebase, { database } from "firebase/app";
-import { AlertController, App, Platform, ToastController } from "ionic-angular";
+import { AlertController, App, Platform, ToastController, LoadingOptions, LoadingController, Loading } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
 import { mergeMap, map, take, delay } from "rxjs/operators";
@@ -73,7 +73,8 @@ export class AuthProvider {
     private afs: AngularFirestore,
     private alertController: AlertController,
     private toastCtrl: ToastController,
-    public gPlus: GooglePlus
+    public gPlus: GooglePlus,
+    private loadingController: LoadingController
   ) {
 
     this.afAuth.authState
@@ -257,7 +258,8 @@ export class AuthProvider {
       id: userData.uid,
       name: userData.displayName,
       email: userData.email,
-      profilePhotoURL: userData.photoURL
+      profilePhotoURL: userData.photoURL,
+      provider_name: userData.providerData[0].providerId == 'google.com' ? 'Google' : 'Facebook'
     };
     return this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
   }
@@ -787,6 +789,16 @@ export class AuthProvider {
     }
     return false;
   }
+
+  customLoading(message = 'Carregando, aguarde...'): Loading {
+    const loader = this.loadingController.create({
+      spinner: 'hide',
+      content: `<div class="text-center"><img src="/assets/imgs/bebe.png" class="nename-img-loader-ionic teeter"><h2 style="padding:0;margin:0;">${message}</h2></div>`
+    });
+
+    return loader;
+  }
+
 }
 
 export class ChoicesLimitReached {
@@ -800,4 +812,6 @@ export class PartnerError {
     this.message = message;
     console.error(this.message);
   }
+
+
 }
