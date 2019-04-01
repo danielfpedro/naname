@@ -793,7 +793,7 @@ export class AuthProvider {
   customLoading(message = 'Carregando, aguarde...'): Loading {
     const loader = this.loadingController.create({
       spinner: 'hide',
-      content: `<div class="text-center"><img src="/assets/imgs/bebe.png" class="nename-img-loader-ionic teeter"><h2 style="padding:0;margin:0;">${message}</h2></div>`
+      content: `<div class="text-center"><img src="/assets/imgs/bebe.png" class="nename-img-loader-ionic teeter"><h3 style="padding:0;margin:0;" class="margin-top">${message}</h3></div>`
     });
 
     return loader;

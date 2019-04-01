@@ -22,7 +22,7 @@ export class GenderSelectionPage {
     console.log('ionViewDidLoad GenderSelectionPage');
   }
   async selectGender(gender: string) {
-    const loader = this.loadingCtrl.create({ content: 'Alterando gênero, por favor aguarde...' })
+    const loader = this.authService.customLoading('Alterando gênero, por favor aguarde...');
     loader.present();
     await this.authService.setGender(gender);
     loader.dismiss();

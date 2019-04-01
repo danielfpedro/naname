@@ -148,9 +148,7 @@ export class ChosenListPage {
 
   async removeName(name) {
     console.log('Name to send', name);
-    const loader = this.loadingCtrl.create({
-      content: "Removendo nome da sua lista, por favor aguarde..."
-    });
+    const loader = this.authProvider.customLoading("Removendo nome da sua lista, por favor aguarde...");
     loader.present();
     await this.authProvider.removeChosenName(name.id);
     loader.dismiss();

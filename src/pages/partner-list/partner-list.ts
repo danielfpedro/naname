@@ -1,13 +1,10 @@
-import { Component, ViewChild } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   IonicPage,
   AlertController,
-  LoadingController,
   AlertOptions,
   Platform,
-  ActionSheet,
   ActionSheetController,
-  Content,
   PopoverController,
   ModalController
 } from "ionic-angular";
@@ -34,7 +31,6 @@ export class PartnerListPage {
     public authProvider: AuthProvider,
     // Ionic components
     public alertCtrl: AlertController,
-    public loaderCtrl: LoadingController,
     private barcodeScanner: BarcodeScanner,
     private actionSheetController: ActionSheetController,
     private popoverController: PopoverController,
@@ -85,9 +81,7 @@ export class PartnerListPage {
     prompt.present();
   }
   async addPartner(email: string) {
-    const loader = this.loaderCtrl.create({
-      content: "Adicionando parceiro, aguarde..."
-    });
+    const loader = this.authProvider.customLoading("Adicionando parceiro, aguarde...");
     loader.present();
     try {
       await this.authProvider.addPartner(email);
@@ -147,21 +141,17 @@ export class PartnerListPage {
   }
 
   async removePartner(partner) {
-    const loader = this.loaderCtrl.create({
-      content: `Removendo ${this.authProvider.partner.name} (${
-        this.authProvider.partner.email
-        })`
-    });
+    const loader = this.authProvider.customLoading(`Removendo ${this.authProvider.partner.name} (${
+      this.authProvider.partner.email
+      })`);
     loader.present();
     await this.authProvider.removePartner(partner);
     loader.dismiss();
   }
   async blockPartner(partnerToBeBlocked) {
-    const loader = this.loaderCtrl.create({
-      content: `Bloqueando ${partnerToBeBlocked.name} (${
-        partnerToBeBlocked.email
-        })`
-    });
+    const loader = this.authProvider.customLoading(`Bloqueando ${partnerToBeBlocked.name} (${
+      partnerToBeBlocked.email
+      })`);
     loader.present();
     await this.authProvider.blockUser(partnerToBeBlocked);
     loader.dismiss();

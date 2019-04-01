@@ -1,16 +1,44 @@
 page-ask-about-partnership-list {
-  [ion-slides] {
-    height: 100%;
+  // [ion-slides] {
+  //   height: 100%;
+  // }
+  // .details {
+  //   padding: 30px 10px;
+  // }
+
+  // .content-child {
+  //   flex: 1;
+  //   display: flex;
+  //   justify-content: center;
+  //   align-items: center;
+  //   flex-direction: column;
+  // }
+  .slides {
+    width: 100%;
   }
-  .details {
-    padding: 30px 10px;
+  .slide {
+    width: 100%;
+    // background-color: blue;
   }
 
-  .content-child {
-    flex: 1;
+  .slides-content {
+    //background-color: green;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    height: 100%;
+  }
+  .container-logo {
+    // display: flex;
+    // text-align: center;
+    // align-items: center;
+    // align-content: center;
+    // justify-content: center;
+    padding: 40px 10px;
+    text-align: center;
+  }
+  .container-slides {
+    // background-color: yellow;
+    flex: 1;
+    width: 100%;
   }
 }

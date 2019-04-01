@@ -20,9 +20,7 @@ export class LoginPage {
   }
 
   async signIn(provider: string) {
-    const loading = this.loadingController.create({
-      content: "Entrando, aguarde..."
-    });
+    const loading = this.authProvider.customLoading('Entrando, aguarde...');
     loading.present();
     try {
       await this.authProvider.signIn(provider);

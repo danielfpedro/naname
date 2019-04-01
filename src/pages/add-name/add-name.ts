@@ -46,7 +46,7 @@ export class AddNamePage {
   }
 
   async addName() {
-    const loader = this.loadingController.create({ content: 'Adicionando nome, por favor aguarde...' });
+    const loader = this.authService.customLoading('Adicionando nome, por favor aguarde...');
     loader.present();
     try {
       await this.authService.addCustomNameIfNeeded(this.name, this.gender);

@@ -11,11 +11,11 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="nename-content">
 
   <div class="content-bimbo nename-content-center text-center" *ngIf="!loading && blockedUsers < 1">
-    <img src="/assets/imgs/baby-holaquetal.png" class="naname-image-header">
-    <h1>Você não bloqueou ninguém =]</h1>
+    <img src="/assets/imgs/baby-fineza.png" class="naname-image-header">
+    <h1 class="margin-top">Você não bloqueou ninguém =]</h1>
   </div>
 
   <div *ngIf="loading">
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <ion-list *ngFor="let user of blockedUsers">
+  <ion-list *ngFor="let user of blockedUsers" class="padding-top"> 
     <button ion-item (click)="presentUnblockUserAlert(user)">
       <ion-avatar item-start>
         <img [src]="user.profilePhotoURL">

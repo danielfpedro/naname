@@ -1,14 +1,6 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ViewController, AlertOptions, AlertController, LoadingController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ViewController, AlertOptions, AlertController } from 'ionic-angular';
 import { AuthProvider } from '../../providers/auth/auth';
-import { Observable } from 'rxjs';
-
-/**
- * Generated class for the BlockedUsersPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
 
 @IonicPage()
 @Component({
@@ -25,8 +17,7 @@ export class BlockedUsersPage {
     public navParams: NavParams,
     private viewController: ViewController,
     private authProvider: AuthProvider,
-    private alertController: AlertController,
-    private loaderController: LoadingController) {
+    private alertController: AlertController, ) {
 
   }
   ionViewDidEnter() {
@@ -74,11 +65,9 @@ export class BlockedUsersPage {
     alert.present();
   }
   async unblockUser(userToBeUnblocked) {
-    const loader = this.loaderController.create({
-      content: `Desbloqueando ${userToBeUnblocked.name} (${
-        userToBeUnblocked.email
-        })`
-    });
+    const loader = this.authProvider.customLoading(`Desbloqueando ${userToBeUnblocked.name} (${
+      userToBeUnblocked.email
+      })`);
     loader.present();
     await this.authProvider.unblockUser(userToBeUnblocked.id);
     loader.dismiss();

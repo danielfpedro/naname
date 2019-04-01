@@ -11,12 +11,11 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="nename-content">
 
   <div class="my-title" *ngIf="voters.length > 0 && !loading">
     {{name?.total_votes}} Voto<span *ngIf="name?.total_votes > 1">s</span>
   </div>
-
 
   <div *ngIf="loading" padding>
     <div *ngFor="let item of [1,2]">
