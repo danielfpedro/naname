@@ -1,0 +1,23 @@
+<div padding>
+  <div class="naname-card naname-card-centered-content">
+    <h2 class="margin-bottom-extra">Vou adicionar o meu parceiro</h2>
+    <button ion-button block round icon-start (click)="showPrompt()">
+      <ion-icon name="at"></ion-icon> Adicionar pelo email
+    </button>
+    <button ion-button block round icon-start (click)="scanQrCode()">
+      <ion-icon name="qr-scanner"></ion-icon> Adicionar pelo QRCODE
+    </button>
+  </div>
+
+  <div class="nename-content-center margin-top margin-bottom" style="margin-top: -28px;margin-bottom: -28px;">
+    <div class="naname-or">OU</div>
+  </div>
+
+  <div class="naname-card naname-card-centered-content">
+    <h2 class="margin-bottom-extra">O meu parceiro vai me adicionar</h2>
+    <h4>{{authProvider.user?.email}}</h4>
+    <div>
+      <qrcode [qrdata]="authProvider.user.email" [size]="100" [level]="'M'"></qrcode>
+    </div>
+  </div>
+</div>

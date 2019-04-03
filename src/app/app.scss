@@ -32,7 +32,7 @@
   background-size: 100% auto, auto 100%;
 }
 .item {
-  background: none!important;
+  background: none !important;
 }
 
 @font-face {
@@ -144,7 +144,6 @@ $img-loader-size: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 20px;
 }
 
 // GHOST
@@ -214,10 +213,10 @@ h4 {
   font-size: 1.1em;
 }
 h5 {
-  font-size: .8em;
+  font-size: 0.8em;
 }
 h6 {
-  font-size: .6em;
+  font-size: 0.6em;
 }
 // Cards
 .naname-card {
@@ -226,7 +225,7 @@ h6 {
   align-items: center;
   margin: 10px 0;
   padding: 25px 25px;
-  background: #FFF;
+  background: #fff;
   // h,v,r,s
 
   -webkit-box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.1);
@@ -256,7 +255,7 @@ $sides: (left, top, right, bottom);
     margin-#{$side}: $margin;
   }
   .margin-#{$side}-extra {
-    margin-#{$side}: $margin * 1.5;
+    margin-#{$side}: $margin * 2;
   }
 }
 @each $side in $sides {
@@ -264,7 +263,7 @@ $sides: (left, top, right, bottom);
     padding-#{$side}: $margin;
   }
   .padding-#{$side}-extra {
-    padding-#{$side}: $margin * 1.5;
+    padding-#{$side}: $margin * 2;
   }
 }
 
@@ -276,6 +275,9 @@ button[large] {
   font-size: 1.2em;
 }
 
+.font-color-muted {
+  color: color($colors, nename-muted)!important;
+}
 .font-color-primary {
   color: color($colors, primary) !important;
 }
@@ -360,4 +362,36 @@ h1.color-primary {
 .nename-img-loader-ionic {
   animation: teeter 4s infinite ease;
   width: 60px;
+}
+
+.main-logo {
+  width: 170px;
+}
+
+.ion-md-choose {
+  content: url("../assets/imgs/choose-tab.png") !important;
+}
+.ion-md-choices {
+  content: url("../assets/imgs/choices-tab.png") !important;
+}
+.ion-md-nename-settings {
+  content: url("../assets/imgs/settings-tab.png") !important;
+}
+
+.tab-button-icon.ion-md-choose,
+.tab-button-icon.ion-md-choices,
+.tab-button-icon.ion-md-nename-settings {
+  width: 50px !important;
+}
+
+
+.slide-zoom {
+  height: 100%;
+  width: 100%;
+}
+[ion-slides] {
+  width: 100%;
+}
+[ion-slides] {
+  width: 100%;
 }

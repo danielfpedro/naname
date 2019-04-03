@@ -79,6 +79,10 @@ $colors: (
   naname-facebook: (
     base: #fff,
     contrast: #395693
+  ),
+  nename-muted: (
+    base: #595959,
+    contrast: #395693
   )
 );
 $darken-amount: 5%;
@@ -119,10 +123,10 @@ $button-md-large-font-size: 16px;
 $button-md-large-padding: 60px;
 
 // Tabs
-$tabs-md-tab-font-size: 0.8em;
+$tabs-md-tab-font-size: 1.3em;
 $tabs-ios-tab-font-size: 0.8em;
 
-$tabs-md-tab-icon-size: 1.7em;
+$tabs-md-tab-icon-size: 1em;
 
 $item-md-font-size: 1.3em;
 $item-ios-font-size: 1.3em;
@@ -151,5 +155,7 @@ $ghost-md-width: 160px;
 // Fonts
 // --------------------------------------------------
 
-@import "roboto";
-@import "noto-sans";
+// @import "roboto";
+// @import "noto-sans";
+
+@import "casper.scss";

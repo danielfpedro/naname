@@ -10,7 +10,8 @@ import {
   Content,
   Nav,
   NavController,
-  Slides
+  Slides,
+  ModalController
 } from "ionic-angular";
 
 import { AuthProvider } from "../../providers/auth/auth";
@@ -50,7 +51,8 @@ export class AskAboutPartnershipPage {
     private barcodeScanner: BarcodeScanner,
     private actionSheetController: ActionSheetController,
     public navController: NavController,
-    private storage: Storage
+    private storage: Storage,
+    public modalController: ModalController
   ) { }
 
   ionViewDidEnter() {
@@ -264,5 +266,10 @@ export class AskAboutPartnershipPage {
     await this.slides.slideNext();
     await this.slides.lockSwipes(true);
     this.content.resize();
+  }
+
+  xande() {
+    const modal = this.modalController.create('InitialAddPartnerPage');
+    modal.present();
   }
 }

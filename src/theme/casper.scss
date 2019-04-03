@@ -1,0 +1,105 @@
+$default-color: #e2e2e2;
+$avatar-size: 50px;
+$avatar-size-variations: (
+  small: 25px,
+  big: 70px,
+  giga: 110px
+);
+
+// Width any component
+$widths: (
+  mini: 55px,
+  small: 100px,
+  regular: 170px,
+  big: 350px
+);
+
+$heading: (
+  block1: 35px,
+  block2: 30px,
+  block3: 25px,
+  block4: 20px,
+  block5: 15px,
+  block6: 10px
+);
+// Buttons
+$button-width: 120px;
+$button-height: 40px;
+$button-variations: (
+  mini: (
+    width: 60px,
+    height: 25px
+  ),
+  small: (
+    width: 90px,
+    height: 35px
+  ),
+  big: (
+    width: 150px,
+    height: 50px
+  ),
+  giga: (
+    width: 220px,
+    height: 70px
+  )
+);
+
+$margin: 10px;
+
+.casper {
+  background-color: $default-color;
+
+  margin-right: $margin;
+  margin-bottom: $margin;
+
+  &.avatar {
+    width: $avatar-size;
+    height: $avatar-size;
+    border-radius: 100%;
+  }
+  @each $name, $size in $avatar-size-variations {
+    &.avatar.#{$name} {
+      width: $size;
+      height: $size;
+    }
+  }
+
+  // Heading
+  @each $name, $size in $heading {
+    &.#{$name} {
+      width: 100%;
+      height: $size;
+    }
+  }
+
+  &.button {
+    width: $button-width;
+    height: $button-height;
+  }
+
+  @each $name, $size in $button-variations {
+    &.button.#{$name} {
+      width: map-get($size, width);
+      height: map-get($size, height);
+    }
+  }
+  &.button.block {
+    width: 100%;
+  }
+
+  // Grid
+  &.row.inline {
+    background: none;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Must be last cause override everything
+  @each $name, $size in $widths {
+    &.width-#{$name} {
+      width: $size;
+    }
+  }
+}

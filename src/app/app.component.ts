@@ -1,5 +1,10 @@
 import { Component, ViewChild } from "@angular/core";
-import { Platform, LoadingController, NavController, Nav } from "ionic-angular";
+import {
+  Platform,
+  LoadingController,
+  NavController,
+  Nav
+ } from "ionic-angular";
 
 import { StatusBar } from "@ionic-native/status-bar";
 import { SplashScreen } from "@ionic-native/splash-screen";
@@ -34,7 +39,6 @@ export class MyApp {
       // Here you can do any higher level native things you might need.
       statusBar.styleDefault();
       statusBar.backgroundColorByHexString('#ffffff');
-      statusBar.styleDefault();
       splashScreen.hide();
     });
 

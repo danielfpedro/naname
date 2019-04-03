@@ -6,9 +6,6 @@ page-login {
     // flex-direction: column;
     // width: 100%;
     flex: 1;
-    background-color: green;
-    display: flex;
-    align-items: stretch;
   }
   [ion-slides] {
     // height: 100%;
@@ -17,7 +14,7 @@ page-login {
   [ion-slide] {
     // height: 100%;
     // width: 100%;
-    background-color: yellow;
+    // background-color: yellow;
   }
   .buttons-content {
     padding: 25px 15px;

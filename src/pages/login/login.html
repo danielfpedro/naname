@@ -1,21 +1,49 @@
-<ion-content>
+<ion-content class="nename-content">
   <div class="content-bimbo">
-
+    <main-logo></main-logo>
     <div class="slides-content">
-      <div class="xander">
-        <ion-slides pager>
-          <ion-slide style="background-color: #CFF1FB" padding>
-            <h3>Aqui explicamos que ele arrasta para escolher os nomes</h3>
-          </ion-slide>
-          <ion-slide style="background-color: #FFDBDB" padding>
-            <h3>Aqui explicamos que com os nomes escolhidos ele pode compartilhar o link da enquete dele para os parças
-              votarem</h3>
-          </ion-slide>
-          <ion-slide style="background-color: #CFF1FB" padding>
-            <h3>Aqui explicamos que ele pode conectar no parceiro e escolher junto</h3>
-          </ion-slide>
-        </ion-slides>
-      </div>
+      <ion-slides pager class="margin-top">
+
+        <ion-slide style="height: 100%;" class="padding-bottom-extra">
+          <div style="display: flex;flex-direction: column;height: 100%;">
+            <div
+              style="flex: 1; background-image: url(../assets/imgs/escolhendo.png); background-size: auto 100%;background-repeat: no-repeat; background-position: center center;">
+            </div>
+            <div class="margin-top-extra margin-bottom">
+              <h3>Deslize para escolher</h3>
+              <h5 class="font-color-muted margin-bottom">Descubra milhares de nomes</h5>
+            </div>
+          </div>
+        </ion-slide>
+
+        <ion-slide style="height: 100%;" class="padding-bottom-extra">
+          <div style="display: flex;flex-direction: column;height: 100%;">
+            <div
+              style="flex: 1; background-image: url(../assets/imgs/nomes.png); background-size: auto 100%;background-repeat: no-repeat; background-position: center center;">
+            </div>
+
+            <div class="margin-top-extra margin-bottom">
+              <h3>Acompanhe a sua seleção de nomes</h3>
+              <h5 class="font-color-muted margin-bottom">Visualize tudo que você escolheu e os votos que cada nome
+                recebeu</h5>
+            </div>
+          </div>
+        </ion-slide>
+
+        <ion-slide style="height: 100%;" class="padding-bottom-extra">
+          <div style="display: flex;flex-direction: column;height: 100%;">
+            <div
+              style="flex: 1; background-image: url(../assets/imgs/parceiros.png); background-size: auto 100%;background-repeat: no-repeat; background-position: center center;">
+            </div>
+
+            <div class="margin-top-extra margin-bottom-extra">
+              <h3>Adicione o seu parceiro</h3>
+              <h5 class="font-color-muted margin-bottom">Os nomes escolhidos pelos dois serão unificados</h5>
+            </div>
+          </div>
+        </ion-slide>
+
+      </ion-slides>
     </div>
 
     <div class="buttons-content">

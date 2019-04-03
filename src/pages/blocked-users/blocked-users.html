@@ -18,14 +18,19 @@
     <h1 class="margin-top">Você não bloqueou ninguém =]</h1>
   </div>
 
-  <div *ngIf="loading">
-    <div class="ghost-container">
-      <div class="ghost-avatar ghost-margin-right"></div>
-      <div class="ghost-line-md"></div>
+  <div *ngIf="loading" padding>
+    <div class="">
+      <div class="casper row inline">
+        <div class="casper avatar"></div>
+        <div class="casper block5 width-small"></div>
+        <div style="flex: 1; display: flex; justify-content: flex-end">
+          <div class="casper block6 width-mini"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <ion-list *ngFor="let user of blockedUsers" class="padding-top"> 
+  <ion-list *ngFor="let user of blockedUsers" class="padding-top">
     <button ion-item (click)="presentUnblockUserAlert(user)">
       <ion-avatar item-start>
         <img [src]="user.profilePhotoURL">
