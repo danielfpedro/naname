@@ -4,19 +4,24 @@ import { PopoverListComponent } from './popover-list/popover-list';
 import { AddPartnerComponent } from './add-partner/add-partner';
 import { QRCodeModule } from 'angularx-qrcode';
 import { MainLogoComponent } from './main-logo/main-logo';
+import { IonicModule } from 'ionic-angular';
+
 @NgModule({
     declarations: [
         BlockedUsersComponent,
         PopoverListComponent,
         AddPartnerComponent,
-    MainLogoComponent
+        MainLogoComponent
     ],
-    imports: [QRCodeModule],
+    imports: [
+        IonicModule,
+        QRCodeModule
+    ],
     exports: [
         BlockedUsersComponent,
         PopoverListComponent,
         AddPartnerComponent,
-    MainLogoComponent
+        MainLogoComponent
     ]
 })
 export class ComponentsModule { }

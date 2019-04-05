@@ -33,7 +33,7 @@ import { Storage } from "@ionic/storage";
 })
 export class AskAboutPartnershipPage {
 
-  @ViewChild(Slides) slides: Slides;
+
   @ViewChild(Content) content: Content;
 
   usersBlockedCollection: any;
@@ -59,8 +59,6 @@ export class AskAboutPartnershipPage {
     this.storage.set(`visited_first_settings.${this.authProvider.user.id}`, true);
   }
   ionViewDidLoad() {
-
-    this.slides.lockSwipes(true);
     console.log('Auth', this.authProvider);
     console.log("subscribing blocked users", this.authProvider);
 
@@ -262,9 +260,6 @@ export class AskAboutPartnershipPage {
   }
 
   async goToNextSlide() {
-    await this.slides.lockSwipes(false);
-    await this.slides.slideNext();
-    await this.slides.lockSwipes(true);
     this.content.resize();
   }
 

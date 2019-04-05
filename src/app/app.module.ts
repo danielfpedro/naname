@@ -28,6 +28,8 @@ import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { QRScanner } from "@ionic-native/qr-scanner";
 
 import { HttpClientModule } from '@angular/common/http';
+import { MainLogoComponent } from "../components/main-logo/main-logo";
+import { ComponentsModule } from "../components/components.module";
 
 const firebaseConfig: FirebaseAppConfig = {
   apiKey: "AIzaSyAXpIzdLG-2o0CP4EBhfOEt3p2sdJbohBo",
@@ -39,7 +41,9 @@ const firebaseConfig: FirebaseAppConfig = {
 };
 
 @NgModule({
-  declarations: [MyApp],
+  declarations: [
+    MyApp
+  ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),

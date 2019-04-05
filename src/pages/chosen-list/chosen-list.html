@@ -24,14 +24,13 @@
         Feminimo
       </ion-segment-button>
     </ion-segment>
+  </div>
 
-    <div class="content" *ngIf="names.length < 1 && !loadingChoices">
-      <div class="main-message">
-        <p>
-          Você ainda não escolheu nenhum nome, tenta lá.
-        </p>
-      </div>
-    </div>
+  <div class="content-bimbo nename-content-center text-center" *ngIf="names.length < 1 && !loadingChoices" padding>
+    <img src="/assets/imgs/baby-pistola.png" class="naname-image-header">
+    <h1 class="margin-top">
+      Você ainda não escolheu nenhum nome.
+    </h1>
   </div>
 
   <!-- <h2 >Carregando escolhas...</h2> -->
@@ -39,9 +38,9 @@
   <div *ngIf="loadingChoices" padding>
     <div *ngFor="let item of [1,2]">
       <div class="margin-bottom-extra">
-          <div class="casper block4 width-regular"></div>
-          <div class="casper block6 width-small"></div>
-          <div class="casper block5"></div>
+        <div class="casper block4 width-regular"></div>
+        <div class="casper block6 width-small"></div>
+        <div class="casper block5"></div>
       </div>
     </div>
   </div>
@@ -50,11 +49,11 @@
     <!-- <ion-searchbar [(ngModel)]="term"></ion-searchbar> -->
     <ion-list no-lines>
       <ng-container *ngFor="
-      let name of (names | orderBy: 'total_votes':false | search: 'name':term:gender)">
+      let name of (names | orderBy: 'total_votes':true | search: 'name':term:gender)">
         <div (click)="onNameClick(name)" (press)="presentNameActionSheetOption(name)">
           <ion-item>
             {{ name.name }}
-            <p>Votos: {{name.total_votes || 0}}</p>
+            <p>Votos: {{name.total_votes}}</p>
             <ion-avatar *ngFor="let owner of name.ownersProfiles" item-end>
               <img [src]="owner.profilePhotoURL" *ngIf="authProvider.user.partner_id">
             </ion-avatar>

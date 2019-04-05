@@ -3,9 +3,14 @@
     <ion-title>
       <span>{{name?.name}}</span>
     </ion-title>
-    <ion-buttons left>
+    <!-- <ion-buttons left>
       <button ion-button icon-start (click)="dismiss()">
         <ion-icon name="arrow-round-back"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons right>
+      <button ion-button icon-start (click)="dismiss()" color="dark">
+        <ion-icon name="close"></ion-icon>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -40,12 +45,11 @@
         <img [src]="name.profilePhotoURL">
       </ion-avatar>
       {{name.name}}
-      <p item-end>3 horas atrás</p>
     </ion-item>
   </ion-list>
 
   <div class="content-bimbo nename-content-center text-center" *ngIf="voters.length < 1 && !loading">
     <img src="/assets/imgs/baby-pistola.png" class="naname-image-header">
-    <h1>Este nome ainda não tem nenhum voto</h1>
+    <h1 class="margin-top">Este nome ainda não tem nenhum voto</h1>
   </div>
 </ion-content>

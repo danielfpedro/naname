@@ -12,7 +12,7 @@
 <ion-content class="nename-content">
   <div class="nename-content-center">
     <div class="text-center">
-      <ion-img [src]="authProvider.user?.profilePhotoURL" class="naname-avatar-big margin-bottom"></ion-img>
+      <ion-img [src]="authProvider.user?.profilePhotoURL || ''" class="naname-avatar-big margin-bottom"></ion-img>
       <h3>Você está logado como
         <strong>{{authProvider.user?.name}}</strong> pelo
         <strong>{{this.authProvider.user?.provider_name}}</strong>

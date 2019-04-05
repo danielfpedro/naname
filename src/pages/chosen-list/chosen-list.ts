@@ -58,7 +58,7 @@ export class ChosenListPage {
             .snapshotChanges()
             .pipe(map(res => {
               return res.map(name => {
-                return { ...name.payload.doc.data(), id: name.payload.doc.id };
+                return { ...name.payload.doc.data(), total_votes: name.payload.doc.data().total_votes || 0, id: name.payload.doc.id };
               });
             }));
         })
@@ -77,7 +77,8 @@ export class ChosenListPage {
           // deletar este nome some as abas e os nome sque estavam na aba masculino ficam invisiveis
           this.gender = '';
         }
-
+        console.log(`Names length`, this.names.length);
+        console.log(`Loading choices`, this.loadingChoices);
         this.content.resize();
 
       });
@@ -99,7 +100,7 @@ export class ChosenListPage {
 
       if (typeof name.gender != 'undefined' && (name.gender == 'f' || name.gender == 'm')) {
         this.totalVotes[name.gender].total += 1;
-        this.totalVotes[name.gender].total_votes += parseInt(name.total_votes || 0);
+        this.totalVotes[name.gender].total_votes += parseInt(name.total_votes) || 0;
       }
       return name;
     });

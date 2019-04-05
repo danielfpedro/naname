@@ -13,12 +13,10 @@ export class UserSettingsPage {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad UserSettingsPage');
   }
 
   presentPopover(event) {
     let items = [{ index: 0, label: 'Sair' }];
-
     const popover = this.popoverController.create('PopoverListPage', { items });
     popover.onDidDismiss(data => {
       if (data !== null) {

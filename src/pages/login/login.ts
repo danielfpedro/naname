@@ -26,7 +26,6 @@ export class LoginPage {
       await this.authProvider.signIn(provider);
     } finally {
       loading.dismiss();
-      
     }
   }
 }
