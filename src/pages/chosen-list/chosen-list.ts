@@ -15,6 +15,7 @@ import { AuthProvider } from "../../providers/auth/auth";
 import { SocialSharing } from "@ionic-native/social-sharing";
 import { mergeMap, map, switchMap } from "rxjs/operators";
 import _ from "lodash";
+import { Subscription } from "rxjs";
 
 @IonicPage()
 @Component({
@@ -25,7 +26,7 @@ export class ChosenListPage {
 
   @ViewChild(Content) content: Content;
 
-  poolBaseUrl = 'https://nenem-381db.firebaseapp.com/enquetes';
+  poolBaseUrl = 'https://nename.app/enquete';
 
   term = "";
   gender = "";
@@ -33,6 +34,8 @@ export class ChosenListPage {
   totalVotes = { m: { total: 0, total_votes: 0 }, f: { total: 0, total_votes: 0 } };
   hasMultiGender = false;
   loadingChoices: boolean;
+
+  namesSubscription: Subscription;
 
   constructor(
     public authProvider: AuthProvider,
@@ -78,6 +81,7 @@ export class ChosenListPage {
           this.gender = '';
         }
         console.log(`Names length`, this.names.length);
+        console.log(`Fuckign names`, this.names);
         console.log(`Loading choices`, this.loadingChoices);
         this.content.resize();
 
@@ -85,6 +89,7 @@ export class ChosenListPage {
   }
   getOwners(owners) {
     return _.map(owners, (owner, key) => {
+      console.log('ACTORS', this.authProvider.actors);
       if (typeof this.authProvider.actors[key] != 'undefined') {
         return this.authProvider.actors[key];
       }
@@ -96,6 +101,7 @@ export class ChosenListPage {
     return names.map((name: any) => {
       console.log("Name to insert to this.names", name);
       name.ownersProfiles = this.getOwners(name.owners);
+      console.log("Name after ownersProfile", name);
       console.log('Total votes', this.totalVotes);
 
       if (typeof name.gender != 'undefined' && (name.gender == 'f' || name.gender == 'm')) {

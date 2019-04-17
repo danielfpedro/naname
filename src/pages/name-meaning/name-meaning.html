@@ -1,0 +1,16 @@
+<ion-header>
+  <ion-navbar color="nename">
+    <ion-title>
+      <span>{{name?.name}}</span>
+    </ion-title>
+    <ion-buttons right>
+      <button ion-button icon-start (click)="dismiss()" color="dark">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="nename-content">
+  <p [innerHtml]="name.meaning" class="p-robotinho"></p>
+</ion-content>

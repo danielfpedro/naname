@@ -13,14 +13,14 @@
     </button>
     <button ion-item *ngIf="authProvider.partner" (click)="navController.push('PartnerListPage')">
       <ion-avatar item-start>
-        <ion-img [src]="authProvider.partner?.profilePhotoURL"></ion-img>
+        <img [src]="authProvider.partner?.profilePhotoURL">
       </ion-avatar>
       Configurações do parceiro
       <p>{{authProvider.partner?.name}}</p>
     </button>
     <button ion-item (click)="goToUserSettings()">
       <ion-avatar item-start>
-        <ion-img [src]="authProvider.user?.profilePhotoURL"></ion-img>
+        <img [src]="authProvider.user?.profilePhotoURL">
       </ion-avatar>
       Configurações da conta
       <p>{{authProvider.user?.name}}</p>

@@ -44,17 +44,18 @@
     </div>
 
     <div *ngIf="noMoreNames && !loadingNames">
-      <img src="/assets/imgs/baby_deu_ruim.png" class="baby-message">
-      <h2>Você já interagiu por todos os nomes que tinhamos para mostrar.</h2>
+      <img src="/assets/imgs/baby-pistola.png" class="naname-image-header">
+      <h2 class="margin-top margin-bottom">Você já interagiu por todos os nomes que tinhamos para mostrar.</h2>
       <h2 *ngIf="filterFormTotalTouchedControls > 0">Como você tem alguns filtros selecionados, pode ser que tenham mais
         nomes se você alterar algum deles.</h2>
     </div>
 
     <div *ngIf="!loadingNames && choicesLimitReached">
-      <img src="/assets/imgs/baby_deu_ruim.png" class="baby-message">
-      <h2>Você atingiu o máximo de nomes para escolher</h2>
-      <h3>É possível ir nos nomes escolhidos e deletar alguns para liberar espaço para escolher mais.</h3>
-      <button ion-button large round (click)="getNamesChunk()" class="margin-top-extra">
+      <img src="/assets/imgs/baby-pistola.png" class="naname-image-header">
+      <h2 class="margin-bottom margin-top">Você atingiu o máximo de nomes para escolher</h2>
+      <h3 class="font-color-muted">É possível ir nos nomes escolhidos e deletar alguns para liberar espaço para escolher
+        mais.</h3>
+      <button ion-button large round (click)="getNamesChunk()" class="margin-top-extra ">
         Carregar mais nomes
       </button>
     </div>
@@ -69,17 +70,22 @@
         <div class="card" #mycards1 swing-card *ngFor="let card of cards;let i = index"
           [style.bottom]="-card.margin + 'px'" [style.opacity]="1 + (((i + 1) - cards.length) / 10)">
           <h2>{{card.name}}</h2>
+          <p [innerHTML]="card.meaning_short"></p>
         </div>
       </div>
 
-      <div class="text-center">
-        <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false)">
-          <ion-icon name="close"></ion-icon>
-        </button>
-        <button ion-button color="naname-positive" class="button-choose" style="margin-left: 60px"
-          (click)="voteUp(true)">
-          <ion-icon name="heart"></ion-icon>
-        </button>
+      <div style="display: flex;justify-content: center;width: 100%">
+        <div>
+          <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false)">
+            <ion-icon name="close"></ion-icon>
+          </button>
+          <button ion-button color="nename-muted" class="button-choose-sm" (click)="openNameMeaning()" style="margin: 0 20px;">
+            <ion-icon name="information-circle"></ion-icon>
+          </button>
+          <button ion-button color="naname-positive" class="button-choose" (click)="voteUp(true)">
+            <ion-icon name="heart"></ion-icon>
+          </button>
+        </div>
       </div>
     </div>
 

@@ -29,8 +29,8 @@ $app-direction: ltr;
 
 // secondary: #51e9d2,
 $colors: (
-  primary: #20c1f7,
-  secondary: #BCDD11,
+  primary: #4987b6,
+  secondary: #bcdd11,
   danger: #ffc6c6,
   light: #fff,
   dark: #222,
@@ -49,7 +49,7 @@ $colors: (
     contrast: #fff
   ),
   naname-secondary: (
-    base: #BCDD11,
+    base: #bcdd11,
     contrast: #3e542f
   ),
   naname-danger: (
@@ -65,7 +65,7 @@ $colors: (
     contrast: #502d41
   ),
   naname-positive: (
-    base: #BCDD11,
+    base: #bcdd11,
     contrast: #fff
   ),
   naname-negative: (
@@ -73,16 +73,16 @@ $colors: (
     contrast: #fff
   ),
   naname-google: (
-    base: #fff,
-    contrast: #d64937
+    base: #d64937,
+    contrast: #fff
   ),
   naname-facebook: (
-    base: #fff,
-    contrast: #395693
+    base: #395693,
+    contrast: #fff
   ),
   nename-muted: (
-    base: #595959,
-    contrast: #395693
+    base: #818181,
+    contrast: #fff
   )
 );
 $darken-amount: 5%;
@@ -115,8 +115,8 @@ $progress-border-radius: 20px;
 // so that the above variables are used and Ionic's
 // default are overridden.
 
-$font-family-md-base: "FunnyandCute";
-$font-family-ios-base: "FunnyandCute";
+$font-family-md-base: "Cocogoose";
+$font-family-ios-base: "Cocogoose";
 
 $toolbar-ios-height: 56px;
 $button-md-large-font-size: 16px;

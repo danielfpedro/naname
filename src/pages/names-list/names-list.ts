@@ -32,6 +32,8 @@ export class NamesListPage {
 
   choicesLimitReached = false;
 
+  timer = null;
+
   filterForm: FormGroup;
 
   filterValuesBeforeOpenModal: {};
@@ -111,8 +113,12 @@ export class NamesListPage {
     }
 
     this.loadingNames = true;
-    console.log('Get names chunk, pending coisas?', this.authProvider.namesListPendingInsterations);
-    if (this.authProvider.namesListPendingInsterations === 0) {
+    
+    // this.authProvider.choiceQueue.subscribe(() => {
+    //   console.log('OI')
+    // })
+    
+    if (this.authProvider.choicesWaiting.length < 1) {
       console.log('Não tinha pendencia pegar mais');
       try {
         this.choicesLimitReached = false;
@@ -129,11 +135,14 @@ export class NamesListPage {
           this.cards = this.cards.reverse();
           console.log('CARDS', this.cards);
         }
+        console.log('Loading names deve estar true', this.loadingNames);
+        this.loadingNames = false;
+        console.log('Loading names deve estar false', this.loadingNames);
       } catch (error) {
         if (error instanceof ChoicesLimitReached) {
           this.choicesLimitReached = true;
         }
-      } finally {
+        // Por alguma motivo no finally as vezes não cai nele entao jogo nos dois pra funcionar
         this.loadingNames = false;
       }
     } else {
@@ -221,4 +230,13 @@ export class NamesListPage {
 
     return hex;
   }
+
+  openNameMeaning() {
+    console.log(this.cards[this.cards.length - 1]);
+    const modal = this.modalController.create('NameMeaningPage', {
+      name: this.cards[this.cards.length - 1]
+    });
+    modal.present();
+  }
+
 }

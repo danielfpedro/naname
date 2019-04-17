@@ -61,8 +61,12 @@ export class AuthProvider {
   /**
    * Pedung names list interatinons
    */
-  namesListPendingInsterations = 0;
+  namesListPendingInterations = 0;
   namesChunkSize = 10;
+
+  choiceQueue = new Subject();
+  choicesWaiting = [];
+  sendingChoice = false;
 
   constructor(
     private platform: Platform,
@@ -87,10 +91,10 @@ export class AuthProvider {
           return of(null);
         }),
         mergeMap(nothingHere => {
-          console.log('Is user signed in?', this.userSignedIn);
+          // console.log('Is user signed in?', this.userSignedIn);
 
           if (this.userSignedIn) {
-            console.log('Yes it is');
+            // console.log('Yes it is');
             return this.afs
               .collection("users")
               .doc(this.userSignedIn.uid)
@@ -100,19 +104,19 @@ export class AuthProvider {
           return of(null);
         }),
         mergeMap(userDoc => {
-          console.log('Result of user doc', userDoc);
+          // console.log('Result of user doc', userDoc);
           // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
           if (userDoc === null) {
             this.user = null;
             return of(null);
           } else if (!userDoc.payload.exists) {
-            console.log('User does not exists, we are signing out here');
+            // console.log('User does not exists, we are signing out here');
             this.user = null;
             this.afAuth.auth.signOut();
           }
 
           this.user = userDoc.payload.data();
-          console.log('Now the value of authProvider.user is', this.user);
+          // console.log('Now the value of authProvider.user is', this.user);
           if (this.user) {
             // populate actors object with user doc, this variable will be thourgh the app
             // so we tech user and partner(if has it) only this time
@@ -120,13 +124,13 @@ export class AuthProvider {
           }
           // Se tem partner pego ele
           if (this.user && this.user.partner_id) {
-            console.log('Has partner_id, fetch partner profile');
+            // console.log('Has partner_id, fetch partner profile');
             return this.afs
               .collection("users")
               .doc(this.user.partner_id)
               .ref.get();
           } else {
-            console.log('Has NOT partner_id, fetch partner profile');
+            // console.log('Has NOT partner_id, fetch partner profile');
           }
           return of(null);
         })
@@ -144,12 +148,14 @@ export class AuthProvider {
         if (this.partner) {
           this.actors[this.partner.id] = this.partner;
         }
-        console.log('this.user value', this.user);
-        console.log('this.isLoggedIn value', this.isLoggedIn);
-        console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
-        console.log('THIS PARTNER', this.partner);
-        console.log('PARTNER', partner);
-        console.log('THIS AUTH PROVIDER', this);
+
+        // console.log('this.user value', this.user);
+        // console.log('this.isLoggedIn value', this.isLoggedIn);
+        // console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
+        // console.log('THIS PARTNER', this.partner);
+        // console.log('PARTNER', partner);
+        // console.log('THIS AUTH PROVIDER', this);
+
         this.watchFirebaseAuthState.next(this.user);
         // this.initThingsIsDone.complete();
       });
@@ -298,7 +304,7 @@ export class AuthProvider {
   blockedUsersRef() {
     return this.myUserRef().collection("blockedUsers");
   }
-  chosenNamesRawRef(raw = false): CollectionReference {
+  chosenNamesRawRef(): CollectionReference {
     if (this.user.partnership_id) {
       return this.afs.firestore
         .collection("partnerships")
@@ -309,14 +315,14 @@ export class AuthProvider {
         .collection("chosenNames");
     }
   }
-  chosenNamesRef(raw = false) {
+  chosenNamesRef() {
     if (this.user.partnership_id) {
       return this.afs
         .collection("partnerships")
         .doc(this.user.partnership_id)
         .collection("chosenNames");
     } else {
-      return this.myUserRef(raw)
+      return this.myUserRef()
         .collection("chosenNames");
     }
   }
@@ -368,28 +374,50 @@ export class AuthProvider {
         throw new PartnerError("Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.");
       }
       // Add target uid as partner and add logged user uid on partner record too
-      const partnershipResponse = await this.afs
-        .collection("partnerships")
-        .add({ done: true });
-      await this.myUserRef().update({
+
+      // Crio o partnership
+      const partnershipResponse = await this.afs.collection("partnerships").add({ done: true });
+
+      const batch = this.afs.firestore.batch();
+      //Salvo o partnership id no user
+      const myUserRef = this.myUserRawRef();
+      batch.update(myUserRef, {
         partner_id: targetUser.id,
         partnership_id: partnershipResponse.id
       });
-      await targetUserRef.update({
+
+      //Salvo o partnership id no target
+      const targetRef = this.afs.firestore.collection('users').doc(targetUser.id);
+      batch.update(targetRef, {
         partner_id: this.user.id,
         partnership_id: partnershipResponse.id
       });
 
-      const promises = [];
+      // Unificando nomes
+      //console.log('Unificando nomes');
+      // const promises = [];
       const userChosenNames = await this.myUserRef().collection('chosenNames').ref.get();
+
+      //console.log('Total chosen names user', userChosenNames.size);
       userChosenNames.forEach(chosenName => {
-        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.id]: true }, }, { merge: true }));
+        const chosenNamesRef = this.afs.firestore.collection('partnerships').doc(partnershipResponse.id).collection('chosenNames').doc(chosenName.id);
+        batch.set(chosenNamesRef, { ...chosenName.data(), owners: { [this.user.id]: true } }, { merge: true });
       });
+
       const targetChosenNames = await targetUserRef.collection('chosenNames').ref.get();
+      // console.log('Total chosen names partner', targetChosenNames.size);
+      // console.log('TARGET USER', targetUser);
+      // console.log('TARGET USER ID', targetUser.id);
       targetChosenNames.forEach(chosenName => {
-        promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.partner_id]: true } }, { merge: true }));
+        const chosenNamesRef = this.afs.firestore.collection('partnerships').doc(partnershipResponse.id).collection('chosenNames').doc(chosenName.id);
+        batch.set(chosenNamesRef, { ...chosenName.data(), owners: { [targetUser.id]: true } }, { merge: true });
+        //promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.partner_id]: true } }, { merge: true }));
       });
-      await Promise.all(promises);
+
+      await batch.commit();
+      // await Promise.all(promises);
+
+      // console.log('Terminou de unificar nomes');
       // DONE!
     } catch (error) {
       console.log(error);
@@ -414,41 +442,52 @@ export class AuthProvider {
     try {
       const chosenNames = await this.chosenNamesRef().ref.get();
 
-      const promises = [];
-      const myNames = [];
-      const partnerNames = [];
+      // const promises = [];
+      // const myNames = [];
+      // const partnerNames = [];
       const partnershipId = this.user.partnership_id;
+      const partnerId = this.partner.id
 
+      const batch = this.afs.firestore.batch();
       chosenNames.forEach(chosenName => {
-
         let chosenNameData: any = { ...chosenName.data(), id: chosenName.id };
-
         if (typeof chosenNameData.owners[this.user.id] != 'undefined') {
-          myNames.push({ ...chosenNameData, owners: { [this.user.id]: true } });
+
+          const chosenNamesRef = this.afs.firestore.collection('users').doc(this.user.id).collection('chosenNames').doc(chosenName.id);
+          batch.set(chosenNamesRef, { ...chosenNameData, owners: { [this.user.id]: true } });
+          // myNames.push({ ...chosenNameData, owners: { [this.user.id]: true } });
         }
-        if (typeof chosenNameData.owners[this.partner.id] != 'undefined') {
-          partnerNames.push({ ...chosenNameData, owners: { [this.partner.id]: true } });
+        if (typeof chosenNameData.owners[partnerId] != 'undefined') {
+          const chosenNamesRef = this.afs.firestore.collection('users').doc(partnerId).collection('chosenNames').doc(chosenName.id);
+          batch.set(chosenNamesRef, { ...chosenNameData, owners: { [partnerId]: true } });
+          // partnerNames.push({ ...chosenNameData, owners: { [this.partner.id]: true } });
         }
       });
 
-      myNames.forEach(name => {
-        promises.push(this.myUserRef().collection('chosenNames').doc(name.id).set(name));
-      });
-      partnerNames.forEach(name => {
-        promises.push(this.partnerRef().collection('chosenNames').doc(name.id).set(name));
-      });
+      // myNames.forEach(name => {
+      //   promises.push(this.myUserRef().collection('chosenNames').doc(name.id).set(name));
+      // });
+      // partnerNames.forEach(name => {
+      //   promises.push(this.partnerRef().collection('chosenNames').doc(name.id).set(name));
+      // });
 
-      console.log('My names', myNames);
-      console.log('Partner names', partnerNames);
-      console.log('GEt my ref', this.myUserRef());
-      console.log('GEt partner ref', this.partnerRef());
-      Promise.all(promises);
+      // console.log('My names', myNames);
+      // console.log('Partner names', partnerNames);
+      // console.log('GEt my ref', this.myUserRef());
+      // console.log('GEt partner ref', this.partnerRef());
+      // Promise.all(promises);
 
       // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
       // PQ ELE FOI DELETADO KKK
-      await this.partnerRef().update({ partner_id: null, partnership_id: null });
-      await this.myUserRef().update({ partner_id: null, partnership_id: null });
-      await this.afs.collection('partnerships').doc(partnershipId).delete();
+
+      // Set null my
+      batch.update(this.afs.firestore.collection('users').doc(this.user.id), { partner_id: null, partnership_id: null });
+      // Set null partner
+      batch.update(this.afs.firestore.collection('users').doc(partnerId), { partner_id: null, partnership_id: null });
+      // await this.myUserRef().update({ partner_id: null, partnership_id: null });
+      batch.delete(this.afs.firestore.collection('partnerships').doc(partnershipId));
+
+      await batch.commit();
     } catch (error) {
       console.error(error);
       this.toast("Ocorreu um erro ao tentar remover o parceiro.");
@@ -492,9 +531,11 @@ export class AuthProvider {
   // Names
   getNamesCacheRef() {
     return this.getMyUserRef().collection("namesCache");
+
   }
+
   async chooseName(name: any, like: boolean) {
-    this.namesListPendingInsterations += 1;
+    this.namesListPendingInterations += 1;
     try {
 
       let batch = this.afs.firestore.batch();
@@ -506,15 +547,55 @@ export class AuthProvider {
       }
       // Delet o nome do cache dele
       batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
+      // batch.commit();
 
-      await batch.commit();
+      this.choicesWaiting.push(batch);
+      this.sendChoice();
     } catch (error) {
       console.error(error);
       this.toast('Ocorreu um erro ao tentar escolher o nome');
     } finally {
-      this.namesListPendingInsterations -= 1;
+      this.namesListPendingInterations -= 1;
     }
   }
+
+  async sendChoice() {
+    if (!this.sendingChoice) {
+      this.sendingChoice = true;
+      console.log('Antes de commitar', this.choicesWaiting);
+      await this.choicesWaiting.pop().commit();
+      console.log('Depis do pop', this.choicesWaiting);
+      this.sendingChoice = false;
+    } else {
+      setTimeout(() => {
+        this.sendChoice();
+      }, 8000);
+    }
+  }
+
+  // async chooseName(name: any, like: boolean) {
+  //   this.namesListPendingInterations += 1;
+  //   try {
+
+  //     let batch = this.afs.firestore.batch();
+  //     if (like) {
+  //       // Marco a escolha
+  //       batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
+  //       // Adiciono +1 na quantidade de escolhas que ele já fez
+  //       batch.set(this.myUserRawRef(), { total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
+  //     }
+  //     // Delet o nome do cache dele
+  //     batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
+
+  //     await batch.commit();
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
+  //   } finally {
+  //     this.namesListPendingInterations -= 1;
+  //   }
+  // }
+
   // async choseName(name: any, like: boolean) {
   //   this.namesListPendingInsterations += 1;
   //   try {
@@ -578,7 +659,7 @@ export class AuthProvider {
             );
           }
           // Somente aprovados
-          query = query.where("aproved", "==", true);
+          query = query.where("approved", "==", true);
           return query;
         })
         .get()
@@ -667,14 +748,8 @@ export class AuthProvider {
         return query;
       });
 
-      return await namesRef.get().pipe(
-        // map(names => {
-        //   return names.docs.map(name => {
-        //     // console.log('NAME', name);
-        //     return { ...name.data(), id: name.id };
-        //   });
-        // })
-      ).toPromise();
+      return await namesRef.get().toPromise();
+
     } catch (error) {
       console.log('eRROR', error instanceof ChoicesLimitReached);
       if (error instanceof ChoicesLimitReached) {
