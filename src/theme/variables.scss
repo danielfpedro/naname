@@ -42,7 +42,7 @@ $colors: (
   google: #d64937,
   nename: (
     base: #fff,
-    contrast: #20c1f7
+    contrast: #4987b6
   ),
   naname-primary: (
     base: #6cdcdf,
@@ -53,7 +53,7 @@ $colors: (
     contrast: #3e542f
   ),
   naname-danger: (
-    base: #e75555,
+    base: #ff6567,
     contrast: #fff
   ),
   naname-warning: (
@@ -65,7 +65,7 @@ $colors: (
     contrast: #502d41
   ),
   naname-positive: (
-    base: #bcdd11,
+    base: #afdc00,
     contrast: #fff
   ),
   naname-negative: (
@@ -82,6 +82,22 @@ $colors: (
   ),
   nename-muted: (
     base: #818181,
+    contrast: #fff
+  ),
+  nename-muted-darker: (
+    base: #606060,
+    contrast: #fff
+  ),
+  nename-blue-mara: (
+    base: #20c1f7,
+    contrast: #fff
+  ),
+  nename-cinza: (
+    base: #cbcbcb,
+    contrast: #fff
+  ),
+  nename-grafite: (
+    base: #7d7d7d,
     contrast: #fff
   )
 );

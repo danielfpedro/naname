@@ -47,11 +47,21 @@ export class ChosenListPage {
     private alertController: AlertController
   ) { }
 
+  ionViewDidLeave() {
+    console.log('Unsubscribe choices');
+    this.namesSubscription.unsubscribe();
+  }
   ionViewDidLoad() {
-
-
+    console.log('DID LOAD');
     this.loadingChoices = true;
-    this.authProvider
+  }
+  ionViewDidEnter() {
+    console.log('DID ENTER');
+    this.namesSubscription = this.getChoicesSubscription();
+  }
+  getChoicesSubscription() {
+    
+    return this.authProvider
       .myUserRef()
       .snapshotChanges()
       .pipe(
@@ -63,7 +73,7 @@ export class ChosenListPage {
               return res.map(name => {
                 return { ...name.payload.doc.data(), total_votes: name.payload.doc.data().total_votes || 0, id: name.payload.doc.id };
               });
-            }));
+            }));  
         })
       )
       .subscribe(res => {

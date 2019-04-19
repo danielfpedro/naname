@@ -12,12 +12,12 @@
     </ion-title>
 
     <ion-buttons left>
-      <button ion-button color="primary" icon-only (click)="openGenderSelectionModal()">
+      <button ion-button color="nename-grafite" icon-only (click)="openGenderSelectionModal()">
         <ion-icon name="settings"></ion-icon>
       </button>
     </ion-buttons>
     <ion-buttons right>
-      <button ion-button color="primary" icon-only (click)="openFiltersModal()">
+      <button ion-button color="nename-grafite" icon-only (click)="openFiltersModal()">
         <ion-icon name="funnel"></ion-icon>
         <span *ngIf="filterFormTotalTouchedControls > 0">
           &nbsp;
@@ -27,12 +27,6 @@
         </span>
       </button>
     </ion-buttons>
-
-    <!-- <ion-buttons end>
-
-    </ion-buttons>
-    -->
-
   </ion-navbar>
 
 </ion-header>
@@ -79,7 +73,7 @@
           <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false)">
             <ion-icon name="close"></ion-icon>
           </button>
-          <button ion-button color="nename-muted" class="button-choose-sm" (click)="openNameMeaning()" style="margin: 0 20px;">
+          <button ion-button color="nename-cinza" class="button-choose-sm" (click)="openNameMeaning()" style="margin: 0 20px;">
             <ion-icon name="information-circle"></ion-icon>
           </button>
           <button ion-button color="naname-positive" class="button-choose" (click)="voteUp(true)">

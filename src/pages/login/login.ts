@@ -1,7 +1,9 @@
 import { Component } from "@angular/core";
-import { IonicPage, LoadingController, Platform } from "ionic-angular";
+import { IonicPage, LoadingController, Platform, Nav, NavController } from "ionic-angular";
 import { AuthProvider } from "../../providers/auth/auth";
 import { StatusBar } from "@ionic-native/status-bar";
+import { AngularFireAuth } from "@angular/fire/auth";
+import { take } from "rxjs/operators";
 
 @IonicPage()
 @Component({
@@ -15,6 +17,8 @@ export class LoginPage {
     public loadingController: LoadingController,
     private platform: Platform,
     private statusBar: StatusBar,
+    private navController: NavController,
+    private afAuth: AngularFireAuth
   ) {
     platform.ready().then(() => {
       statusBar.styleLightContent();
@@ -26,12 +30,25 @@ export class LoginPage {
   }
 
   async signIn(provider: string) {
-    const loading = this.authProvider.customLoading('Entrando, aguarde...');
-    loading.present();
+    const loader = this.authProvider.customLoading('Entrando, aguarde...');
+    loader.present();
+
     try {
       await this.authProvider.signIn(provider);
-    } finally {
-      loading.dismiss();
+
+      this.afAuth.authState.pipe(take(1)).subscribe(result => {
+        if (result) {
+          this.authProvider.userId = result.uid;
+          this.authProvider.watchUser();
+          this.authProvider.readyToRock.subscribe(() => {
+            loader.dismiss();
+            this.navController.setRoot('TabsPage');
+          });
+        }
+      });
+    } catch (error) {
+      loader.dismiss();
+      console.error(error);
     }
   }
 }

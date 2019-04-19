@@ -91,12 +91,12 @@ export class PartnerListPage {
   }
   presentRemovePartnerAlert(block: boolean = false) {
     const title = `<strong>Remover</strong> o seu parceiro ${
-      this.authProvider.partner.name
+      this.authProvider.user.partner.name
       }?`;
     const message =
       "Ao remover, a lista de nomes escolhidos irá exibir apenas os nomes que você escolheu.";
 
-    const partnerToBeRemoved = this.authProvider.partner;
+    const partnerToBeRemoved = this.authProvider.user.partner;
 
     const alertOptions: AlertOptions = {
       title,
@@ -141,8 +141,8 @@ export class PartnerListPage {
   }
 
   async removePartner(partner) {
-    const loader = this.authProvider.customLoading(`Removendo ${this.authProvider.partner.name} (${
-      this.authProvider.partner.email
+    const loader = this.authProvider.customLoading(`Removendo ${this.authProvider.user.partner.name} (${
+      this.authProvider.user.partner.email
       })`);
     loader.present();
     await this.authProvider.removePartner(partner);

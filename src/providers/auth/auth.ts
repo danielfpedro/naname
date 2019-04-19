@@ -3,34 +3,26 @@ import { AngularFireAuth } from "@angular/fire/auth";
 import {
   AngularFirestore,
   AngularFirestoreDocument,
-  AngularFirestoreCollection,
   CollectionReference,
-  DocumentReference
 } from "@angular/fire/firestore";
 import { Facebook } from "@ionic-native/facebook";
 import { GooglePlus } from "@ionic-native/google-plus";
 import { Storage } from "@ionic/storage";
-import firebase, { database } from "firebase/app";
 import { AlertController, App, Platform, ToastController, LoadingOptions, LoadingController, Loading } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
-import { mergeMap, map, take, delay } from "rxjs/operators";
-import { NamesFiltersPage } from "../../pages/names-filters/names-filters";
+import { mergeMap, delay } from "rxjs/operators";
 import { FirebaseFirestore } from "@angular/fire";
+import { auth } from "firebase";
 
-/*
-  Generated class for the AuthProvider provider.
-
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class AuthProvider {
+
+  public userId: string = null;
 
   choicesLimit = 50;
   public userDoc: AngularFirestoreDocument;
 
-  public userUid: string = null;
   public user: any = null;
   public partner: any = null;
   public blockedUsers = [];
@@ -68,6 +60,9 @@ export class AuthProvider {
   choicesWaiting = [];
   sendingChoice = false;
 
+  // Quando o user já está watchado a gente da um next aqui
+  public readyToRock = new Subject();
+
   constructor(
     private platform: Platform,
     private fb: Facebook,
@@ -81,6 +76,28 @@ export class AuthProvider {
     private loadingController: LoadingController
   ) {
 
+
+  }
+
+  watchUser() {
+    this.afs
+      .collection("users")
+      .doc(this.userId)
+      .snapshotChanges()
+      .subscribe(user => {
+        console.log('User changed');
+        this.user = user.payload.data();
+
+        this.actors[this.user.id] = this.user;
+        if (this.user.partner) {
+          this.actors[this.user.partner_id] = this.user.partner;
+        }
+
+        this.readyToRock.next();
+      });
+  }
+
+  old() {
     this.afAuth.authState
       .pipe(
         mergeMap(userSignedIn => {
@@ -146,7 +163,7 @@ export class AuthProvider {
         }
         this.partner = partner && partner.exists ? partner.data() : null;
         if (this.partner) {
-          this.actors[this.partner.id] = this.partner;
+          this.actors[this.user.partner_id] = this.partner;
         }
 
         // console.log('this.user value', this.user);
@@ -180,6 +197,9 @@ export class AuthProvider {
       } else {
         console.log('Sign in browser popup with provider', providerName);
         authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
+
+        await this.createUserIfNeeded(authResponse);
+
         console.log('Sign in response', authResponse);
       }
     } catch (error) {
@@ -188,9 +208,8 @@ export class AuthProvider {
       if (error.code === "auth/account-exists-with-different-credential") {
         this.providerCollisionAlert(providerName);
       } else {
-        this.toast(
-          "Ocorreu um erro ao fazer o login. Por favor tente novamente."
-        );
+        console.error(error);
+        this.toast("Ocorreu um erro ao fazer o login. Por favor tente novamente.");
       }
     }
   }
@@ -215,9 +234,9 @@ export class AuthProvider {
   getBrowserProvider = providerName => {
     switch (providerName) {
       case "google":
-        return new firebase.auth.GoogleAuthProvider();
+        return new auth.GoogleAuthProvider()
       case "facebook":
-        return new firebase.auth.FacebookAuthProvider();
+        return new auth.FacebookAuthProvider();
     }
   };
 
@@ -236,7 +255,7 @@ export class AuthProvider {
   async signInWithFacebookNative() {
     const response = await this.fb.login(["email", "public_profile"]);
     return await this.afAuth.auth.signInWithCredential(
-      firebase.auth.FacebookAuthProvider.credential(
+      auth.FacebookAuthProvider.credential(
         response.authResponse.accessToken
       )
     );
@@ -251,7 +270,7 @@ export class AuthProvider {
       });
       console.log("GOOGLE LOGUN NATIVE RESPONSE", loginResponse);
       return await this.afAuth.auth.signInWithCredential(
-        firebase.auth.GoogleAuthProvider.credential(loginResponse.idToken)
+        auth.GoogleAuthProvider.credential(loginResponse.idToken)
       );
     } catch (error) {
       console.error("Error login google native", error);
@@ -259,15 +278,21 @@ export class AuthProvider {
     }
   }
 
-  createUserIfNeeded(userData) {
-    const userToAdd = {
-      id: userData.uid,
-      name: userData.displayName,
-      email: userData.email,
-      profilePhotoURL: userData.photoURL,
-      provider_name: userData.providerData[0].providerId == 'google.com' ? 'Google' : 'Facebook'
-    };
-    return this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
+  async createUserIfNeeded(userData) {
+    console.log('USER TO UPDATE OR CREATE', userData);
+
+    try {
+      const userToAdd = {
+        id: userData.uid,
+        name: userData.displayName,
+        email: userData.email,
+        profilePhotoURL: userData.photoURL,
+        provider_name: userData.providerData[0].providerId == 'google.com' ? 'Google' : 'Facebook'
+      };
+      await this.afs.collection("users").doc(userToAdd.id).set(userToAdd, { merge: true });
+    } catch (error) {
+      throw error;
+    }
   }
   getNameSubscription(nameChosen, owner) {
     return {
@@ -284,9 +309,14 @@ export class AuthProvider {
   getMyUserRef(): AngularFirestoreDocument<any> {
     return this.afs.collection("users").doc(this.user.id);
   }
-  logout() {
+
+  async logout() {
     console.log('Loggin out');
-    this.afAuth.auth.signOut();
+    const loader = this.customLoading('Saindo, aguarde...');
+    loader.present();
+    await this.afAuth.auth.signOut();
+    loader.dismiss();
+    this.app.getRootNav().setRoot('LoginPage');
   }
   // Refs
   myUserRef(raw = false) {
@@ -299,7 +329,7 @@ export class AuthProvider {
     return this.afs.collection("names");
   }
   partnerRef(): AngularFirestoreDocument<any> {
-    return this.afs.collection("users").doc(this.partner.id);
+    return this.afs.collection("users").doc(this.user.partner.id);
   }
   blockedUsersRef() {
     return this.myUserRef().collection("blockedUsers");
@@ -383,14 +413,26 @@ export class AuthProvider {
       const myUserRef = this.myUserRawRef();
       batch.update(myUserRef, {
         partner_id: targetUser.id,
-        partnership_id: partnershipResponse.id
+        partnership_id: partnershipResponse.id,
+        partner: {
+          id: targetUser.data().id,
+          name: targetUser.data().name,
+          email: targetUser.data().email,
+          profilePhotoURL: targetUser.data().profilePhotoURL
+        }
       });
 
       //Salvo o partnership id no target
       const targetRef = this.afs.firestore.collection('users').doc(targetUser.id);
       batch.update(targetRef, {
         partner_id: this.user.id,
-        partnership_id: partnershipResponse.id
+        partnership_id: partnershipResponse.id,
+        partner: {
+          id: this.user.id,
+          name: this.user.name,
+          email: this.user.email,
+          profilePhotoURL: this.user.profilePhotoURL
+        }
       });
 
       // Unificando nomes
@@ -446,7 +488,7 @@ export class AuthProvider {
       // const myNames = [];
       // const partnerNames = [];
       const partnershipId = this.user.partnership_id;
-      const partnerId = this.partner.id
+      const partnerId = this.user.partner.id
 
       const batch = this.afs.firestore.batch();
       chosenNames.forEach(chosenName => {
@@ -562,14 +604,13 @@ export class AuthProvider {
   async sendChoice() {
     if (!this.sendingChoice) {
       this.sendingChoice = true;
-      console.log('Antes de commitar', this.choicesWaiting);
-      await this.choicesWaiting.pop().commit();
-      console.log('Depis do pop', this.choicesWaiting);
+      const toSend = this.choicesWaiting.pop();
+      await toSend.commit();
       this.sendingChoice = false;
     } else {
       setTimeout(() => {
         this.sendChoice();
-      }, 8000);
+      }, 500);
     }
   }
 
@@ -802,6 +843,7 @@ export class AuthProvider {
       let nameId = null;
 
       // Se nao existe eu adiciono nos nomes como nao aprovados
+      const batch = this.afs.firestore.batch();
       if (hasName.size < 1) {
         const newName = {
           name: nameString,
@@ -833,6 +875,9 @@ export class AuthProvider {
         .set({ ...nameData, owners: { [this.user.id]: true } }, { merge: true });
       await this.myUserRef()
         .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
+
+
+
     } catch (error) {
       console.error(error);
       this.toast('Erro ao tentar adicionar o nome.');
@@ -859,7 +904,9 @@ export class AuthProvider {
 
   async isCacheNamesNeeded(): Promise<boolean> {
     const response = await this.afs.collection('settings').doc('names').ref.get();
-    if (typeof this.user.names_cache_last_update == 'undefined' || !this.user.names_cache_last_update || this.user.names_cache_last_update < response.data().last_update) {
+    const userData = await this.afs.collection('users').doc(this.userId).ref.get();
+    console.log('Caralho');
+    if (typeof userData.data().names_cache_last_update == 'undefined' || !userData.data().names_cache_last_update || userData.data().names_cache_last_update < response.data().last_update) {
       return true;
     }
     return false;

@@ -22,6 +22,8 @@ export class VotesPage {
   name = null;
   voters = [];
 
+  tabs = '1';
+
   constructor(
     public navCtrl: NavController,
     public navParams: NavParams,

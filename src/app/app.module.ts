@@ -23,7 +23,6 @@ import { SwingModule } from "angular2-swing";
 import { GooglePlus } from "@ionic-native/google-plus";
 import { SocialSharing } from "@ionic-native/social-sharing";
 import { IonicStorageModule } from "@ionic/storage";
-import { NamesProvider } from "../providers/names/names";
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { QRScanner } from "@ionic-native/qr-scanner";
 
@@ -69,8 +68,7 @@ const firebaseConfig: FirebaseAppConfig = {
     SocialSharing,
     QRScanner,
     BarcodeScanner,
-    { provide: ErrorHandler, useClass: IonicErrorHandler },
-    NamesProvider
+    { provide: ErrorHandler, useClass: IonicErrorHandler }
   ]
 })
 export class AppModule { }

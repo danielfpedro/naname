@@ -2,7 +2,7 @@
   <ion-navbar color="nename">
     <ion-title>Filtros</ion-title>
     <ion-buttons right>
-      <button ion-button (click)="dismiss(true)" color="dark">
+      <button ion-button (click)="dismiss(true)" color="nename-muted">
         Cancelar
       </button>
     </ion-buttons>
@@ -13,14 +13,14 @@
   <form [formGroup]="filterForm">
     <ion-list>
       <ion-item>
-        <ion-label>Letra inicial</ion-label>
+        <ion-label class="nename-label-input">Letra inicial</ion-label>
         <ion-select formControlName="firstLetter">
           <ion-option value="">Todas</ion-option>
           <ion-option [value]="letter" *ngFor="let letter of letters">{{letter}}</ion-option>
         </ion-select>
       </ion-item>
       <ion-item>
-        <ion-label>Categoria</ion-label>
+        <ion-label class="nename-label-input">Categoria</ion-label>
         <ion-select formControlName="category">
           <ion-option value="">Todas</ion-option>
           <ion-option [value]="category.id" *ngFor="let category of categories">{{category.name}}</ion-option>
@@ -28,7 +28,7 @@
       </ion-item>
     </ion-list>
     <div padding>
-      <button ion-button large round block icon-start (click)="dismiss(false)">
+      <button ion-button large round block icon-start color="nename-blue-mara" (click)="dismiss(false)">
         <ion-icon name="checkmark"></ion-icon> Aplicar filtro
       </button>
     </div>

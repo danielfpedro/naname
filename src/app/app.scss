@@ -208,9 +208,10 @@ h6 {
   font-weight: normal;
   // color: rgba(60, 60, 60, 0.7);
   color: color($colors, primary);
+  font-family: "Cocogoose" !important;
 }
 h1 {
-  font-size: 2.2em;
+  font-size: 1.7em;
   color: color($colors, primary);
 }
 h2 {
@@ -221,7 +222,7 @@ h3 {
   line-height: 22px;
 }
 h4 {
-  font-size: .9em;
+  font-size: 0.9em;
 }
 h5 {
   font-size: 0.7em;
@@ -279,12 +280,16 @@ $sides: (left, top, right, bottom);
   }
 }
 .gotinha {
-  font-family: 'GothamRoundedBook';
+  font-family: "GothamRoundedBook";
 }
 p {
-  font-family: 'GothamRoundedBook';
+  font-family: "GothamRoundedBook" !important;
   color: color($colors, nename-muted, base);
-  font-size: .8em;
+  font-size: 1em;
+  font-weight: normal !important;
+}
+.pzinho {
+  font-size: 0.9em !important;
 }
 
 .text-center {
@@ -293,7 +298,7 @@ p {
 
 button[large] {
   font-size: 1.1em;
-  font-weight: normal!important;
+  font-weight: normal !important;
 }
 
 .font-color-muted {
@@ -319,10 +324,10 @@ button[large] {
   font-size: 2.3em;
 }
 .button-choose-sm {
-  height: 55px;
-  width: 25px;
+  height: 50px;
+  width: 20px;
   border-radius: 100%;
-  font-size: 1.8em;
+  font-size: 1.6em;
 }
 
 .naname-image-header {
@@ -421,4 +426,16 @@ h1.color-primary {
 }
 [ion-slides] {
   width: 100%;
+}
+
+.nename-label-input {
+  color: color($colors, nename-muted, base) !important;
+  font-family: "GothamRoundedBook" !important;
+  font-size: 0.9em;
+}
+.select-text {
+  color: color($colors, nename-muted, base) !important;
+  font-family: "GothamRoundedBook" !important;
+  font-size: 1em;
+  font-weight: bold!important;
 }

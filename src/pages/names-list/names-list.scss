@@ -20,7 +20,7 @@ page-names-list {
     position: absolute;
 
     text-align: center;
-    background-color: color($colors, primary);
+    background-color: color($colors, nename-blue-mara, base);
     bottom:0;
 
     display: flex;
@@ -32,17 +32,18 @@ page-names-list {
   }
   #card-stack .card h2 {
     color: #fff;
-    font-weight: 200;
-    font-size: 3em;
+    font-weight: normal!important;
+    font-size: 2.6em;
     letter-spacing: 3px !important;
     margin: 0!important;
     margin-bottom: 8px!important;
+    font-family:  "Cocogoose"
   }
   #card-stack .card p {
     color: #FFF;
     margin: 0 10px!important;
     font-weight: bold;
     font-size: 1em;
-    font-family: "Roboto", "Helvetica Neue", sans-serif!important;
+    font-family: "GothamRoundedBook"!important;
   }
 }

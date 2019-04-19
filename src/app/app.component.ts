@@ -10,6 +10,8 @@ import { StatusBar } from "@ionic-native/status-bar";
 import { SplashScreen } from "@ionic-native/splash-screen";
 import { AuthProvider } from "../providers/auth/auth";
 import { Storage } from "@ionic/storage";
+import { AngularFireAuth } from "@angular/fire/auth";
+import { take } from "rxjs/operators";
 // import { AuthProvider } from "../providers/auth/auth";
 
 @Component({
@@ -31,7 +33,8 @@ export class MyApp {
     splashScreen: SplashScreen,
     public loadingController: LoadingController,
     public authProvider: AuthProvider,
-    private storage: Storage
+    private storage: Storage,
+    private afAuth: AngularFireAuth
 
   ) {
     platform.ready().then(() => {
@@ -45,6 +48,22 @@ export class MyApp {
 
     const loader = this.authProvider.customLoading();
     loader.present();
+
+    this.afAuth.authState.pipe(take(1)).subscribe(result => {
+      if (result) {
+        this.authProvider.userId = result.uid;
+        this.authProvider.watchUser();
+        this.authProvider.readyToRock.pipe(take(1)).subscribe(() => {
+          loader.dismiss();
+          this.nav.setRoot(this.tabsPage);
+        });
+      } else {
+        loader.dismiss();
+        this.nav.setRoot(this.loginPage);
+      }
+    });
+
+    /**
 
     this.authProvider.watchFirebaseAuthState.subscribe(isLogedIn => {
       // console.log('Dentro do next do watch login state');
@@ -64,6 +83,8 @@ export class MyApp {
         this.setRootIfNeeded(this.loginPage);
       }
     });
+
+    **/
   }
 
   async setRootIfNeeded(ref: string) {

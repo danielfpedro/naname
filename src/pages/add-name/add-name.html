@@ -1,11 +1,6 @@
 <ion-header>
   <ion-navbar color="nename">
     <ion-title>Adicionar nome</ion-title>
-    <!-- <ion-buttons left>
-      <button ion-button (click)="dismiss()">
-        <ion-icon name="arrow-round-back"></ion-icon>
-      </button>
-    </ion-buttons> -->
     <ion-buttons right>
       <button ion-button (click)="dismiss()" color="dark">
         Cancelar
@@ -31,7 +26,7 @@
   </ion-list>
 
   <div padding>
-    <button ion-button icon-start block round large (click)="addName()" [disabled]="!name || !gender">
+    <button ion-button icon-start block round large color="nename-blue-mara" (click)="addName()" [disabled]="!name || !gender">
       <ion-icon name="checkmark"></ion-icon> Adicionar
     </button>
   </div>
