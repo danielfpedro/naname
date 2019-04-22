@@ -20,7 +20,7 @@
 
   <div class="content-bimbo nename-content-center text-center" *ngIf="!loading && blockedUsers < 1">
     <img src="/assets/imgs/baby-fineza.png" class="naname-image-header">
-    <h1 class="margin-top">Você não bloqueou ninguém =]</h1>
+    <h1 class="margin-top-extra">Você não bloqueou ninguém =]</h1>
   </div>
 
   <div *ngIf="loading" padding>
@@ -40,7 +40,7 @@
       <ion-avatar item-start>
         <img [src]="user.profilePhotoURL">
       </ion-avatar>
-      <h2>{{user.name}}</h2>
+      <h1 class="list-item-main">{{user.name}}</h1>
       <p>{{user.email}}</p>
     </button>
   </ion-list>

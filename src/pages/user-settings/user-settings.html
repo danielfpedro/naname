@@ -9,14 +9,14 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content class="nename-content">
+<ion-content class="nename-content" padding>
   <div class="nename-content-center">
     <div class="text-center">
       <img [src]="authProvider.user?.profilePhotoURL || ''" class="naname-avatar-big margin-bottom">
-      <h3>Você está logado como
-        <strong>{{authProvider.user?.name}}</strong> pelo
+      <h1>Olá {{authProvider.user?.name}}!</h1>
+      <p>Você está conectado pelo
         <strong>{{this.authProvider.user?.provider_name}}</strong>
-      </h3>
+      </p>
     </div>
   </div>
 </ion-content>

@@ -2,7 +2,6 @@ import { Component, ViewChild } from "@angular/core";
 import {
   Platform,
   LoadingController,
-  NavController,
   Nav
  } from "ionic-angular";
 
@@ -40,8 +39,8 @@ export class MyApp {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
-      // statusBar.styleDefault();
-      // statusBar.backgroundColorByHexString('#cccccc');
+      statusBar.styleDefault();
+      statusBar.backgroundColorByHexString('#FFF');
       splashScreen.hide();
     });
 
@@ -55,6 +54,7 @@ export class MyApp {
         this.authProvider.watchUser();
         this.authProvider.readyToRock.pipe(take(1)).subscribe(() => {
           loader.dismiss();
+
           this.nav.setRoot(this.tabsPage);
         });
       } else {

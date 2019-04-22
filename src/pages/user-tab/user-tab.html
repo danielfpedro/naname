@@ -9,20 +9,20 @@
 <ion-content class="nename-content">
   <ion-list>
     <button ion-item *ngIf="!authProvider.user.partner_id" (click)="navController.push('PartnerListPage')">
-      Configurações do parceiro
+      <h2 class="list-item-main">Configurações do parceiro</h2>
     </button>
     <button ion-item *ngIf="authProvider.user.partner_id" (click)="navController.push('PartnerListPage')">
       <ion-avatar item-start>
         <img [src]="authProvider.user.partner?.profilePhotoURL">
       </ion-avatar>
-      Configurações do parceiro
+      <h2 class="list-item-main"> Configurações do parceiro</h2>
       <p>{{authProvider.user.partner?.name}}</p>
     </button>
     <button ion-item (click)="goToUserSettings()">
       <ion-avatar item-start>
         <img [src]="authProvider.user?.profilePhotoURL">
       </ion-avatar>
-      Configurações da conta
+      <h1 class="list-item-main">Configurações da conta</h1>
       <p>{{authProvider.user?.name}}</p>
     </button>
   </ion-list>

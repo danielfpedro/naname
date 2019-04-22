@@ -1,6 +1,6 @@
 <ion-header>
-  <ion-navbar color="nename">
-    <ion-title>
+  <ion-navbar color="nename" mode="ios">
+    <ion-title mode="ios">
       <span>{{name?.name}}</span>
     </ion-title>
     <ion-buttons right>
@@ -12,5 +12,5 @@
 </ion-header>
 
 <ion-content class="nename-content" >
-  <p [innerHtml]="name.meaning" style="padding: 5px 30px!important;"></p>
+  <p [innerHtml]="name.meaning" padding style="text-align: center; padding: 5px 15px;"></p>
 </ion-content>

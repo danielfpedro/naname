@@ -4,6 +4,7 @@ import { AuthProvider } from "../../providers/auth/auth";
 import { StatusBar } from "@ionic-native/status-bar";
 import { AngularFireAuth } from "@angular/fire/auth";
 import { take } from "rxjs/operators";
+import { Storage } from "@ionic/storage";
 
 @IonicPage()
 @Component({
@@ -18,15 +19,13 @@ export class LoginPage {
     private platform: Platform,
     private statusBar: StatusBar,
     private navController: NavController,
-    private afAuth: AngularFireAuth
+    private afAuth: AngularFireAuth,
+    public storage: Storage
   ) {
-    platform.ready().then(() => {
-      statusBar.styleLightContent();
-      statusBar.backgroundColorByHexString('#B2ECF7');
-    });
   }
 
   ionViewDidLoad() {
+
   }
 
   async signIn(provider: string) {
@@ -34,6 +33,7 @@ export class LoginPage {
     loader.present();
 
     try {
+      const firstTime = await this.storage.get('first_time');
       await this.authProvider.signIn(provider);
 
       this.afAuth.authState.pipe(take(1)).subscribe(result => {
@@ -42,7 +42,15 @@ export class LoginPage {
           this.authProvider.watchUser();
           this.authProvider.readyToRock.subscribe(() => {
             loader.dismiss();
-            this.navController.setRoot('TabsPage');
+            if (firstTime) {
+              this.navController.setRoot('TabsPage');
+            } else {
+              if (this.authProvider.user.partner_id) {
+                this.navController.setRoot('TabsPage');
+              } else {
+                this.navController.setRoot('AskAboutPartnershipPage');
+              }
+            }
           });
         }
       });

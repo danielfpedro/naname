@@ -99,7 +99,15 @@ $colors: (
   nename-grafite: (
     base: #7d7d7d,
     contrast: #fff
-  )
+  ),
+  nename-text: (
+    base: #525252,
+    contrast: #fff
+  ),
+  nename-transparent: (
+    base: transparent,
+    contrast: #fff
+  ),
 );
 $darken-amount: 5%;
 $border-radius: 20px;
@@ -138,8 +146,12 @@ $toolbar-ios-height: 56px;
 $button-md-large-font-size: 16px;
 $button-md-large-padding: 60px;
 
+// TOOLBAR
+$toolbar-md-title-font-size: 1em;
+
 // Tabs
 $tabs-md-tab-font-size: 1.3em;
+$tabs-md-tab-font-size-active: 1.8em;
 $tabs-ios-tab-font-size: 0.8em;
 
 $tabs-md-tab-icon-size: 1em;

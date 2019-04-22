@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import { IonicPage } from 'ionic-angular';
+import { IonicPage, Platform } from 'ionic-angular';
 
 import { PartnerInvitesProvider } from '../../providers/partner-invites/partner-invites';
+import { StatusBar } from '@ionic-native/status-bar';
 
 @IonicPage()
 @Component({
@@ -13,7 +14,9 @@ export class TabsPage {
   tab2Root = 'NamesListPage';
   tab3Root = 'ChosenListPage';
 
-  constructor(public partnerInvitesProvider: PartnerInvitesProvider) {
+  constructor(public partnerInvitesProvider: PartnerInvitesProvider, private platform: Platform, private statusBar: StatusBar) {
 
   }
+
+
 }

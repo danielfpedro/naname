@@ -15,11 +15,11 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content class="nename-content" padding>
-  <div class="content-bimbo" *ngIf="authProvider.user.partner_id">
+<ion-content class="nename-content">
+  <div class="content-bimbo" *ngIf="authProvider.user.partner_id" padding>
     <div class="content-child text-center">
       <h1>Vocês estão conectados</h1>
-      <h3>Agora os nomes que vocês escolherem serão unificados.</h3>
+      <p>Agora os nomes que vocês escolherem serão unificados.</p>
 
       <div class="margin-top-extra">
         <img [src]="authProvider.user?.profilePhotoURL" class="naname-avatar-big">
@@ -28,8 +28,9 @@
     </div>
   </div>
 
-  <div *ngIf="!authProvider.user.partner_id" padding>
-    <div class="naname-card naname-card-centered-content">
+  <div *ngIf="!authProvider.user.partner_id">
+    <add-partner></add-partner>
+    <!-- <div class="naname-card naname-card-centered-content">
       <h2 class="margin-bottom-extra">Vou adicionar o meu parceiro</h2>
       <button ion-button block round icon-start (click)="showPrompt()">
         <ion-icon name="at"></ion-icon> Adicionar pelo email
@@ -45,10 +46,10 @@
 
     <div class="naname-card naname-card-centered-content">
       <h2 class="margin-bottom-extra">O meu parceiro vai me adicionar</h2>
-      <h4>{{authProvider.user?.email}}</h4>
+      <h4 class="gotinha font-color-text">{{authProvider.user?.email}}</h4>
       <div>
         <qrcode [qrdata]="authProvider.user.email" [size]="100" [level]="'M'"></qrcode>
       </div>
-    </div>
+    </div> -->
   </div>
 </ion-content>

@@ -199,6 +199,7 @@ export class AuthProvider {
         authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
 
         await this.createUserIfNeeded(authResponse);
+        await this.storage.set('first_time', true);
 
         console.log('Sign in response', authResponse);
       }

@@ -173,8 +173,8 @@ export class ChosenListPage {
 
   share() {
     this.socialSharing.share(
-      "Escolhe o nome do filhão ai meu amigo, é divertix",
-      "Aqui o assunto não sei a diferença",
+      "Olá, preciso de sua ajuda! CLIQUE agora no link abaixo e me ajude escolher o nome do meu bebê.",
+      "Enquete do nome do Bebê",
       null,
       this.getPoolUrl()
     );
