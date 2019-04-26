@@ -14,6 +14,7 @@ import { of, Subject } from "rxjs";
 import { mergeMap, delay } from "rxjs/operators";
 import { FirebaseFirestore } from "@angular/fire";
 import { auth } from "firebase";
+import { HttpClient } from "@angular/common/http";
 
 @Injectable()
 export class AuthProvider {
@@ -73,7 +74,8 @@ export class AuthProvider {
     private alertController: AlertController,
     private toastCtrl: ToastController,
     public gPlus: GooglePlus,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private http: HttpClient
   ) {
 
 
@@ -381,6 +383,12 @@ export class AuthProvider {
       if (email == this.user.email) {
         throw new PartnerError("Você informou o seu próprio email");
       }
+
+      const res = await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/addPartner', { email: email, id1: this.user.id }).toPromise();
+      console.log('res add partner', res);
+      return;
+
+
       // Verifico se ele informou um usuario do sistema
       const targetUserQuery = await this.afs
         .collection("users")

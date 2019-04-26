@@ -40,14 +40,14 @@ export class PartnerListPage {
   ionViewDidLoad() {
     console.log("subscribing blocked users");
 
-    this.blockedUsersSubscription = this.authProvider
-      .blockedUsersRef()
-      .valueChanges()
-      .subscribe(blockedUsers => {
-        this.blockedUsers = blockedUsers.map(blockedUser => {
-          return blockedUser;
-        });
-      });
+    // this.blockedUsersSubscription = this.authProvider
+    //   .blockedUsersRef()
+    //   .valueChanges()
+    //   .subscribe(blockedUsers => {
+    //     this.blockedUsers = blockedUsers.map(blockedUser => {
+    //       return blockedUser;
+    //     });
+    //   });
 
 
 
@@ -55,7 +55,7 @@ export class PartnerListPage {
   }
   ionViewWillLeave() {
     console.log("unsubscribe blocked users");
-    this.blockedUsersSubscription.unsubscribe();
+    // this.blockedUsersSubscription.unsubscribe();
   }
 
   showPrompt() {
