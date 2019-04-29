@@ -27,6 +27,7 @@ export class NamesCachePage {
 
   async do() {
     const allNames = await this.authProvider.allNames();
+    
     this.authProvider.cacheNamesListen.subscribe(
       success => {
       },

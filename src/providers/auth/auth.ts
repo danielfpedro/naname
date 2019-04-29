@@ -384,99 +384,16 @@ export class AuthProvider {
         throw new PartnerError("Você informou o seu próprio email");
       }
 
-      const res = await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/addPartner', { email: email, id1: this.user.id }).toPromise();
-      console.log('res add partner', res);
-      return;
+      const jwt = await auth().currentUser.getIdToken(true);
+      await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/add_partner', { email: email, jwt: jwt }).toPromise();
 
-
-      // Verifico se ele informou um usuario do sistema
-      const targetUserQuery = await this.afs
-        .collection("users")
-        .ref.where("email", "==", email)
-        .get();
-      // console.log('QUERY COM EMAIL', email);
-      // console.log('QUERY QUERY RESULT', targetUserQuery);
-      if (targetUserQuery.empty) {
-        throw new PartnerError("Você informou um email que não existe no sistema.");
-      }
-      const targetUser = targetUserQuery.docs[0];
-      if (targetUser.get("partner_id")) {
-        throw new PartnerError("O usuário que você tentou adicionar já possui um parceiro.");
-      }
-      const targetUserRef = this.afs.collection("users").doc(targetUser.id);
-      //Verifico se o id dele está na minha lista de bloqueados
-      const imBlocked = await targetUserRef
-        .collection("blockedUsers")
-        .doc(this.user.id)
-        .ref.get();
-      if (imBlocked.exists) {
-        throw new PartnerError("Você está bloqueado por este usuário e não pode adicioná-lo como parceiro.");
-      }
-      // Add target uid as partner and add logged user uid on partner record too
-
-      // Crio o partnership
-      const partnershipResponse = await this.afs.collection("partnerships").add({ done: true });
-
-      const batch = this.afs.firestore.batch();
-      //Salvo o partnership id no user
-      const myUserRef = this.myUserRawRef();
-      batch.update(myUserRef, {
-        partner_id: targetUser.id,
-        partnership_id: partnershipResponse.id,
-        partner: {
-          id: targetUser.data().id,
-          name: targetUser.data().name,
-          email: targetUser.data().email,
-          profilePhotoURL: targetUser.data().profilePhotoURL
-        }
-      });
-
-      //Salvo o partnership id no target
-      const targetRef = this.afs.firestore.collection('users').doc(targetUser.id);
-      batch.update(targetRef, {
-        partner_id: this.user.id,
-        partnership_id: partnershipResponse.id,
-        partner: {
-          id: this.user.id,
-          name: this.user.name,
-          email: this.user.email,
-          profilePhotoURL: this.user.profilePhotoURL
-        }
-      });
-
-      // Unificando nomes
-      //console.log('Unificando nomes');
-      // const promises = [];
-      const userChosenNames = await this.myUserRef().collection('chosenNames').ref.get();
-
-      //console.log('Total chosen names user', userChosenNames.size);
-      userChosenNames.forEach(chosenName => {
-        const chosenNamesRef = this.afs.firestore.collection('partnerships').doc(partnershipResponse.id).collection('chosenNames').doc(chosenName.id);
-        batch.set(chosenNamesRef, { ...chosenName.data(), owners: { [this.user.id]: true } }, { merge: true });
-      });
-
-      const targetChosenNames = await targetUserRef.collection('chosenNames').ref.get();
-      // console.log('Total chosen names partner', targetChosenNames.size);
-      // console.log('TARGET USER', targetUser);
-      // console.log('TARGET USER ID', targetUser.id);
-      targetChosenNames.forEach(chosenName => {
-        const chosenNamesRef = this.afs.firestore.collection('partnerships').doc(partnershipResponse.id).collection('chosenNames').doc(chosenName.id);
-        batch.set(chosenNamesRef, { ...chosenName.data(), owners: { [targetUser.id]: true } }, { merge: true });
-        //promises.push(this.chosenNamesRef().doc(chosenName.id).set({ ...chosenName.data(), owners: { [this.user.partner_id]: true } }, { merge: true }));
-      });
-
-      await batch.commit();
-      // await Promise.all(promises);
-
-      // console.log('Terminou de unificar nomes');
-      // DONE!
     } catch (error) {
       console.log(error);
       console.log(typeof error);
-      if (error instanceof PartnerError) {
+      if (error.status == 400) {
         const alert = this.alertController.create({
           title: "Ops, algo deu errado!",
-          message: error.message,
+          message: error.error.message,
           buttons: ["ok"]
         });
         alert.present();
@@ -491,11 +408,12 @@ export class AuthProvider {
    */
   async removePartner(partner: any): Promise<void> {
     try {
+      const jwt = await auth().currentUser.getIdToken(true);
+      await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/remove_partner', { jwt: jwt }).toPromise();
+
+      /**
       const chosenNames = await this.chosenNamesRef().ref.get();
 
-      // const promises = [];
-      // const myNames = [];
-      // const partnerNames = [];
       const partnershipId = this.user.partnership_id;
       const partnerId = this.user.partner.id
 
@@ -515,22 +433,6 @@ export class AuthProvider {
         }
       });
 
-      // myNames.forEach(name => {
-      //   promises.push(this.myUserRef().collection('chosenNames').doc(name.id).set(name));
-      // });
-      // partnerNames.forEach(name => {
-      //   promises.push(this.partnerRef().collection('chosenNames').doc(name.id).set(name));
-      // });
-
-      // console.log('My names', myNames);
-      // console.log('Partner names', partnerNames);
-      // console.log('GEt my ref', this.myUserRef());
-      // console.log('GEt partner ref', this.partnerRef());
-      // Promise.all(promises);
-
-      // DELETA O PARTNER PRIMEIRO PQ DEOPIS DELE O PARTNER DO MY USER AI NAO TEM MAIS O ID DO PARTNER
-      // PQ ELE FOI DELETADO KKK
-
       // Set null my
       batch.update(this.afs.firestore.collection('users').doc(this.user.id), { partner_id: null, partnership_id: null });
       // Set null partner
@@ -539,6 +441,7 @@ export class AuthProvider {
       batch.delete(this.afs.firestore.collection('partnerships').doc(partnershipId));
 
       await batch.commit();
+      **/
     } catch (error) {
       console.error(error);
       this.toast("Ocorreu um erro ao tentar remover o parceiro.");
@@ -593,8 +496,6 @@ export class AuthProvider {
       if (like) {
         // Marco a escolha
         batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
-        // Adiciono +1 na quantidade de escolhas que ele já fez
-        batch.set(this.myUserRawRef(), { total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
       }
       // Delet o nome do cache dele
       batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
@@ -623,53 +524,6 @@ export class AuthProvider {
     }
   }
 
-  // async chooseName(name: any, like: boolean) {
-  //   this.namesListPendingInterations += 1;
-  //   try {
-
-  //     let batch = this.afs.firestore.batch();
-  //     if (like) {
-  //       // Marco a escolha
-  //       batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
-  //       // Adiciono +1 na quantidade de escolhas que ele já fez
-  //       batch.set(this.myUserRawRef(), { total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
-  //     }
-  //     // Delet o nome do cache dele
-  //     batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
-
-  //     await batch.commit();
-  //   } catch (error) {
-  //     console.error(error);
-  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
-  //   } finally {
-  //     this.namesListPendingInterations -= 1;
-  //   }
-  // }
-
-  // async choseName(name: any, like: boolean) {
-  //   this.namesListPendingInsterations += 1;
-  //   try {
-  //     if (like) {
-  //       // Salvando escolha
-  //       await this.chosenNamesRef()
-  //         .doc(name.id)
-  //         .set({ ...name, owners: { [this.user.id]: true } }, { merge: true });
-
-  //       await this.myUserRef()
-  //         .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
-  //     }
-  //     console.log('Name to delete', name);
-  //     await this.myUserRef()
-  //       .collection("namesCache")
-  //       .doc(name.id)
-  //       .delete();
-  //   } catch (error) {
-  //     console.error(error);
-  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
-  //   } finally {
-  //     this.namesListPendingInsterations -= 1;
-  //   }
-  // }
   async removeChosenName(id: string) {
     console.log("Removendo nome", id);
     try {
@@ -683,11 +537,6 @@ export class AuthProvider {
         } else {
           console.log('Update name removendo o owners meu', name);
           await this.chosenNamesRef().doc(id).update(name);
-        }
-
-        if (parseInt(this.user.total_choices) > 0) {
-          await this.myUserRef()
-            .set({ total_choices: (parseInt(this.user.total_choices || 0) - 1) }, { merge: true });
         }
       }
     } catch (error) {
@@ -848,6 +697,8 @@ export class AuthProvider {
         .ref.where("name", "==", nameString)
         .get();
 
+      console.log('Leu nome joia');
+
       let nameData = null;
       let nameId = null;
 
@@ -858,7 +709,7 @@ export class AuthProvider {
           name: nameString,
           gender: gender,
           first_letter: nameString.charAt(0).toLowerCase(),
-          aproved: false
+          approved: false
         };
         const response = await this.afs.collection("names").add(newName);
         nameData = newName;
@@ -882,11 +733,6 @@ export class AuthProvider {
       await this.chosenNamesRef()
         .doc(nameId)
         .set({ ...nameData, owners: { [this.user.id]: true } }, { merge: true });
-      await this.myUserRef()
-        .set({ total_choices: (parseInt(this.user.total_choices || 0) + 1) }, { merge: true });
-
-
-
     } catch (error) {
       console.error(error);
       this.toast('Erro ao tentar adicionar o nome.');
