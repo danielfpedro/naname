@@ -165,7 +165,7 @@ export const add_partner = functions.https.onRequest((req, res) => {
             batch.set(myUserRef, myUserDataToAdd, { merge: true });
 
             //Salvo o partnership id no target
-            
+
             const targetUserDataToAdd = {
                 partner_id: id1,
                 partnership_id: partnershipResponse.id,
@@ -193,7 +193,7 @@ export const add_partner = functions.https.onRequest((req, res) => {
                 const chosenNamesRef = db.collection('partnerships').doc(partnershipResponse.id).collection('chosenNames').doc(chosenName.id);
                 batch.set(chosenNamesRef, { ...chosenName.data(), owners: { [targetUser.id]: true } }, { merge: true });
             });
-            
+
             await batch.commit();
 
             res.status(200).send({ message: 'Parceiro adicionado' });
@@ -255,54 +255,96 @@ export const totalVotesCache = functions.firestore.document('/users/{userId}/cho
         }
     });
 
-export const totalChoices = functions.firestore.document('/users/{userId}/chosenNames/{chosenNameId}')
-    .onWrite(async (change, context) => {
+// export const totalChoices = functions.firestore.document('/users/{userId}/chosenNames/{chosenNameId}')
+//     .onWrite(async (change, context) => {
 
+//         try {
+
+//             const user = await db.collection('users').doc(context.params.userId).get();
+
+//             if (!user.exists) {
+//                 throw new Error("Usuário não existe");
+//             }
+
+//             let newTotalChoices = (user.get('total_choices') || 0) + 1;
+//             // Se foi deletado
+//             if (!change.after.exists) {
+//                 newTotalChoices = newTotalChoices - 2;
+//             }
+//             if (newTotalChoices < 0) {
+//                 newTotalChoices = 0;
+//             }
+
+//             return user.ref.update({ total_choices: newTotalChoices });
+//         } catch (error) {
+//             throw error;
+//         }
+//     });
+
+// export const totalChoicesFromPartnership = functions.firestore.document('/partnerships/{partnershipId}/chosenNames/{chosenNameId}')
+//     .onWrite(async (change, context) => {
+
+//         try {
+
+//             const user = await db.collection('users').doc(context.auth!.uid).get();
+
+//             if (!user.exists) {
+//                 throw new Error("Usuário não existe");
+//             }
+
+//             let newTotalChoices = (user.get('total_choices') || 0) + 1;
+//             // Se foi deletado
+//             if (!change.after.exists) {
+//                 newTotalChoices = newTotalChoices - 2;
+//             }
+//             if (newTotalChoices < 0) {
+//                 newTotalChoices = 0;
+//             }
+
+//             return user.ref.update({ total_choices: newTotalChoices });
+//         } catch (error) {
+//             throw error;
+//         }
+//     });
+
+export const vote = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
         try {
+            const name = req.body.name;
 
-            const user = await db.collection('users').doc(context.params.userId).get();
+            const jwt = req.body.jwt;
+            const jwtVerification = await admin.auth().verifyIdToken(jwt);
 
-            if (!user.exists) {
-                throw new Error("Usuário não existe");
+            const me = await db.collection('users').doc(jwtVerification.uid).get();
+
+            const batch = db.batch();
+            console.log('like? ', req.body.like);
+            if (req.body.like) {
+                // Marco a escolha
+                let chosenNamesRef = me.ref.collection('chosenNames');
+                console.log('partnet?');
+                if (me.get('partner_id')) {
+                    console.log('SIM TEM partnet');
+                    chosenNamesRef = db.collection('partnerships').doc(me.get('partnership_id')).collection('chosenNames');
+                }
+
+                batch.set(chosenNamesRef.doc(name.id), { ...name, owners: { [me.id]: true } }, { merge: true });
             }
+            // Delet o nome do cache dele
+            batch.delete(me.ref.collection("namesCache").doc(name.id));
 
-            let newTotalChoices = (user.get('total_choices') || 0) + 1;
-            // Se foi deletado
-            if (!change.after.exists) {
-                newTotalChoices = newTotalChoices - 2;
-            }
-            if (newTotalChoices < 0) {
-                newTotalChoices = 0;
-            }
+            await batch.commit();
+            await me.ref.update({ total_choices: (me.get('total_choices') || 0) + 1 });
 
-            return user.ref.update({ total_choices: newTotalChoices });
+            res.status(200).json({
+                message: 'Votou o fino'
+            });
+
         } catch (error) {
-            throw error;
+            console.error(error);
+            res.status(500).json({
+                message: 'Error'
+            });
         }
-    });
-
-export const totalChoicesFromPartnership = functions.firestore.document('/partnerships/{partnershipId}/chosenNames/{chosenNameId}')
-    .onWrite(async (change, context) => {
-
-        try {
-
-            const user = await db.collection('users').doc(context.auth!.uid).get();
-
-            if (!user.exists) {
-                throw new Error("Usuário não existe");
-            }
-
-            let newTotalChoices = (user.get('total_choices') || 0) + 1;
-            // Se foi deletado
-            if (!change.after.exists) {
-                newTotalChoices = newTotalChoices - 2;
-            }
-            if (newTotalChoices < 0) {
-                newTotalChoices = 0;
-            }
-
-            return user.ref.update({ total_choices: newTotalChoices });
-        } catch (error) {
-            throw error;
-        }
-    });
+    })
+});

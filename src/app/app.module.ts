@@ -27,16 +27,14 @@ import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { QRScanner } from "@ionic-native/qr-scanner";
 
 import { HttpClientModule } from '@angular/common/http';
-import { MainLogoComponent } from "../components/main-logo/main-logo";
-import { ComponentsModule } from "../components/components.module";
 
 const firebaseConfig: FirebaseAppConfig = {
-  apiKey: "AIzaSyAXpIzdLG-2o0CP4EBhfOEt3p2sdJbohBo",
-  authDomain: "nenem-381db.firebaseapp.com",
-  databaseURL: "https://nenem-381db.firebaseio.com",
-  projectId: "nenem-381db",
-  storageBucket: "nenem-381db.appspot.com",
-  messagingSenderId: "459444398002"
+  apiKey: "AIzaSyDBBqcLQF3T5C_-olzql5ICHrZNxKrj43A",
+  authDomain: "nename-d08b1.firebaseapp.com",
+  databaseURL: "https://nename-d08b1.firebaseio.com",
+  projectId: "nename-d08b1",
+  storageBucket: "nename-d08b1.appspot.com",
+  messagingSenderId: "423286092881"
 };
 
 @NgModule({

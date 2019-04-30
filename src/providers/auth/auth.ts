@@ -11,7 +11,7 @@ import { Storage } from "@ionic/storage";
 import { AlertController, App, Platform, ToastController, LoadingOptions, LoadingController, Loading } from "ionic-angular";
 import * as _ from "lodash";
 import { of, Subject } from "rxjs";
-import { mergeMap, delay } from "rxjs/operators";
+import { mergeMap, delay, take } from "rxjs/operators";
 import { FirebaseFirestore } from "@angular/fire";
 import { auth } from "firebase";
 import { HttpClient } from "@angular/common/http";
@@ -86,6 +86,7 @@ export class AuthProvider {
       .collection("users")
       .doc(this.userId)
       .snapshotChanges()
+      .pipe(take(1))
       .subscribe(user => {
         console.log('User changed');
         this.user = user.payload.data();
@@ -99,90 +100,90 @@ export class AuthProvider {
       });
   }
 
-  old() {
-    this.afAuth.authState
-      .pipe(
-        mergeMap(userSignedIn => {
-          this.userSignedIn = userSignedIn;
-          if (userSignedIn) {
-            return this.createUserIfNeeded(userSignedIn);
-          }
-          return of(null);
-        }),
-        mergeMap(nothingHere => {
-          // console.log('Is user signed in?', this.userSignedIn);
+  // old() {
+  //   this.afAuth.authState
+  //     .pipe(
+  //       mergeMap(userSignedIn => {
+  //         this.userSignedIn = userSignedIn;
+  //         if (userSignedIn) {
+  //           return this.createUserIfNeeded(userSignedIn);
+  //         }
+  //         return of(null);
+  //       }),
+  //       mergeMap(nothingHere => {
+  //         // console.log('Is user signed in?', this.userSignedIn);
 
-          if (this.userSignedIn) {
-            // console.log('Yes it is');
-            return this.afs
-              .collection("users")
-              .doc(this.userSignedIn.uid)
-              .snapshotChanges();
-          }
-          this.user = null;
-          return of(null);
-        }),
-        mergeMap(userDoc => {
-          // console.log('Result of user doc', userDoc);
-          // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
-          if (userDoc === null) {
-            this.user = null;
-            return of(null);
-          } else if (!userDoc.payload.exists) {
-            // console.log('User does not exists, we are signing out here');
-            this.user = null;
-            this.afAuth.auth.signOut();
-          }
+  //         if (this.userSignedIn) {
+  //           // console.log('Yes it is');
+  //           return this.afs
+  //             .collection("users")
+  //             .doc(this.userSignedIn.uid)
+  //             .snapshotChanges();
+  //         }
+  //         this.user = null;
+  //         return of(null);
+  //       }),
+  //       mergeMap(userDoc => {
+  //         // console.log('Result of user doc', userDoc);
+  //         // Se for undefined ele estava logado mas o usuário foi deletado, então a gente signout ele
+  //         if (userDoc === null) {
+  //           this.user = null;
+  //           return of(null);
+  //         } else if (!userDoc.payload.exists) {
+  //           // console.log('User does not exists, we are signing out here');
+  //           this.user = null;
+  //           this.afAuth.auth.signOut();
+  //         }
 
-          this.user = userDoc.payload.data();
-          // console.log('Now the value of authProvider.user is', this.user);
-          if (this.user) {
-            // populate actors object with user doc, this variable will be thourgh the app
-            // so we tech user and partner(if has it) only this time
-            this.actors[this.user.id] = this.user;
-          }
-          // Se tem partner pego ele
-          if (this.user && this.user.partner_id) {
-            // console.log('Has partner_id, fetch partner profile');
-            return this.afs
-              .collection("users")
-              .doc(this.user.partner_id)
-              .ref.get();
-          } else {
-            // console.log('Has NOT partner_id, fetch partner profile');
-          }
-          return of(null);
-        })
-      )
-      .subscribe(partner => {
-        // IMPORTANTE!!!!!!!!!!!!!!!!
-        // Se o partner_id for de um user que não existe(fluxo normal nunca vai acontecer mas estamos antecipando um bug)
-        // transformamos partner_id para nul... pois o bug ocorreria do usuario ficar com partner_id de um user que não existe
-        // e o parceiro querendo adicionar mas não consegue que iria dizer que o cara já tem parceiro.. porem o parceiro não existe
-        // ele nem conseguiria remover... então resultaria em um bug impossivel de resolver para o usuario
-        if (partner && !partner.exists) {
-          this.myUserRef().set({ partner_id: null }, { merge: true });
-        }
-        this.partner = partner && partner.exists ? partner.data() : null;
-        if (this.partner) {
-          this.actors[this.user.partner_id] = this.partner;
-        }
+  //         this.user = userDoc.payload.data();
+  //         // console.log('Now the value of authProvider.user is', this.user);
+  //         if (this.user) {
+  //           // populate actors object with user doc, this variable will be thourgh the app
+  //           // so we tech user and partner(if has it) only this time
+  //           this.actors[this.user.id] = this.user;
+  //         }
+  //         // Se tem partner pego ele
+  //         if (this.user && this.user.partner_id) {
+  //           // console.log('Has partner_id, fetch partner profile');
+  //           return this.afs
+  //             .collection("users")
+  //             .doc(this.user.partner_id)
+  //             .ref.get();
+  //         } else {
+  //           // console.log('Has NOT partner_id, fetch partner profile');
+  //         }
+  //         return of(null);
+  //       })
+  //     )
+  //     .subscribe(partner => {
+  //       // IMPORTANTE!!!!!!!!!!!!!!!!
+  //       // Se o partner_id for de um user que não existe(fluxo normal nunca vai acontecer mas estamos antecipando um bug)
+  //       // transformamos partner_id para nul... pois o bug ocorreria do usuario ficar com partner_id de um user que não existe
+  //       // e o parceiro querendo adicionar mas não consegue que iria dizer que o cara já tem parceiro.. porem o parceiro não existe
+  //       // ele nem conseguiria remover... então resultaria em um bug impossivel de resolver para o usuario
+  //       if (partner && !partner.exists) {
+  //         this.myUserRef().set({ partner_id: null }, { merge: true });
+  //       }
+  //       this.partner = partner && partner.exists ? partner.data() : null;
+  //       if (this.partner) {
+  //         this.actors[this.user.partner_id] = this.partner;
+  //       }
 
-        // console.log('this.user value', this.user);
-        // console.log('this.isLoggedIn value', this.isLoggedIn);
-        // console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
-        // console.log('THIS PARTNER', this.partner);
-        // console.log('PARTNER', partner);
-        // console.log('THIS AUTH PROVIDER', this);
+  //       // console.log('this.user value', this.user);
+  //       // console.log('this.isLoggedIn value', this.isLoggedIn);
+  //       // console.log('Next no watch firebase State is', (this.isLoggedIn && this.user));
+  //       // console.log('THIS PARTNER', this.partner);
+  //       // console.log('PARTNER', partner);
+  //       // console.log('THIS AUTH PROVIDER', this);
 
-        this.watchFirebaseAuthState.next(this.user);
-        // this.initThingsIsDone.complete();
-      });
-  }
+  //       this.watchFirebaseAuthState.next(this.user);
+  //       // this.initThingsIsDone.complete();
+  //     });
+  // }
 
-  initThings(): void {
+  // initThings(): void {
 
-  }
+  // }
 
   async signIn(providerName: string): Promise<void> {
     try {
@@ -267,7 +268,7 @@ export class AuthProvider {
     try {
       const loginResponse = await this.gPlus.login({
         webClientId:
-          "459444398002-fj9tp1hku8k7rj4l283ho962due544ic.apps.googleusercontent.com",
+          "423286092881-nqmi0kad7tcnfm314ev9evq3uehb96ho.apps.googleusercontent.com",
         offline: true,
         scopes: "profile email"
       });
@@ -488,6 +489,30 @@ export class AuthProvider {
 
   }
 
+  // async chooseName(name: any, like: boolean) {
+  //   //this.namesListPendingInterations += 1;
+  //   try {
+  //     const jwt = await auth().currentUser.getIdToken(true);
+  //     await this.http.post('https://us-central1-nename-d08b1.cloudfunctions.net/vote ', { name, jwt, like }).toPromise();
+  //     // let batch = this.afs.firestore.batch();
+  //     // if (like) {
+  //     //   // Marco a escolha
+  //     //   batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
+  //     // }
+  //     // // Delet o nome do cache dele
+  //     // batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
+  //     // // batch.commit();
+
+  //     // this.choicesWaiting.push(batch);
+  //     // this.sendChoice();
+  //   } catch (error) {
+  //     console.error(error);
+  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
+  //   } finally {
+  //     // this.namesListPendingInterations -= 1;
+  //   }
+  // }
+
   async chooseName(name: any, like: boolean) {
     this.namesListPendingInterations += 1;
     try {
@@ -515,7 +540,10 @@ export class AuthProvider {
     if (!this.sendingChoice) {
       this.sendingChoice = true;
       const toSend = this.choicesWaiting.pop();
+      const me = await this.myUserRawRef().get();
+      toSend.update(me.ref, { total_choices: ((me.get('total_choices') || 0) + 1) });
       await toSend.commit();
+
       this.sendingChoice = false;
     } else {
       setTimeout(() => {
@@ -538,6 +566,8 @@ export class AuthProvider {
           console.log('Update name removendo o owners meu', name);
           await this.chosenNamesRef().doc(id).update(name);
         }
+        const me = await this.myUserRawRef().get();
+        await me.ref.update({ total_choices: ((me.get('total_choices') || 0) - 1) });
       }
     } catch (error) {
       this.toast("Ocorreu um erro ao tentar remover o nome da sua lista de escolhas");
@@ -733,6 +763,10 @@ export class AuthProvider {
       await this.chosenNamesRef()
         .doc(nameId)
         .set({ ...nameData, owners: { [this.user.id]: true } }, { merge: true });
+
+      const me = await this.myUserRawRef().get();
+      await me.ref.update({ total_choices: ((me.get('total_choices') || 0) + 1) });
+
     } catch (error) {
       console.error(error);
       this.toast('Erro ao tentar adicionar o nome.');

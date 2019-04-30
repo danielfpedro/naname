@@ -69,7 +69,7 @@ export class NamesListPage {
     console.log('Did load');
     this.init();
     this.swingStack.throwin.subscribe((event: DragEvent) => {
-      // event.target.style.background = '#ffffff';
+      event.target.style.background = '#002aff';
     });
   }
   ionViewDidEnter() {
