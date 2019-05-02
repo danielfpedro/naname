@@ -307,44 +307,4 @@ export const totalVotesCache = functions.firestore.document('/users/{userId}/cho
 //         }
 //     });
 
-export const vote = functions.https.onRequest((req, res) => {
-    corsHandler(req, res, async () => {
-        try {
-            const name = req.body.name;
-
-            const jwt = req.body.jwt;
-            const jwtVerification = await admin.auth().verifyIdToken(jwt);
-
-            const me = await db.collection('users').doc(jwtVerification.uid).get();
-
-            const batch = db.batch();
-            console.log('like? ', req.body.like);
-            if (req.body.like) {
-                // Marco a escolha
-                let chosenNamesRef = me.ref.collection('chosenNames');
-                console.log('partnet?');
-                if (me.get('partner_id')) {
-                    console.log('SIM TEM partnet');
-                    chosenNamesRef = db.collection('partnerships').doc(me.get('partnership_id')).collection('chosenNames');
-                }
-
-                batch.set(chosenNamesRef.doc(name.id), { ...name, owners: { [me.id]: true } }, { merge: true });
-            }
-            // Delet o nome do cache dele
-            batch.delete(me.ref.collection("namesCache").doc(name.id));
-
-            await batch.commit();
-            await me.ref.update({ total_choices: (me.get('total_choices') || 0) + 1 });
-
-            res.status(200).json({
-                message: 'Votou o fino'
-            });
-
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({
-                message: 'Error'
-            });
-        }
-    })
-});
+// artner

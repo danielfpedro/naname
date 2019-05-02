@@ -40,7 +40,7 @@ export class LoginPage {
         if (result) {
           this.authProvider.userId = result.uid;
           this.authProvider.watchUser();
-          this.authProvider.readyToRock.subscribe(() => {
+          this.authProvider.readyToRock.pipe(take(1)).subscribe(() => {
             loader.dismiss();
             if (firstTime) {
               this.navController.setRoot('TabsPage');

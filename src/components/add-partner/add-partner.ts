@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AlertController, NavController } from 'ionic-angular';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { AuthProvider } from '../../providers/auth/auth';
@@ -15,6 +15,7 @@ import { AuthProvider } from '../../providers/auth/auth';
 })
 export class AddPartnerComponent {
 
+  @Input() initial = false;
 
   constructor(
     private navController: NavController,
@@ -22,6 +23,9 @@ export class AddPartnerComponent {
     public barcodeScanner: BarcodeScanner,
     public authProvider: AuthProvider
   ) {
+  }
+  ionViewDidEnter() {
+    
   }
   showPrompt() {
     const prompt = this.alertController.create({
@@ -37,8 +41,11 @@ export class AddPartnerComponent {
           handler: data => {
             this.addPartner(data.email)
               .then(() => {
+                console.log('INITIAL', this.initial);
+                if (this.initial === true) {
+                  this.navController.setRoot('TabsPage');
+                }
                 prompt.dismiss();
-                this.navController.setRoot("TabsPage");
               })
               .catch(() => null);
             return false;

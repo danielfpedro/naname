@@ -4,13 +4,14 @@ import {
   AngularFirestore,
   AngularFirestoreDocument,
   CollectionReference,
+  DocumentReference,
 } from "@angular/fire/firestore";
 import { Facebook } from "@ionic-native/facebook";
 import { GooglePlus } from "@ionic-native/google-plus";
 import { Storage } from "@ionic/storage";
 import { AlertController, App, Platform, ToastController, LoadingOptions, LoadingController, Loading } from "ionic-angular";
 import * as _ from "lodash";
-import { of, Subject } from "rxjs";
+import { of, Subject, Subscribable, Subscription } from "rxjs";
 import { mergeMap, delay, take } from "rxjs/operators";
 import { FirebaseFirestore } from "@angular/fire";
 import { auth } from "firebase";
@@ -61,6 +62,8 @@ export class AuthProvider {
   choicesWaiting = [];
   sendingChoice = false;
 
+  userSubscription: Subscription;
+
   // Quando o user já está watchado a gente da um next aqui
   public readyToRock = new Subject();
 
@@ -82,11 +85,11 @@ export class AuthProvider {
   }
 
   watchUser() {
-    this.afs
+    this.userSubscription = this.afs
       .collection("users")
       .doc(this.userId)
       .snapshotChanges()
-      .pipe(take(1))
+      // .pipe(take(1))
       .subscribe(user => {
         console.log('User changed');
         this.user = user.payload.data();
@@ -200,12 +203,13 @@ export class AuthProvider {
       } else {
         console.log('Sign in browser popup with provider', providerName);
         authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
-
-        await this.createUserIfNeeded(authResponse);
-        await this.storage.set('first_time', true);
-
-        console.log('Sign in response', authResponse);
       }
+
+      await this.createUserIfNeeded(authResponse);
+      await this.storage.set('first_time', true);
+
+      console.log('Sign in response', authResponse);
+
     } catch (error) {
       // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
       // eu jogo um alert explicando pq ele nao pode fazer isso
@@ -213,7 +217,8 @@ export class AuthProvider {
         this.providerCollisionAlert(providerName);
       } else {
         console.error(error);
-        this.toast("Ocorreu um erro ao fazer o login. Por favor tente novamente.");
+        this.toast('Ocorreu um erro ao tentar fazer o login.');
+        throw error;
       }
     }
   }
@@ -319,6 +324,7 @@ export class AuthProvider {
     const loader = this.customLoading('Saindo, aguarde...');
     loader.present();
     await this.afAuth.auth.signOut();
+    this.userSubscription.unsubscribe();
     loader.dismiss();
     this.app.getRootNav().setRoot('LoginPage');
   }
@@ -326,7 +332,7 @@ export class AuthProvider {
   myUserRef(raw = false) {
     return this.afs.collection("users").doc(this.user.id);
   }
-  myUserRawRef() {
+  myUserRawRef(): DocumentReference {
     return this.afs.firestore.collection("users").doc(this.user.id);
   }
   namesRef() {
@@ -370,7 +376,6 @@ export class AuthProvider {
   }
 
   // Partnership
-
   /**
    * Add partner
    * @param email Email address to be added as partner
@@ -384,13 +389,9 @@ export class AuthProvider {
       if (email == this.user.email) {
         throw new PartnerError("Você informou o seu próprio email");
       }
-
       const jwt = await auth().currentUser.getIdToken(true);
-      await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/add_partner', { email: email, jwt: jwt }).toPromise();
-
+      await this.http.post('https://us-central1-nename-d08b1.cloudfunctions.net/add_partner ', { email: email, jwt: jwt }).toPromise();
     } catch (error) {
-      console.log(error);
-      console.log(typeof error);
       if (error.status == 400) {
         const alert = this.alertController.create({
           title: "Ops, algo deu errado!",
@@ -398,7 +399,6 @@ export class AuthProvider {
           buttons: ["ok"]
         });
         alert.present();
-
       } else {
         this.toast('Ocorreu um erro ao tentar adicionar o seu parceiro.');
       }
@@ -410,7 +410,7 @@ export class AuthProvider {
   async removePartner(partner: any): Promise<void> {
     try {
       const jwt = await auth().currentUser.getIdToken(true);
-      await this.http.post('https://us-central1-nenem-381db.cloudfunctions.net/remove_partner', { jwt: jwt }).toPromise();
+      await this.http.post('https://us-central1-nename-d08b1.cloudfunctions.net/remove_partner', { jwt: jwt }).toPromise();
 
       /**
       const chosenNames = await this.chosenNamesRef().ref.get();
@@ -513,6 +513,30 @@ export class AuthProvider {
   //   }
   // }
 
+  async chooseNameDesespero(name: any, like: boolean) {
+    try {
+
+      let batch = this.afs.firestore.batch();
+      if (like) {
+        // Marco a escolha
+        batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
+
+        // const me = await this.myUserRawRef().get();
+        batch.update(this.myUserRawRef(), { total_choices: ((this.user.total_choices || 0) + 1) });
+      }
+      // Delet o nome do cache dele
+      batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
+      // batch.commit();
+
+      await batch.commit();
+      
+    } catch (error) {
+      console.error(error);
+      this.toast('Ocorreu um erro ao tentar escolher o nome');
+    } finally {
+    }
+  }
+
   async chooseName(name: any, like: boolean) {
     this.namesListPendingInterations += 1;
     try {
@@ -521,6 +545,9 @@ export class AuthProvider {
       if (like) {
         // Marco a escolha
         batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
+
+        // const me = await this.myUserRawRef().get();
+        batch.update(this.myUserRawRef(), { total_choices: ((this.user.total_choices || 0) + 1) });
       }
       // Delet o nome do cache dele
       batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
@@ -540,8 +567,6 @@ export class AuthProvider {
     if (!this.sendingChoice) {
       this.sendingChoice = true;
       const toSend = this.choicesWaiting.pop();
-      const me = await this.myUserRawRef().get();
-      toSend.update(me.ref, { total_choices: ((me.get('total_choices') || 0) + 1) });
       await toSend.commit();
 
       this.sendingChoice = false;
@@ -652,9 +677,8 @@ export class AuthProvider {
   async getNamesToChoose(conditions = null) {
 
     try {
-      if (this.isChoicesLimitReached()) {
-        throw new ChoicesLimitReached();
-      }
+      let limit = this.choicesLimit - this.user.total_choices;
+      limit = limit < this.namesChunkSize ? limit : this.namesChunkSize;
 
       const namesRef = this.getMyUserRef().collection("namesCache", ref => {
         let query:
@@ -666,14 +690,12 @@ export class AuthProvider {
         if (conditions && conditions.firstLetter) {
           query = query.where("first_letter", "==", conditions.firstLetter);
         }
-        if (conditions.category) {
+        if (conditions.categoryId) {
           query = query.where(
-            "categories",
-            "array-contains",
-            conditions.category
+            "category_id", '==', conditions.categoryId
           );
         }
-        query = query.limit(this.namesChunkSize);
+        query = query.limit(limit);
         return query;
       });
 
@@ -715,7 +737,7 @@ export class AuthProvider {
   }
 
   async addCustomNameIfNeeded(nameString: string, gender: string) {
-    if (parseInt(this.user.total_choices || 0) >= this.choicesLimit) {
+    if ((this.user.total_choices || 0) >= this.choicesLimit) {
       this.alertChoicesReached();
       return;
     }

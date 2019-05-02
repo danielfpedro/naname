@@ -21,7 +21,7 @@
       </ion-item>
       <ion-item>
         <ion-label class="nename-label-input">Categoria</ion-label>
-        <ion-select formControlName="category">
+        <ion-select formControlName="categoryId">
           <ion-option value="">Todas</ion-option>
           <ion-option [value]="category.id" *ngFor="let category of categories">{{category.name}}</ion-option>
         </ion-select>

@@ -6,7 +6,8 @@ import {
   Platform,
   ActionSheetController,
   PopoverController,
-  ModalController
+  ModalController,
+  LoadingController
 } from "ionic-angular";
 
 import { AuthProvider } from "../../providers/auth/auth";
@@ -23,8 +24,9 @@ export class PartnerListPage {
   usersBlockedCollection: any;
   requestsSentCollection: any;
 
-  blockedUsersSubscription: Subscription;
-  blockedUsers = [];
+  user: any = null;
+  userSubscription: Subscription;
+
 
   constructor(
     public platform: Platform,
@@ -32,30 +34,13 @@ export class PartnerListPage {
     // Ionic components
     public alertCtrl: AlertController,
     private barcodeScanner: BarcodeScanner,
-    private actionSheetController: ActionSheetController,
     private popoverController: PopoverController,
-    private modalController: ModalController
+    private modalController: ModalController,
   ) { }
 
-  ionViewDidLoad() {
-    console.log("subscribing blocked users");
-
-    // this.blockedUsersSubscription = this.authProvider
-    //   .blockedUsersRef()
-    //   .valueChanges()
-    //   .subscribe(blockedUsers => {
-    //     this.blockedUsers = blockedUsers.map(blockedUser => {
-    //       return blockedUser;
-    //     });
-    //   });
-
-
-
-
+  ionViewDidEnter() {
   }
   ionViewWillLeave() {
-    console.log("unsubscribe blocked users");
-    // this.blockedUsersSubscription.unsubscribe();
   }
 
   showPrompt() {
@@ -168,33 +153,33 @@ export class PartnerListPage {
     }
   }
 
-  presentActionSheet() {
-    const actionSheet = this.actionSheetController.create({
-      title: 'Opções do parceiro',
-      buttons: [
-        {
-          text: 'Remover',
-          role: 'destructive',
-          handler: () => {
-            this.presentRemovePartnerAlert();
-          }
-        }, {
-          text: 'Remover e bloquear',
-          role: 'destructive',
-          handler: () => {
-            this.presentRemovePartnerAlert(true);
-          }
-        }, {
-          text: 'Cancelar',
-          role: 'cancel',
-          handler: () => {
-            console.log('Cancel clicked');
-          }
-        }
-      ]
-    });
-    actionSheet.present();
-  }
+  // presentActionSheet() {
+  //   const actionSheet = this.actionSheetController.create({
+  //     title: 'Opções do parceiro',
+  //     buttons: [
+  //       {
+  //         text: 'Remover',
+  //         role: 'destructive',
+  //         handler: () => {
+  //           this.presentRemovePartnerAlert();
+  //         }
+  //       }, {
+  //         text: 'Remover e bloquear',
+  //         role: 'destructive',
+  //         handler: () => {
+  //           this.presentRemovePartnerAlert(true);
+  //         }
+  //       }, {
+  //         text: 'Cancelar',
+  //         role: 'cancel',
+  //         handler: () => {
+  //           console.log('Cancel clicked');
+  //         }
+  //       }
+  //     ]
+  //   });
+  //   actionSheet.present();
+  // }
 
   presentPopover(event) {
     let items = [{ index: 0, label: 'Usuários bloqueados' }];

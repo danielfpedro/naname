@@ -49,6 +49,7 @@ export class MyApp {
     loader.present();
 
     this.afAuth.authState.pipe(take(1)).subscribe(result => {
+      console.log('XANDOCA');
       if (result) {
         this.authProvider.userId = result.uid;
         this.authProvider.watchUser();
@@ -87,32 +88,32 @@ export class MyApp {
     **/
   }
 
-  async setRootIfNeeded(ref: string) {
-    const activeView = (typeof this.nav.getActive() != 'undefined') ? this.nav.getActive().id : null;
-    // console.log('Current root', activeView);
-    // console.log('Root asked', ref);
-    if (activeView === this.initialSettingsPage) {
-      return;
-    }
+  // async setRootIfNeeded(ref: string) {
+  //   const activeView = (typeof this.nav.getActive() != 'undefined') ? this.nav.getActive().id : null;
+  //   // console.log('Current root', activeView);
+  //   // console.log('Root asked', ref);
+  //   if (activeView === this.initialSettingsPage) {
+  //     return;
+  //   }
 
-    let desiredRef = ref;
+  //   let desiredRef = ref;
 
-    let visitedFirstSettingsResponse = null;
-    if (this.authProvider.user) {
-      visitedFirstSettingsResponse = await this.storage.get(`visited_first_settings.${this.authProvider.user.id}`)
-    }
-    // console.log('Visited first settings response', visitedFirstSettingsResponse);
-    if (visitedFirstSettingsResponse && ref == this.initialSettingsPage) {
-      desiredRef = this.tabsPage;
-    }
+  //   let visitedFirstSettingsResponse = null;
+  //   if (this.authProvider.user) {
+  //     visitedFirstSettingsResponse = await this.storage.get(`visited_first_settings.${this.authProvider.user.id}`)
+  //   }
+  //   // console.log('Visited first settings response', visitedFirstSettingsResponse);
+  //   if (visitedFirstSettingsResponse && ref == this.initialSettingsPage) {
+  //     desiredRef = this.tabsPage;
+  //   }
 
-    if (activeView != desiredRef) {
-      this.statusBar.styleDefault();
-      this.statusBar.backgroundColorByHexString('#f7f7f7');
-      // console.log('Set root is needed, setting...');
-      this.nav.setRoot(desiredRef);
-    } else {
-      // console.log('Set root was not necessary');
-    }
-  }
+  //   if (activeView != desiredRef) {
+  //     this.statusBar.styleDefault();
+  //     this.statusBar.backgroundColorByHexString('#f7f7f7');
+  //     // console.log('Set root is needed, setting...');
+  //     this.nav.setRoot(desiredRef);
+  //   } else {
+  //     // console.log('Set root was not necessary');
+  //   }
+  // }
 }

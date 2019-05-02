@@ -50,11 +50,11 @@
       <h3 class="font-color-muted">É possível ir nos nomes escolhidos e deletar alguns para liberar espaço para escolher
         mais.</h3>
       <button ion-button large round (click)="getNamesChunk()" class="margin-top-extra ">
-        Carregar mais nomes
+        Tentar Carregar mais nomes
       </button>
     </div>
 
-    <div class="" [hidden]="loadingNames || cards.length < 1">
+    <div class="" [hidden]="noMoreNames || choicesLimitReached">
       <!-- <p *ngIf="loadingNames">Carregando nomes, por favor aguarde....</p>
         <p *ngIf="noMoreNames && !loadingNames">Não tem mais nome spara mostrar.</p> -->
 
@@ -70,13 +70,13 @@
 
       <div style="display: flex;justify-content: center;width: 100%">
         <div>
-          <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false)">
+          <button ion-button color="naname-negative" class="button-choose" (click)="voteUp(false, true)" [disabled]="btnVoteDisabled">
             <ion-icon name="close"></ion-icon>
           </button>
           <button ion-button color="nename-cinza" class="button-choose-sm" (click)="openNameMeaning()" style="margin: 0 20px;">
             <ion-icon name="information-circle"></ion-icon>
           </button>
-          <button ion-button color="naname-positive" class="button-choose" (click)="voteUp(true)">
+          <button ion-button color="naname-positive" class="button-choose" (click)="voteUp(true, true)" [disabled]="btnVoteDisabled">
             <ion-icon name="heart"></ion-icon>
           </button>
         </div>

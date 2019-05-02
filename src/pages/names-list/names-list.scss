@@ -21,6 +21,9 @@ page-names-list {
 
     text-align: center;
     background-color: color($colors, nename-blue-mara, base);
+    
+    transition: background-color .5s ease;
+
     bottom:0;
 
     display: flex;

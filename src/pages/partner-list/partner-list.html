@@ -29,7 +29,7 @@
   </div>
 
   <div *ngIf="!authProvider.user.partner_id">
-    <add-partner></add-partner>
+    <add-partner [initial]="false"></add-partner>
     <!-- <div class="naname-card naname-card-centered-content">
       <h2 class="margin-bottom-extra">Vou adicionar o meu parceiro</h2>
       <button ion-button block round icon-start (click)="showPrompt()">
