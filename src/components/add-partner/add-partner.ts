@@ -44,6 +44,8 @@ export class AddPartnerComponent {
                 console.log('INITIAL', this.initial);
                 if (this.initial === true) {
                   this.navController.setRoot('TabsPage');
+                } else{
+                  this.navController.pop();
                 }
                 prompt.dismiss();
               })

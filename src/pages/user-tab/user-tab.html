@@ -1,13 +1,58 @@
 <ion-header>
+
   <ion-navbar color="nename" mode="ios">
     <ion-title mode="ios">
       <img src="/assets/imgs/logo.png" width="128">
     </ion-title>
+
+    <ion-buttons right>
+      <button ion-button color="nename-grafite" icon-only (click)="presentPopover($event)">
+        <ion-icon name="more"></ion-icon>
+      </button>
+    </ion-buttons>
   </ion-navbar>
+
 </ion-header>
 
 <ion-content class="nename-content">
-  <ion-list>
+
+  <div class="content-bimbo" *ngIf="authProvider.user.partner_id" padding>
+    <div class="content-child text-center">
+      <h1>Vocês estão conectados</h1>
+      <p>Agora os nomes que vocês escolherem serão unificados.</p>
+
+      <div class="margin-top-extra">
+        <img [src]="authProvider.user?.profilePhotoURL" class="naname-avatar-big">
+        <img [src]="authProvider.user.partner?.profilePhotoURL" class="naname-avatar-big">
+      </div>
+    </div>
+  </div>
+
+  <div class="content-bimbo" *ngIf="!authProvider.user.partner_id" padding>
+    <div class="content-child text-center">
+      <h1>Vocês está conectado como <strong>{{authProvider.user?.name}}</strong></h1>
+
+      <div class="margin-top-extra">
+        <img [src]="authProvider.user?.profilePhotoURL" class="naname-avatar-big">
+      </div>
+    </div>
+
+    <div class="btn-container" padding>
+      <button ion-button round color="nename-blue-mara" block icon-start (click)="goToPartnerList()">
+        <ion-icon name="settings"></ion-icon> Configurações do parceiro
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- <div class="btn-container" padding>
+    <button ion-button round color="nename-blue-mara" block icon-start (click)="goToPartnerList()">
+      <ion-icon name="settings"></ion-icon> Configurações do parceiro
+    </button>
+  </div> -->
+
+  <!-- <ion-list>
     <button ion-item *ngIf="!authProvider.user.partner_id" (click)="navController.push('PartnerListPage')">
       <h2 class="list-item-main">Configurações do parceiro</h2>
     </button>
@@ -25,5 +70,5 @@
       <h1 class="list-item-main">Configurações da conta</h1>
       <p>{{authProvider.user?.name}}</p>
     </button>
-  </ion-list>
+  </ion-list> -->
 </ion-content>

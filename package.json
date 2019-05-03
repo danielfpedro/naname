@@ -33,6 +33,7 @@
     "angular2-swing": "^0.14.0",
     "angularfire2": "^5.1.2",
     "angularx-qrcode": "^1.5.3",
+    "console-remote-client": "^0.5.0",
     "cordova-android": "7.1.4",
     "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-facebook4": "1.7.4",

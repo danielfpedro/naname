@@ -3,7 +3,7 @@ import {
   Platform,
   LoadingController,
   Nav
- } from "ionic-angular";
+} from "ionic-angular";
 
 import { StatusBar } from "@ionic-native/status-bar";
 import { SplashScreen } from "@ionic-native/splash-screen";
@@ -11,7 +11,9 @@ import { AuthProvider } from "../providers/auth/auth";
 import { Storage } from "@ionic/storage";
 import { AngularFireAuth } from "@angular/fire/auth";
 import { take } from "rxjs/operators";
-// import { AuthProvider } from "../providers/auth/auth";
+
+
+
 
 @Component({
   templateUrl: "app.html"
@@ -43,8 +45,6 @@ export class MyApp {
       statusBar.backgroundColorByHexString('#FFF');
       splashScreen.hide();
     });
-
-
     const loader = this.authProvider.customLoading();
     loader.present();
 

@@ -1,3 +1,47 @@
 page-user-tab {
+  .profile-container {
+    //   background-color: green;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    height: 200px;
+    flex-direction: column;
 
+    background-image: url(/assets/imgs/profile_bg.png);
+    background-position: center center;
+    background-size: cover;
+  }
+
+  .imgs-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    flex-direction: row;
+  }
+
+  $size: 90px;
+  .profile-pic {
+    width: $size;
+    height: $size;
+    border-radius: $size;
+  }
+  $size: 70px;
+  .profile-pic-partner {
+    width: $size;
+    height: $size;
+    border-radius: $size;
+
+    margin-left: 10px
+  }
+
+
+  .name-title {
+    margin-top: 20px;
+    font-size: 1.4em;
+  }
+  .btn-container {
+    // margin-top: 20px;
+  }
 }

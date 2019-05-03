@@ -211,12 +211,12 @@ export class AuthProvider {
       console.log('Sign in response', authResponse);
 
     } catch (error) {
+      console.error('Login error: ', error);
       // Se já existir uma conta com provider A e email X e ele tentar logar com provider B e email X
       // eu jogo um alert explicando pq ele nao pode fazer isso
       if (error.code === "auth/account-exists-with-different-credential") {
         this.providerCollisionAlert(providerName);
       } else {
-        console.error(error);
         this.toast('Ocorreu um erro ao tentar fazer o login.');
         throw error;
       }
