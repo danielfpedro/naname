@@ -16,6 +16,7 @@ import { mergeMap, delay, take } from "rxjs/operators";
 import { FirebaseFirestore } from "@angular/fire";
 import { auth } from "firebase";
 import { HttpClient } from "@angular/common/http";
+import { stringify } from "@angular/core/src/util";
 
 @Injectable()
 export class AuthProvider {
@@ -191,10 +192,14 @@ export class AuthProvider {
   async signIn(providerName: string): Promise<void> {
     try {
       let authResponse = null;
+      // await this.afs.collection('logs').add({ error: 'Is cordova?' });
       if (this.platform.is("cordova")) {
+        // await this.afs.collection('logs').add({ error: 'É cordova' });
         switch (providerName) {
           case "google":
+            // await this.afs.collection('logs').add({ error: 'É google' });
             authResponse = await this.sigInGoogleNative();
+            // await this.afs.collection('logs').add({ error: 'Logou finese no google' });
             break;
           case "facebook":
             authResponse = await this.signInWithFacebookNative();
@@ -205,8 +210,15 @@ export class AuthProvider {
         authResponse = await this.signInBrowser(this.getBrowserProvider(providerName));
       }
 
+      // await this.afs.collection('logs').add({ error: 'Auth response ok, agora salva ou edita' });
+
       await this.createUserIfNeeded(authResponse);
+
+      // await this.afs.collection('logs').add({ error: 'Salvou editou fino' });
+
       await this.storage.set('first_time', true);
+
+      // await this.afs.collection('logs').add({ error: 'setou first time... fim' });
 
       console.log('Sign in response', authResponse);
 
@@ -217,7 +229,8 @@ export class AuthProvider {
       if (error.code === "auth/account-exists-with-different-credential") {
         this.providerCollisionAlert(providerName);
       } else {
-        this.toast('Ocorreu um erro ao tentar fazer o login.');
+        this.toast('Ocorreu um erro ao fazer o login.');
+        // await this.afs.collection('logs').add({ error: error });
         throw error;
       }
     }
@@ -272,11 +285,14 @@ export class AuthProvider {
   async sigInGoogleNative() {
     try {
       const loginResponse = await this.gPlus.login({
-        webClientId:
-          "423286092881-nqmi0kad7tcnfm314ev9evq3uehb96ho.apps.googleusercontent.com",
-        offline: true,
-        scopes: "profile email"
+        webClientId: '423286092881-nqmi0kad7tcnfm314ev9evq3uehb96ho.apps.googleusercontent.com',
+        scopes: 'profile email',
+        offline: true
       });
+
+      // await this.afs.collection('logs').add({ error: 'Native response' });
+      // await this.afs.collection('logs').add({ error: JSON.stringify(loginResponse) });
+
       console.log("GOOGLE LOGUN NATIVE RESPONSE", loginResponse);
       return await this.afAuth.auth.signInWithCredential(
         auth.GoogleAuthProvider.credential(loginResponse.idToken)
@@ -489,30 +505,6 @@ export class AuthProvider {
 
   }
 
-  // async chooseName(name: any, like: boolean) {
-  //   //this.namesListPendingInterations += 1;
-  //   try {
-  //     const jwt = await auth().currentUser.getIdToken(true);
-  //     await this.http.post('https://us-central1-nename-d08b1.cloudfunctions.net/vote ', { name, jwt, like }).toPromise();
-  //     // let batch = this.afs.firestore.batch();
-  //     // if (like) {
-  //     //   // Marco a escolha
-  //     //   batch.set(this.chosenNamesRawRef().doc(name.id), { ...name, owners: { [this.user.id]: true } }, { merge: true });
-  //     // }
-  //     // // Delet o nome do cache dele
-  //     // batch.delete(this.myUserRawRef().collection("namesCache").doc(name.id));
-  //     // // batch.commit();
-
-  //     // this.choicesWaiting.push(batch);
-  //     // this.sendChoice();
-  //   } catch (error) {
-  //     console.error(error);
-  //     this.toast('Ocorreu um erro ao tentar escolher o nome');
-  //   } finally {
-  //     // this.namesListPendingInterations -= 1;
-  //   }
-  // }
-
   async chooseNameDesespero(name: any, like: boolean) {
     try {
 
@@ -529,7 +521,7 @@ export class AuthProvider {
       // batch.commit();
 
       await batch.commit();
-      
+
     } catch (error) {
       console.error(error);
       this.toast('Ocorreu um erro ao tentar escolher o nome');

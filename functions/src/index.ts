@@ -9,13 +9,6 @@ const corsHandler = cors({ origin: true });
 
 const db = admin.firestore();
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-
 class BadRequestError extends Error {
     constructor(message = 'BadRequest') {
         // Pass remaining arguments (including vendor specific ones) to parent constructor
@@ -223,14 +216,34 @@ export const publicProfile = functions.firestore.document('/users/{userId}')
                 return db.collection('users_public').doc(change.after.id).delete();
             }
 
-            if (change.before.get('name') === change.after.get('name') && change.before.get('profilePhotoURL') === change.after.get('profilePhotoURL')) {
+            if (
+                change.before.get('name') === change.after.get('name') &&
+                change.before.get('profilePhotoURL') === change.after.get('profilePhotoURL') &&
+                change.before.get('partner_id') === change.after.get('partner_id')
+            ) {
                 return null;
             }
 
-            return db.collection('users_public').doc(change.after.id).set({
+            let data: any = {
                 name: change.after.get('name'),
                 profilePhotoURL: change.after.get('profilePhotoURL'),
-            }, { merge: true });
+                partner_id: change.after.get('partner_id'),
+            };
+
+            if (change.after.get('partner')) {
+                data.partner_id = change.after.get('partner_id');
+                data.partnership_id = change.after.get('partnership_id');
+                data.partner = {
+                    id: change.after.get('partner').id,
+                    name: change.after.get('partner').name,
+                    profilePhotoURL: change.after.get('partner').profilePhotoURL,
+                }
+            } else {
+                data.partnership_id = null;
+                data.partner_id = null;
+                data.partner = null;
+            }
+            return db.collection('users_public').doc(change.after.id).set(data, { merge: true });
         } catch (error) {
             throw error;
         }
@@ -241,6 +254,25 @@ export const totalVotesCache = functions.firestore.document('/users/{userId}/cho
 
         try {
             const chosenNameRef = db.collection('users').doc(context.params.userId).collection('chosenNames').doc(context.params.chosenNameId);
+            const chosenName = await chosenNameRef.get();
+
+            if (!chosenName.exists) {
+                throw new Error("Usuário não existe");
+            }
+
+            const newTotalVotes = (chosenName.get('total_votes') || 0) + 1;
+
+            return chosenNameRef.update({ total_votes: newTotalVotes });
+        } catch (error) {
+            throw error;
+        }
+    });
+
+export const totalVotesCacheFromPartnership = functions.firestore.document('/partnerships/{partnershipId}/chosenNames/{chosenNameId}/votes/{voteId}')
+    .onCreate(async (snap, context) => {
+
+        try {
+            const chosenNameRef = db.collection('partnerships').doc(context.params.partnershipId).collection('chosenNames').doc(context.params.chosenNameId);
             const chosenName = await chosenNameRef.get();
 
             if (!chosenName.exists) {

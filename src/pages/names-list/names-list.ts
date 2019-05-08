@@ -144,7 +144,7 @@ export class NamesListPage {
         const margin = 4;
         let currentMargin = margin;
         names.forEach(name => {
-          this.addNewCard({ ...name.data(), id: name.id, margin: currentMargin });
+          this.addNewCard({ ...name.data(), id: name.id });
           currentMargin += margin;
         });
         this.cards = this.cards.reverse();
