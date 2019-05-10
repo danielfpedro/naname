@@ -25,7 +25,7 @@ export class AddPartnerComponent {
   ) {
   }
   ionViewDidEnter() {
-    
+
   }
   showPrompt() {
     const prompt = this.alertController.create({
@@ -44,12 +44,14 @@ export class AddPartnerComponent {
                 console.log('INITIAL', this.initial);
                 if (this.initial === true) {
                   this.navController.setRoot('TabsPage');
-                } else{
+                } else {
                   this.navController.pop();
                 }
                 prompt.dismiss();
               })
-              .catch(() => null);
+              .catch(() => {
+                console.log('Deu erro, não deve fazer nada');
+              });
             return false;
           }
         }
@@ -62,6 +64,8 @@ export class AddPartnerComponent {
     loader.present();
     try {
       await this.authProvider.addPartner(email);
+    } catch (error) {
+      throw error;
     } finally {
       loader.dismiss();
     }

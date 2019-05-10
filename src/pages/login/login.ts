@@ -56,7 +56,6 @@ export class LoginPage {
       });
     } catch (error) {
       console.error(error);
-    } finally {
       loader.dismiss();
     }
   }

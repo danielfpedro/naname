@@ -228,6 +228,8 @@ export class AuthProvider {
       // eu jogo um alert explicando pq ele nao pode fazer isso
       if (error.code === "auth/account-exists-with-different-credential") {
         this.providerCollisionAlert(providerName);
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        this.toast('Você cancelou o Login.');
       } else {
         this.toast('Ocorreu um erro ao fazer o login.');
         // await this.afs.collection('logs').add({ error: error });
@@ -339,10 +341,15 @@ export class AuthProvider {
     console.log('Loggin out');
     const loader = this.customLoading('Saindo, aguarde...');
     loader.present();
+    console.log('Apresentou loader');
     await this.afAuth.auth.signOut();
-    this.userSubscription.unsubscribe();
+    console.log('Logout firebase');
+    await this.userSubscription.unsubscribe();
+    console.log('Unsubscribe users');
     loader.dismiss();
+    console.log('Loader dismiss');
     this.app.getRootNav().setRoot('LoginPage');
+    console.log('Setou root');
   }
   // Refs
   myUserRef(raw = false) {
@@ -415,6 +422,9 @@ export class AuthProvider {
           buttons: ["ok"]
         });
         alert.present();
+
+        throw error;
+        
       } else {
         this.toast('Ocorreu um erro ao tentar adicionar o seu parceiro.');
       }

@@ -287,6 +287,51 @@ export const totalVotesCacheFromPartnership = functions.firestore.document('/par
         }
     });
 
+export const writeName = functions.firestore.document('/names/{nameId}')
+    .onWrite(async (change, context) => {
+        try {
+            const settings = await db.collection('settings').doc('names').get();
+            let total = settings.get('total') || 0;
+            let total_revisados = settings.get('total_revisados') || 0;
+
+            if (!change.after.exists) {
+                total--;
+                total_revisados--;
+            }
+
+            console.log('Is create or update?');
+            if (!change.before.exists) {
+                total++;
+                if (change.after.get('total_revisados') === true) {
+                    total_revisados++;
+                }
+                console.log('Is create');
+            } else {
+                if (change.before.get('revisado') === true && (change.after.get('revisado') === false || !change.after.get('revisado'))) {
+                    total_revisados--;
+                } else if ((!change.before.get('revisado') || change.before.get('revisado') === false) && change.after.get('revisado') === true) {
+                    total_revisados++;
+                }
+                console.log('Before', change.before.get('revisado'));
+                console.log('After', change.after.get('revisado'));
+                console.log('Is update');
+            }
+
+            if (total < 0) {
+                total = 0;
+            }
+            if (total_revisados < 0) {
+                total_revisados = 0;
+            }
+
+            await settings.ref.update({ total, total_revisados });
+
+            return;
+        } catch (error) {
+            throw error;
+        }
+    });
+
 // export const totalChoices = functions.firestore.document('/users/{userId}/chosenNames/{chosenNameId}')
 //     .onWrite(async (change, context) => {
 
