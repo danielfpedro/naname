@@ -332,6 +332,27 @@ export const writeName = functions.firestore.document('/names/{nameId}')
         }
     });
 
+
+export const newUser = functions.firestore.document('/users/{userId}')
+    .onCreate(async (change) => {
+        try {
+            const usersCounter = await db.collection('counters').doc('users').get();
+            const total = usersCounter.get('total');
+            await usersCounter.ref.update({ total: total + 1 });
+        } catch (error) {
+            console.error(error);
+        }
+    });
+// export const deleteUser = functions.firestore.document('/users/{userId}')
+//     .onDelete(async (change) => {
+//         try {
+//             const usersCounter = await db.collection('counters').doc('users').get();
+//             const total = usersCounter.get('total');
+//             await usersCounter.ref.update({ total: total - 1 });
+//         } catch (error) {
+//             console.error(error);
+//         }
+//     });
 // export const totalChoices = functions.firestore.document('/users/{userId}/chosenNames/{chosenNameId}')
 //     .onWrite(async (change, context) => {
 
